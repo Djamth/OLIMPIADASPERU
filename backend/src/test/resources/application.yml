@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:olimpiadas_peru_test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+    defer-datasource-initialization: true
+  sql:
+    init:
+      mode: always
+
+app:
+  security:
+    jwt:
+      secret: 4b7c3bdf5f9a7240d34f9d331f8be91f2e1ac611b66d8d4b96795d07c2f7b9b6
+      expiration: 86400000
