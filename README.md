@@ -1,4 +1,4 @@
-# 🚀 Sistema de Olimpiadas – Arquitectura SOA
+#  Sistema de Olimpiadas – Arquitectura SOA
 
 Sistema de gestión de olimpiadas deportivas basado en Arquitectura Orientada a Servicios (SOA), diseñado para ser escalable, modular e interoperable.
 
