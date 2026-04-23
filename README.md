@@ -4,7 +4,7 @@ Sistema de gestión de olimpiadas deportivas basado en Arquitectura Orientada a 
 
 ---
 
-## 🧩 Tecnologías Utilizadas
+## 🧩 Tecnologías Utilizadas en el proyecto 
 
 | Categoría        | Tecnología | Descripción |
 |------------------|-----------|------------|
@@ -47,3 +47,4 @@ cd backend
 cd frontend
 npm install
 ng serve
+##
