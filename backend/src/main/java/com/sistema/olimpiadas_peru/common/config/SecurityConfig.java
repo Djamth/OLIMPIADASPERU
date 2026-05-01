@@ -1,6 +1,6 @@
 package com.sistema.olimpiadas_peru.common.config;
 
-import com.sistema.olimpiadas_peru.auth.security.JwtAuthenticationFilter;
+import com.sistema.olimpiadas_peru.auth1.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
