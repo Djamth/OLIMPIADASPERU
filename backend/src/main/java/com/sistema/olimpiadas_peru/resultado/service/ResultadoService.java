@@ -20,7 +20,6 @@ public class ResultadoService {
 
     private final ResultadoRepository resultadoRepository;
     private final ProgramacionService programacionService;
-
     public List<ResultadoResponse> findAll(Long deporteId) {
         List<Resultado> resultados = deporteId == null
                 ? resultadoRepository.findAll()
