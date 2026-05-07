@@ -47,10 +47,8 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers(
-                    "/api/auth/login",
-                    "/api/auth/refresh-token",
-                    "/api/auth/forgot-password",
-                    "/api/auth/reset-password",
+                    "/api/auth/**",
+                    "/olimpiadas/api/auth/**",
                     "/swagger-ui/**",
                     "/swagger-ui.html",
                     "/v3/api-docs/**",
