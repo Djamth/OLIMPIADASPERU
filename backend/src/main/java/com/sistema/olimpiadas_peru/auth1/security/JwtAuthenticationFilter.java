@@ -28,6 +28,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
         throws ServletException, IOException {
 
+        // No intentamos autenticar JWT en endpoints públicos
+        String path = request.getServletPath();
+        boolean esPublico = path.startsWith("/api/auth") || path.startsWith("/olimpiadas/api/auth");
+        if (esPublico) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String token = extractToken(request);
 
         if (token != null

@@ -69,6 +69,7 @@ public class SecurityConfig {
                     response.getWriter().write("{\"mensaje\":\"No autorizado\"}");
                 })
             )
+            // Filtro JWT (se ejecuta antes del UsernamePasswordAuthenticationFilter)
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
