@@ -1,6 +1,6 @@
 # Olimpiadas Peru API
 
-Backend REST para la gestion de olimpiadas deportivas escolares. El proyecto esta construido con Spring Boot, JWT, PostgreSQL y OpenAPI.
+Backend REST para la gestion de olimpiadas deportivas escolares. El proyecto esta construido con Spring Boot, JWT, PostgreSQL .
 
 ## Resumen
 
@@ -24,7 +24,7 @@ Base URL local:
 http://localhost:8080/olimpiadas
 ```
 
-Documentacion OpenAPI:
+Documentacion API:
 
 ```text
 http://localhost:8080/olimpiadas/swagger-ui/index.html
@@ -376,10 +376,13 @@ Se ejecutan con H2 en memoria para no depender de PostgreSQL durante testing.
 
 ## Estado actual
 
-El backend ya se encuentra en una base suficientemente estable para comenzar el frontend:
-
 - autenticacion operativa
 - CRUD principales implementados
 - validaciones de negocio clave activas
 - pruebas automatizadas pasando
+
+
+## Pendiente :
+- Implementacion de websocket para notificaciones en tiempo real
+- Implementacion de notificaciones por email para eventos importantes
 
