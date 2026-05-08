@@ -1,8 +1,0 @@
-{
-  "/dashboard/page": "app/dashboard/page.js",
-  "/login/page": "app/login/page.js",
-  "/deportes/page": "app/deportes/page.js",
-  "/equipos/page": "app/equipos/page.js",
-  "/programacion/page": "app/programacion/page.js",
-  "/participantes/page": "app/participantes/page.js"
-}
