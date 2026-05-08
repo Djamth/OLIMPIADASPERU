@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DeporteService {
 
     private final DeporteRepository deporteRepository;
+    private final ReglaDeporteService reglaDeporteService;
 
     public List<DeporteResponse> findAll() {
         return deporteRepository.findAll().stream().map(this::toResponse).toList();
@@ -49,6 +50,7 @@ public class DeporteService {
     }
 
     private void applyChanges(Deporte deporte, DeporteRequest request) {
+        reglaDeporteService.validarConfiguracionDeporte(request.nombre(), request.numeroJugadores());
         deporte.setNombre(request.nombre());
         deporte.setDescripcion(request.descripcion());
         deporte.setMaximoEquiposPorGrupo(request.maximoEquiposPorGrupo());

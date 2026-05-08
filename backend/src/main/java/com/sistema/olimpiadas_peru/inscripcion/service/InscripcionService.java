@@ -2,12 +2,17 @@ package com.sistema.olimpiadas_peru.inscripcion.service;
 
 import com.sistema.olimpiadas_peru.common.exception.BusinessException;
 import com.sistema.olimpiadas_peru.common.exception.ResourceNotFoundException;
+import com.sistema.olimpiadas_peru.common.enums.EstadoInscripcion;
+import com.sistema.olimpiadas_peru.deporte.entity.Deporte;
+import com.sistema.olimpiadas_peru.deporte.service.ReglaDeporteService;
+import com.sistema.olimpiadas_peru.equipo.entity.Equipo;
 import com.sistema.olimpiadas_peru.deporte.service.DeporteService;
 import com.sistema.olimpiadas_peru.equipo.service.EquipoService;
 import com.sistema.olimpiadas_peru.inscripcion.dto.InscripcionRequest;
 import com.sistema.olimpiadas_peru.inscripcion.dto.InscripcionResponse;
 import com.sistema.olimpiadas_peru.inscripcion.entity.Inscripcion;
 import com.sistema.olimpiadas_peru.inscripcion.repository.InscripcionRepository;
+import com.sistema.olimpiadas_peru.participante.repository.ParticipanteRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,6 +25,8 @@ public class InscripcionService {
     private final InscripcionRepository inscripcionRepository;
     private final EquipoService equipoService;
     private final DeporteService deporteService;
+    private final ReglaDeporteService reglaDeporteService;
+    private final ParticipanteRepository participanteRepository;
 
     public List<InscripcionResponse> findAll() {
         return inscripcionRepository.findAll().stream().map(this::toResponse).toList();
@@ -63,8 +70,15 @@ public class InscripcionService {
     }
 
     private void applyChanges(Inscripcion inscripcion, InscripcionRequest request) {
-        inscripcion.setEquipo(equipoService.getEntity(request.equipoId()));
-        inscripcion.setDeporte(deporteService.getEntity(request.deporteId()));
+        Equipo equipo = equipoService.getEntity(request.equipoId());
+        Deporte deporte = deporteService.getEntity(request.deporteId());
+        reglaDeporteService.validarInscripcion(deporte, equipo);
+        if (request.estado() == EstadoInscripcion.CONFIRMADA) {
+            reglaDeporteService.validarEquipoCompleto(deporte, participanteRepository.countByEquipoId(equipo.getId()));
+        }
+
+        inscripcion.setEquipo(equipo);
+        inscripcion.setDeporte(deporte);
         inscripcion.setEstado(request.estado());
         inscripcion.setFechaInscripcion(request.fechaInscripcion());
     }

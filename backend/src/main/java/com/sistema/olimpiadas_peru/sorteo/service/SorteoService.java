@@ -1,10 +1,13 @@
 package com.sistema.olimpiadas_peru.sorteo.service;
 
+import com.sistema.olimpiadas_peru.common.enums.EstadoInscripcion;
 import com.sistema.olimpiadas_peru.common.exception.BusinessException;
 import com.sistema.olimpiadas_peru.deporte.entity.Deporte;
+import com.sistema.olimpiadas_peru.deporte.service.ReglaDeporteService;
 import com.sistema.olimpiadas_peru.deporte.service.DeporteService;
 import com.sistema.olimpiadas_peru.inscripcion.entity.Inscripcion;
 import com.sistema.olimpiadas_peru.inscripcion.repository.InscripcionRepository;
+import com.sistema.olimpiadas_peru.participante.repository.ParticipanteRepository;
 import com.sistema.olimpiadas_peru.sorteo.dto.GrupoEquipoResponse;
 import com.sistema.olimpiadas_peru.sorteo.dto.GrupoResponse;
 import com.sistema.olimpiadas_peru.sorteo.entity.Grupo;
@@ -26,15 +29,21 @@ public class SorteoService {
     private final GrupoEquipoRepository grupoEquipoRepository;
     private final InscripcionRepository inscripcionRepository;
     private final DeporteService deporteService;
+    private final ReglaDeporteService reglaDeporteService;
+    private final ParticipanteRepository participanteRepository;
 
     @Transactional
     public List<GrupoResponse> generarGrupos(Long deporteId) {
         Deporte deporte = deporteService.getEntity(deporteId);
-        List<Inscripcion> inscripciones = inscripcionRepository.findByDeporteId(deporteId);
+        List<Inscripcion> inscripciones = inscripcionRepository.findByDeporteIdAndEstado(deporteId, EstadoInscripcion.CONFIRMADA);
 
         if (inscripciones.size() < 2) {
-            throw new BusinessException("Se requieren al menos dos equipos inscritos para realizar el sorteo");
+            throw new BusinessException("Se requieren al menos dos equipos con inscripcion confirmada para realizar el sorteo");
         }
+
+        inscripciones.forEach(inscripcion -> reglaDeporteService.validarEquipoCompleto(
+                deporte,
+                participanteRepository.countByEquipoId(inscripcion.getEquipo().getId())));
 
         grupoEquipoRepository.deleteByGrupoDeporteId(deporteId);
         grupoRepository.deleteByDeporteId(deporteId);

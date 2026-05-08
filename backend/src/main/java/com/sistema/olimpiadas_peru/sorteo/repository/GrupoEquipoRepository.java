@@ -8,5 +8,7 @@ public interface GrupoEquipoRepository extends JpaRepository<GrupoEquipo, Long> 
 
     List<GrupoEquipo> findByGrupoId(Long grupoId);
 
+    boolean existsByGrupoIdAndEquipoId(Long grupoId, Long equipoId);
+
     void deleteByGrupoDeporteId(Long deporteId);
 }

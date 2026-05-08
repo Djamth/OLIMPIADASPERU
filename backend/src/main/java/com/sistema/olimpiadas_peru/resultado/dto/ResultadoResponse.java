@@ -9,5 +9,5 @@ public record ResultadoResponse(
         Integer puntajeLocal,
         Integer puntajeVisitante,
         String observaciones,
-        String goleadores) {
+        java.util.List<ResultadoAnotacionResponse> anotaciones) {
 }

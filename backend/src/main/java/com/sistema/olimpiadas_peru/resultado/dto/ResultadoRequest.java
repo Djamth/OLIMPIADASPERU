@@ -1,8 +1,9 @@
 package com.sistema.olimpiadas_peru.resultado.dto;
 
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import java.util.List;
 
 public record ResultadoRequest(
         @NotNull(message = "El partido es obligatorio")
@@ -14,6 +15,6 @@ public record ResultadoRequest(
         @Min(value = 0, message = "El puntaje no puede ser negativo")
         Integer puntajeVisitante,
         String observaciones,
-        @NotBlank(message = "Debe indicar los goleadores o participantes destacados")
-        String goleadores) {
+        @Valid
+        List<ResultadoAnotacionRequest> anotaciones) {
 }

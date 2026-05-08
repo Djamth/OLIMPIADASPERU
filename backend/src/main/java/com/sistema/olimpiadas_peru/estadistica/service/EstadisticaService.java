@@ -2,6 +2,8 @@ package com.sistema.olimpiadas_peru.estadistica.service;
 
 import com.sistema.olimpiadas_peru.estadistica.dto.GoleadorResponse;
 import com.sistema.olimpiadas_peru.estadistica.dto.RankingEquipoResponse;
+import com.sistema.olimpiadas_peru.resultado.entity.ResultadoAnotacion;
+import com.sistema.olimpiadas_peru.resultado.repository.ResultadoAnotacionRepository;
 import com.sistema.olimpiadas_peru.resultado.entity.Resultado;
 import com.sistema.olimpiadas_peru.resultado.repository.ResultadoRepository;
 import java.util.ArrayList;
@@ -17,16 +19,14 @@ import org.springframework.stereotype.Service;
 public class EstadisticaService {
 
     private final ResultadoRepository resultadoRepository;
+    private final ResultadoAnotacionRepository resultadoAnotacionRepository;
 
     public List<GoleadorResponse> obtenerGoleadores(Long deporteId) {
         Map<String, Integer> acumulado = new HashMap<>();
         for (Resultado resultado : resultadoRepository.findByPartidoDeporteId(deporteId)) {
-            String[] goleadores = resultado.getGoleadores().split(",");
-            for (String goleador : goleadores) {
-                String limpio = goleador.trim();
-                if (!limpio.isBlank()) {
-                    acumulado.merge(limpio, 1, Integer::sum);
-                }
+            for (ResultadoAnotacion anotacion : resultadoAnotacionRepository.findByResultadoId(resultado.getId())) {
+                String nombreCompleto = anotacion.getParticipante().getNombres() + " " + anotacion.getParticipante().getApellidos();
+                acumulado.merge(nombreCompleto, anotacion.getCantidad(), Integer::sum);
             }
         }
         return acumulado.entrySet().stream()
