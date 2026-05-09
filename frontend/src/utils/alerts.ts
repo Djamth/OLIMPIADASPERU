@@ -1,4 +1,5 @@
 import Swal from "sweetalert2";
+import type { AxiosError } from "axios";
 
 const baseOptions = {
   confirmButtonColor: "#1565C0",
@@ -41,3 +42,10 @@ export const alerts = {
     Swal.close();
   },
 };
+
+export function getErrorMessage(error: unknown) {
+  const axiosError = error as AxiosError<{ mensaje?: string; message?: string }>;
+  return axiosError.response?.data?.mensaje
+    ?? axiosError.response?.data?.message
+    ?? "No se pudo completar la operacion.";
+}
