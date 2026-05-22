@@ -20,7 +20,7 @@ export function TableToolbar({
   placeholder?: string;
 }) {
   return (
-    <div className="mb-4 flex flex-col gap-3 rounded-xl border border-slate-200/80 bg-gradient-to-r from-slate-50 to-white p-3 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+    <div className="mb-4 flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm lg:flex-row lg:items-center lg:justify-between">
       <div className="flex h-12 w-full max-w-md items-center overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_10px_24px_rgba(15,23,42,0.04)] ring-1 ring-white">
         <span className="grid h-full w-11 place-items-center text-blue-600">
           <Search size={17} />

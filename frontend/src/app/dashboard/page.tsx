@@ -10,7 +10,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   ArrowUpRight,
-  BarChart3,
   CalendarDays,
   ClipboardCheck,
   Medal,
@@ -60,7 +59,7 @@ export default function DashboardPage() {
 
   return (
     <AppShell>
-      <section className="mb-4 flex flex-col gap-5 overflow-hidden rounded-xl bg-[radial-gradient(circle_at_18%_18%,rgba(255,255,255,0.2),transparent_18%),linear-gradient(135deg,rgba(21,101,192,0.98),rgba(30,64,175,0.95)),linear-gradient(315deg,rgba(229,57,53,0.28),transparent_48%)] p-5 text-white shadow-[0_26px_58px_rgba(21,101,192,0.22)] lg:flex-row lg:items-center lg:justify-between lg:p-8">
+      <section className="mb-4 flex flex-col gap-5 overflow-hidden rounded-xl border border-blue-900/10 bg-blue-700 p-5 text-white shadow-[0_22px_48px_rgba(21,101,192,0.2)] lg:flex-row lg:items-center lg:justify-between lg:p-8">
         <div>
           <span className="mb-2 block text-xs font-extrabold uppercase text-white/55">Resumen general</span>
           <h2 className="mb-2 text-3xl font-extrabold tracking-normal md:text-4xl">Gestion central de Olimpiadas Peru</h2>
@@ -110,7 +109,7 @@ export default function DashboardPage() {
             })}
           </div>
 
-          <div className="mb-4 grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
+          <div className="mb-4">
             <section className="surface-card h-full p-5">
               <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                 <div>
@@ -119,33 +118,10 @@ export default function DashboardPage() {
                 </div>
                 <span className="w-fit rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-extrabold text-slate-700">Ultimos 10 dias</span>
               </div>
-              <div className="grid h-56 grid-cols-10 items-end gap-3 rounded-lg border border-slate-100 bg-gradient-to-b from-white to-slate-50 p-4">
+              <div className="grid h-56 grid-cols-10 items-end gap-3 rounded-lg border border-slate-100 bg-slate-50 p-4">
                 {bars.map((height, index) => (
                   <div className="flex h-full items-end overflow-hidden rounded-full bg-slate-100" key={index}>
-                    <span className="block w-full rounded-full bg-gradient-to-b from-sky-400 to-blue-700" style={{ height: `${height}%` }} />
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <section className="surface-card h-full p-5">
-              <div className="mb-4 flex items-center justify-between">
-                <div>
-                  <h3 className="mb-1 text-xl font-extrabold text-slate-950">Avance funcional</h3>
-                  <p className="text-sm font-medium text-slate-500">Indicadores del sistema en tiempo real.</p>
-                </div>
-                <BarChart3 className="text-blue-600" size={22} />
-              </div>
-              <div className="grid gap-4">
-                {summary.avanceFuncional.map((item) => (
-                  <div key={item.label}>
-                    <div className="mb-1 flex justify-between text-sm font-bold text-slate-800">
-                      <span>{item.label}</span>
-                      <span>{item.value}%</span>
-                    </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-                      <div className="h-full rounded-full bg-blue-600" style={{ width: `${item.value}%` }} />
-                    </div>
+                    <span className="block w-full rounded-full bg-blue-600" style={{ height: `${height}%` }} />
                   </div>
                 ))}
               </div>

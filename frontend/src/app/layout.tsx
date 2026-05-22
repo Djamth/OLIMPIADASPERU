@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className="bg-gradient-to-br from-slate-50 to-slate-100">
+      <body className="bg-slate-50">
         <AppProviders>{children}</AppProviders>
       </body>
     </html>
