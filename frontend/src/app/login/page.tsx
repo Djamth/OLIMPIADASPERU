@@ -1,11 +1,34 @@
 "use client";
 
 import { useAuth } from "@/context/AuthContext";
-import { Loader2, LockKeyhole, LogIn, Mail, ShieldCheck, Trophy } from "lucide-react";
+import {
+  BarChart3,
+  Eye,
+  EyeOff,
+  Loader2,
+  LockKeyhole,
+  LogIn,
+  Mail,
+  Medal,
+  ShieldCheck,
+  Trophy,
+  UserRound,
+  UsersRound,
+} from "lucide-react";
 import { useState } from "react";
+
+const featureItems = [
+  { label: "Deportes", icon: Trophy },
+  { label: "Resultados", icon: Medal },
+  { label: "Estadisticas", icon: BarChart3 },
+  { label: "Atletas", icon: UsersRound },
+  { label: "Competencias", icon: ShieldCheck },
+];
 
 export default function LoginPage() {
   const { login, isLoading } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
+  const [remember, setRemember] = useState(true);
   const [form, setForm] = useState({
     email: "admin@olimpiadasperu.pe",
     password: "Admin123*",
@@ -23,96 +46,142 @@ export default function LoginPage() {
   };
 
   const inputClass =
-    "h-12 w-full rounded-r-lg border border-l-0 border-white/15 bg-white/10 px-3 text-sm font-semibold text-white outline-none transition placeholder:text-white/35 focus:border-sky-400/70 focus:bg-white/[0.14] focus:ring-4 focus:ring-sky-400/15";
+    "h-14 w-full rounded-r-xl border border-l-0 border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10";
 
   return (
-    <main className="login-surface grid min-h-screen place-items-center px-4 py-10">
-      <div className="mx-auto grid w-full max-w-6xl items-center gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(380px,0.9fr)]">
-        <section className="text-white">
-          <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-sm font-bold text-sky-100 backdrop-blur">
-            <Trophy size={17} />
-            Plataforma deportiva institucional
-          </span>
-          <h1 className="mb-4 max-w-3xl text-4xl font-extrabold leading-tight tracking-normal md:text-5xl">
-            Gestiona olimpiadas internas con una experiencia moderna, clara y competitiva.
-          </h1>
-          <p className="mb-6 max-w-2xl text-base font-medium leading-7 text-white/55 md:text-lg">
-            Organiza deportes, equipos, participantes, programacion y resultados desde un solo panel administrativo.
-          </p>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <article className="rounded-lg border border-white/15 bg-white/10 p-4 text-white backdrop-blur">
-              <div className="mb-1 font-extrabold">Reglas por deporte</div>
-              <div className="text-sm font-medium text-white/60">Validaciones listas para futbol, basquet, voley y ping pong.</div>
-            </article>
-            <article className="rounded-lg border border-white/15 bg-white/10 p-4 text-white backdrop-blur">
-              <div className="mb-1 font-extrabold">Resultados y ranking</div>
-              <div className="text-sm font-medium text-white/60">Anotaciones reales por participante y estadisticas deportivas.</div>
-            </article>
-          </div>
-        </section>
+    <main className="min-h-screen bg-[radial-gradient(circle_at_8%_10%,rgba(21,101,192,0.12),transparent_26%),linear-gradient(135deg,#f8fbff,#eef4fb)] p-4 text-slate-950 md:p-7">
+      <section className="mx-auto grid min-h-[calc(100vh-3.5rem)] max-w-7xl overflow-hidden rounded-[28px] border border-white/80 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.16)] lg:grid-cols-[1.38fr_1fr]">
+        <div className="relative hidden overflow-hidden bg-slate-950 lg:block">
+          <div className="absolute inset-0 bg-[url('/images/fondo.png')] bg-cover bg-center" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,20,52,0.22),rgba(4,20,52,0.58)),radial-gradient(circle_at_50%_24%,rgba(21,101,192,0.18),transparent_28%)]" />
+          <div className="absolute left-8 top-8 h-40 w-40 rounded-full border border-sky-300/10 bg-[radial-gradient(circle,rgba(56,189,248,0.22)_1px,transparent_1px)] bg-[length:16px_16px] opacity-70" />
+          <div className="absolute bottom-8 right-8 h-32 w-52 rounded-full border border-sky-300/10 bg-[radial-gradient(circle,rgba(255,255,255,0.22)_1px,transparent_1px)] bg-[length:14px_14px] opacity-60" />
 
-        <section className="rounded-xl border border-white/15 bg-white/[0.11] p-6 text-white shadow-[0_24px_70px_rgba(0,0,0,0.35)] backdrop-blur-xl md:p-9">
-          <div className="mb-6 text-center">
-            <div className="mx-auto mb-4 grid h-[72px] w-[72px] place-items-center rounded-full bg-sky-400/15 text-sky-300">
-              <LockKeyhole size={34} />
+          <div className="relative z-10 flex h-full flex-col items-center justify-center px-10 py-12 text-center text-white">
+            <div className="mb-7 grid h-28 w-28 place-items-center rounded-full border border-white/20 bg-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.25)] backdrop-blur-md">
+              <Trophy className="text-amber-300" size={58} />
             </div>
-            <h2 className="mb-1 text-3xl font-extrabold">Iniciar sesion</h2>
-            <p className="text-sm font-medium text-white/55">Accede al panel de Olimpiadas Peru</p>
+            <h1 className="text-6xl font-black uppercase tracking-normal drop-shadow-xl">Olimpiadas</h1>
+            <p className="mt-3 text-lg font-bold uppercase tracking-[0.18em] text-sky-100/90">
+              Sistema de gestion deportiva
+            </p>
+
+            <div className="mt-12 grid w-full max-w-3xl grid-cols-5 gap-5">
+              {featureItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <div className="grid justify-items-center gap-3 text-white" key={item.label}>
+                    <div className="grid h-12 w-12 place-items-center rounded-xl border border-sky-200/20 bg-sky-300/10 text-sky-200 backdrop-blur">
+                      <Icon size={25} />
+                    </div>
+                    <span className="text-xs font-black uppercase">{item.label}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
+        </div>
 
-          <form className="grid gap-4" onSubmit={handleSubmit}>
-            <label className="grid gap-2">
-              <span className="text-sm font-bold text-white/80">Correo</span>
-              <span className="flex">
-                <span className="grid h-12 w-12 place-items-center rounded-l-lg border border-white/15 bg-white/10 text-sky-300">
-                  <Mail size={18} />
+        <div className="flex items-center justify-center bg-white px-5 py-10 md:px-10">
+          <section className="w-full max-w-md">
+            <div className="mb-9 text-center">
+              <div className="mx-auto mb-5 grid h-20 w-20 place-items-center rounded-full border border-slate-200 bg-slate-50 text-blue-600 shadow-[0_16px_34px_rgba(15,23,42,0.08)]">
+                <UserRound size={38} />
+              </div>
+              <h2 className="text-4xl font-black tracking-normal text-slate-950">Bienvenido</h2>
+              <p className="mt-2 text-base font-semibold text-slate-500">Inicia sesion para continuar</p>
+            </div>
+
+            <form className="grid gap-5" onSubmit={handleSubmit}>
+              <label className="grid gap-2">
+                <span className="text-sm font-black text-slate-800">Correo</span>
+                <span className="flex">
+                  <span className="grid h-14 w-14 place-items-center rounded-l-xl border border-slate-200 bg-white text-slate-500">
+                    <Mail size={21} />
+                  </span>
+                  <input
+                    type="email"
+                    className={inputClass}
+                    value={form.email}
+                    onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))}
+                    placeholder="Ingresa tu correo"
+                    required
+                  />
                 </span>
-                <input
-                  type="email"
-                  className={inputClass}
-                  value={form.email}
-                  onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))}
-                  required
-                />
-              </span>
-            </label>
+              </label>
 
-            <label className="grid gap-2">
-              <span className="text-sm font-bold text-white/80">Contrasena</span>
-              <span className="flex">
-                <span className="grid h-12 w-12 place-items-center rounded-l-lg border border-white/15 bg-white/10 text-sky-300">
-                  <ShieldCheck size={18} />
+              <label className="grid gap-2">
+                <span className="text-sm font-black text-slate-800">Contrasena</span>
+                <span className="flex">
+                  <span className="grid h-14 w-14 place-items-center rounded-l-xl border border-slate-200 bg-white text-slate-500">
+                    <LockKeyhole size={21} />
+                  </span>
+                  <span className="relative flex-1">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      className={`${inputClass} pr-12`}
+                      value={form.password}
+                      onChange={(event) => setForm((prev) => ({ ...prev, password: event.target.value }))}
+                      placeholder="Ingresa tu contrasena"
+                      required
+                    />
+                    <button
+                      className="absolute right-3 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-slate-400 transition hover:bg-slate-50 hover:text-blue-600"
+                      type="button"
+                      onClick={() => setShowPassword((value) => !value)}
+                      aria-label={showPassword ? "Ocultar contrasena" : "Mostrar contrasena"}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </span>
                 </span>
-                <input
-                  type="password"
-                  className={inputClass}
-                  value={form.password}
-                  onChange={(event) => setForm((prev) => ({ ...prev, password: event.target.value }))}
-                  required
-                />
-              </span>
-            </label>
+              </label>
 
-            <button
-              type="submit"
-              className="mt-2 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-blue-600 px-5 text-sm font-extrabold text-white shadow-[0_14px_28px_rgba(21,101,192,0.28)] transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={submitting || isLoading}
-            >
-              {submitting ? (
-                <>
-                  <Loader2 className="animate-spin" size={18} />
-                  Ingresando...
-                </>
-              ) : (
-                <>
-                  <LogIn size={18} />
-                  Ingresar al sistema
-                </>
-              )}
-            </button>
-          </form>
-        </section>
-      </div>
+              <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+                <label className="inline-flex cursor-pointer items-center gap-2 font-semibold text-slate-700">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 rounded accent-blue-600"
+                    checked={remember}
+                    onChange={(event) => setRemember(event.target.checked)}
+                  />
+                  Recordarme
+                </label>
+                <button className="font-bold text-blue-600 transition hover:text-blue-800" type="button">
+                  Olvidaste tu contrasena?
+                </button>
+              </div>
+
+              <button
+                type="submit"
+                className="mt-1 inline-flex h-14 w-full items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-blue-700 to-blue-600 px-5 text-base font-black text-white shadow-[0_18px_36px_rgba(37,99,235,0.28)] transition hover:-translate-y-0.5 hover:from-blue-800 hover:to-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={submitting || isLoading}
+              >
+                {submitting ? (
+                  <>
+                    <Loader2 className="animate-spin" size={21} />
+                    Ingresando...
+                  </>
+                ) : (
+                  <>
+                    <LogIn size={21} />
+                    Iniciar sesion
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="my-8 flex items-center gap-4">
+              <div className="h-px flex-1 bg-slate-200" />
+              <span className="text-sm font-black text-slate-400">o</span>
+              <div className="h-px flex-1 bg-slate-200" />
+            </div>
+
+
+           
+          </section>
+        </div>
+      </section>
     </main>
   );
 }
