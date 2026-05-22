@@ -1,5 +1,13 @@
+"use client";
+
+import { Badge } from "@/components/common/Badge";
+import { LoadingState } from "@/components/common/LoadingState";
 import { AppShell } from "@/components/layout/AppShell";
+import { dashboardService } from "@/services/adminServices";
+import type { DashboardResumen } from "@/types/admin";
+import { alerts, getErrorMessage } from "@/utils/alerts";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import {
   ArrowUpRight,
   BarChart3,
@@ -10,210 +18,198 @@ import {
   UsersRound,
 } from "lucide-react";
 
-const metrics = [
-  {
-    title: "Equipos activos",
-    value: "24",
-    change: "+8% este mes",
-    icon: UsersRound,
-    tone: "primary",
-  },
-  {
-    title: "Participantes",
-    value: "286",
-    change: "+41 registros",
-    icon: ClipboardCheck,
-    tone: "success",
-  },
-  {
-    title: "Partidos programados",
-    value: "18",
-    change: "7 por jugarse",
-    icon: CalendarDays,
-    tone: "warning",
-  },
-  {
-    title: "Resultados cargados",
-    value: "12",
-    change: "Ranking actualizado",
-    icon: Medal,
-    tone: "danger",
-  },
-];
-
+const metricIcons = [UsersRound, ClipboardCheck, CalendarDays, Medal];
 const bars = [28, 54, 48, 82, 22, 74, 76, 86, 58, 31];
 
 const moduleLinks = [
+  { href: "/usuarios", label: "Usuarios", value: "Accesos" },
+  { href: "/perfiles", label: "Perfiles", value: "Roles y modulos" },
   { href: "/instituciones", label: "Instituciones", value: "Clientes y sedes" },
   { href: "/equipos", label: "Equipos", value: "Delegaciones" },
-  { href: "/participantes", label: "Participantes", value: "Deportistas" },
   { href: "/programacion", label: "Programacion", value: "Calendario" },
   { href: "/resultados", label: "Resultados", value: "Marcadores" },
-  { href: "/estadisticas", label: "Estadisticas", value: "Rankings" },
 ];
 
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("es-PE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
+function statusTone(estado: string): "blue" | "green" | "red" | "amber" | "slate" {
+  if (estado === "PROGRAMADO") return "blue";
+  if (estado === "FINALIZADO") return "green";
+  if (estado === "REPROGRAMADO") return "amber";
+  return "red";
+}
+
 export default function DashboardPage() {
+  const [summary, setSummary] = useState<DashboardResumen | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    dashboardService.resumen()
+      .then(setSummary)
+      .catch((error) => alerts.error("No se pudo cargar el dashboard", getErrorMessage(error)))
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <AppShell>
-      <section className="dashboard-hero mb-4">
+      <section className="mb-4 flex flex-col gap-5 overflow-hidden rounded-xl bg-[radial-gradient(circle_at_18%_18%,rgba(255,255,255,0.2),transparent_18%),linear-gradient(135deg,rgba(21,101,192,0.98),rgba(30,64,175,0.95)),linear-gradient(315deg,rgba(229,57,53,0.28),transparent_48%)] p-5 text-white shadow-[0_26px_58px_rgba(21,101,192,0.22)] lg:flex-row lg:items-center lg:justify-between lg:p-8">
         <div>
-          <span className="module-eyebrow text-white-50">Resumen general</span>
-          <h2 className="display-6 fw-bold mb-2">Gestion central de Olimpiadas Peru</h2>
-          <p className="mb-0 text-white-75">
+          <span className="mb-2 block text-xs font-extrabold uppercase text-white/55">Resumen general</span>
+          <h2 className="mb-2 text-3xl font-extrabold tracking-normal md:text-4xl">Gestion central de Olimpiadas Peru</h2>
+          <p className="max-w-3xl text-sm font-medium text-white/75">
             Monitorea equipos, deportes, programacion, resultados y estadisticas desde un solo panel.
           </p>
         </div>
-        <Link href="/programacion" className="btn btn-light d-inline-flex align-items-center gap-2">
+        <Link
+          href="/programacion"
+          className="inline-flex h-10 w-fit items-center justify-center gap-2 rounded-lg bg-white px-4 text-sm font-bold text-slate-950 shadow-sm transition hover:bg-slate-100"
+        >
           Ver calendario
           <ArrowUpRight size={16} />
         </Link>
       </section>
 
-      <div className="row g-3 mb-4">
-        {metrics.map((item) => {
-          const Icon = item.icon;
-          return (
-            <div className="col-12 col-md-6 col-xl-3" key={item.title}>
-              <article className={`metric-card metric-${item.tone}`}>
-                <div className="d-flex align-items-center justify-content-between mb-3">
-                  <div className="metric-icon">
-                    <Icon size={19} />
-                  </div>
-                  <span className="status-pill">Activo</span>
-                </div>
-                <p className="text-soft small mb-1">{item.title}</p>
-                <div className="d-flex align-items-end justify-content-between gap-3">
-                  <strong className="metric-value">{item.value}</strong>
-                  <span className="metric-change">{item.change}</span>
-                </div>
-              </article>
-            </div>
-          );
-        })}
-      </div>
+      {loading ? <LoadingState /> : summary && (
+        <>
+          <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {summary.metricas.map((item, index) => {
+              const Icon = metricIcons[index] ?? Trophy;
+              const toneClass = {
+                primary: "bg-blue-50 text-blue-700",
+                success: "bg-emerald-50 text-emerald-700",
+                warning: "bg-amber-50 text-amber-700",
+                danger: "bg-red-50 text-red-700",
+              }[item.tone] ?? "bg-slate-50 text-slate-700";
 
-      <div className="row g-4 mb-4">
-        <div className="col-12 col-xl-8">
-          <section className="surface-card p-4 h-100">
-            <div className="d-flex flex-column flex-md-row justify-content-between gap-2 mb-4">
-              <div>
-                <h3 className="h5 fw-bold mb-1">Actividad semanal</h3>
-                <p className="text-soft mb-0">Partidos registrados por fecha y estado de competencia.</p>
+              return (
+                <article
+                  className="min-h-36 rounded-xl border border-white/70 bg-white/95 p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl transition hover:-translate-y-0.5"
+                  key={item.title}
+                >
+                  <div className="mb-3 flex items-center justify-between">
+                    <div className={`grid h-10 w-10 place-items-center rounded-lg ${toneClass}`}>
+                      <Icon size={19} />
+                    </div>
+                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">Activo</span>
+                  </div>
+                  <p className="mb-1 text-sm font-medium text-slate-500">{item.title}</p>
+                  <div className="flex items-end justify-between gap-3">
+                    <strong className="text-3xl font-extrabold leading-none text-slate-950">{item.value}</strong>
+                    <span className="whitespace-nowrap text-xs font-bold text-emerald-600">{item.change}</span>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+
+          <div className="mb-4 grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
+            <section className="surface-card h-full p-5">
+              <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h3 className="mb-1 text-xl font-extrabold text-slate-950">Actividad semanal</h3>
+                  <p className="text-sm font-medium text-slate-500">Partidos registrados por fecha y estado de competencia.</p>
+                </div>
+                <span className="w-fit rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-extrabold text-slate-700">Ultimos 10 dias</span>
               </div>
-              <span className="badge rounded-pill text-bg-light border align-self-start">Ultimos 10 dias</span>
-            </div>
-            <div className="dashboard-bars">
-              {bars.map((height, index) => (
-                <div className="dashboard-bar-track" key={index}>
-                  <span style={{ height: `${height}%` }} />
-                </div>
-              ))}
-            </div>
-            <div className="d-flex justify-content-between text-soft small mt-3">
-              <span>01 May</span>
-              <span>05 May</span>
-              <span>10 May</span>
-            </div>
-          </section>
-        </div>
-
-        <div className="col-12 col-xl-4">
-          <section className="surface-card p-4 h-100">
-            <div className="d-flex align-items-center justify-content-between mb-3">
-              <div>
-                <h3 className="h5 fw-bold mb-1">Avance funcional</h3>
-                <p className="text-soft mb-0">Procesos listos para pruebas.</p>
+              <div className="grid h-56 grid-cols-10 items-end gap-3 rounded-lg border border-slate-100 bg-gradient-to-b from-white to-slate-50 p-4">
+                {bars.map((height, index) => (
+                  <div className="flex h-full items-end overflow-hidden rounded-full bg-slate-100" key={index}>
+                    <span className="block w-full rounded-full bg-gradient-to-b from-sky-400 to-blue-700" style={{ height: `${height}%` }} />
+                  </div>
+                ))}
               </div>
-              <BarChart3 className="text-primary" size={22} />
-            </div>
-            <div className="d-flex flex-column gap-3">
-              {[
-                ["Autenticacion y seguridad", "100%"],
-                ["CRUD principales", "85%"],
-                ["Reglas por deporte", "75%"],
-                ["Frontend conectado", "65%"],
-              ].map(([label, value]) => (
-                <div key={label}>
-                  <div className="d-flex justify-content-between small fw-semibold mb-1">
-                    <span>{label}</span>
-                    <span>{value}</span>
-                  </div>
-                  <div className="progress progress-slim">
-                    <div className="progress-bar" style={{ width: value }} />
-                  </div>
+            </section>
+
+            <section className="surface-card h-full p-5">
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <h3 className="mb-1 text-xl font-extrabold text-slate-950">Avance funcional</h3>
+                  <p className="text-sm font-medium text-slate-500">Indicadores del sistema en tiempo real.</p>
                 </div>
-              ))}
-            </div>
-          </section>
-        </div>
-      </div>
+                <BarChart3 className="text-blue-600" size={22} />
+              </div>
+              <div className="grid gap-4">
+                {summary.avanceFuncional.map((item) => (
+                  <div key={item.label}>
+                    <div className="mb-1 flex justify-between text-sm font-bold text-slate-800">
+                      <span>{item.label}</span>
+                      <span>{item.value}%</span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                      <div className="h-full rounded-full bg-blue-600" style={{ width: `${item.value}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
 
-      <div className="row g-4">
-        <div className="col-12 col-xl-8">
-          <section className="surface-card p-4 h-100">
-            <div className="d-flex justify-content-between align-items-center mb-3">
-              <h3 className="h5 fw-bold mb-0">Proximas contiendas</h3>
-              <span className="badge text-bg-primary">Semana actual</span>
-            </div>
-            <div className="table-responsive">
-              <table className="table table-modern align-middle mb-0">
-                <thead>
-                  <tr>
-                    <th>Deporte</th>
-                    <th>Encuentro</th>
-                    <th>Fecha</th>
-                    <th>Sede</th>
-                    <th>Estado</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>Futbol</td>
-                    <td>Brasil vs Francia</td>
-                    <td>10/05/2026 09:00</td>
-                    <td>Cancha Principal</td>
-                    <td><span className="status-pill status-blue">Programado</span></td>
-                  </tr>
-                  <tr>
-                    <td>Voley</td>
-                    <td>Argentina vs Peru</td>
-                    <td>10/05/2026 11:00</td>
-                    <td>Coliseo Norte</td>
-                    <td><span className="status-pill status-red">Por confirmar</span></td>
-                  </tr>
-                  <tr>
-                    <td>Basquet</td>
-                    <td>Chile vs Colombia</td>
-                    <td>11/05/2026 14:00</td>
-                    <td>Cancha Techada</td>
-                    <td><span className="status-pill status-green">Listo</span></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-        </div>
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
+            <section className="surface-card h-full p-5">
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-xl font-extrabold text-slate-950">Proximas contiendas</h3>
+                <Badge tone="blue">En agenda</Badge>
+              </div>
+              <div className="overflow-x-auto rounded-xl border border-slate-100">
+                <table className="min-w-full border-separate border-spacing-0">
+                  <thead>
+                    <tr>
+                      {["Deporte", "Encuentro", "Fecha", "Sede", "Estado"].map((header) => (
+                        <th className="border-b border-slate-200 bg-slate-50 px-4 py-3 text-left text-xs font-extrabold uppercase text-slate-600" key={header}>
+                          {header}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {summary.proximasContiendas.map((item) => (
+                      <tr className="transition hover:bg-blue-50/40" key={item.id}>
+                        <td className="border-b border-slate-100 px-4 py-4 text-sm font-bold text-slate-800">{item.deporte}</td>
+                        <td className="border-b border-slate-100 px-4 py-4 text-sm text-slate-700">{item.encuentro}</td>
+                        <td className="border-b border-slate-100 px-4 py-4 text-sm text-slate-700">{formatDate(item.fechaHora)}</td>
+                        <td className="border-b border-slate-100 px-4 py-4 text-sm text-slate-700">{item.sede}</td>
+                        <td className="border-b border-slate-100 px-4 py-4 text-sm">
+                          <Badge tone={statusTone(item.estado)}>{item.estado}</Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
 
-        <div className="col-12 col-xl-4">
-          <section className="surface-card p-4 h-100">
-            <div className="d-flex align-items-center gap-2 mb-3">
-              <Trophy className="text-danger" size={20} />
-              <h3 className="h5 fw-bold mb-0">Modulos rapidos</h3>
-            </div>
-            <div className="module-shortcuts">
-              {moduleLinks.map((item) => (
-                <Link href={item.href} className="module-shortcut" key={item.href}>
-                  <span>
-                    <strong>{item.label}</strong>
-                    <small>{item.value}</small>
-                  </span>
-                  <ArrowUpRight size={16} />
-                </Link>
-              ))}
-            </div>
-          </section>
-        </div>
-      </div>
+            <section className="surface-card h-full p-5">
+              <div className="mb-4 flex items-center gap-2">
+                <Trophy className="text-red-600" size={20} />
+                <h3 className="text-xl font-extrabold text-slate-950">Modulos rapidos</h3>
+              </div>
+              <div className="grid gap-3">
+                {moduleLinks.map((item) => (
+                  <Link
+                    href={item.href}
+                    className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 p-3 text-slate-950 transition hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                    key={item.href}
+                  >
+                    <span>
+                      <strong className="block text-sm font-extrabold">{item.label}</strong>
+                      <small className="mt-0.5 block text-xs font-semibold text-slate-500">{item.value}</small>
+                    </span>
+                    <ArrowUpRight size={16} />
+                  </Link>
+                ))}
+              </div>
+            </section>
+          </div>
+        </>
+      )}
     </AppShell>
   );
 }

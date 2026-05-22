@@ -111,6 +111,12 @@ public class UsuarioService {
         Usuario usuario = usuarioRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
+        if (usuarioDTO.getEmail() != null && !usuarioDTO.getEmail().equalsIgnoreCase(usuario.getEmail())) {
+            usuarioRepository.findByEmail(usuarioDTO.getEmail()).ifPresent(existente -> {
+                throw new RuntimeException("Ya existe un usuario con ese email");
+            });
+            usuario.setEmail(usuarioDTO.getEmail());
+        }
         usuario.setNombre(usuarioDTO.getNombre());
         if (SecurityUtils.isAdmin() && usuarioDTO.getRolId() != null) {
             Rol rol = rolService.obtenerRolPorId(usuarioDTO.getRolId());

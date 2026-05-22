@@ -1,6 +1,9 @@
 "use client";
 
+import { Badge } from "@/components/common/Badge";
+import { PrimaryActionButton } from "@/components/common/Buttons";
 import { EmptyState } from "@/components/common/EmptyState";
+import { fieldClass, labelClass } from "@/components/common/formStyles";
 import { LoadingState } from "@/components/common/LoadingState";
 import { PageHeader } from "@/components/common/PageHeader";
 import { deporteService, sorteoService } from "@/services/crudServices";
@@ -51,36 +54,34 @@ export function SorteosClient() {
       <PageHeader
         title="Sorteos"
         description="Genera series aleatorias por deporte con equipos confirmados."
-        action={<button className="btn btn-primary rounded-pill px-4" onClick={generar} disabled={!deporteId}><i className="bi bi-shuffle me-2" />Generar sorteo</button>}
+        action={<PrimaryActionButton onClick={generar} disabled={!deporteId}>Generar sorteo</PrimaryActionButton>}
       />
 
-      <div className="surface-card p-4 mb-4">
-        <label className="form-label fw-semibold">Deporte</label>
-        <select className="form-select" value={deporteId} onChange={(e) => setDeporteId(Number(e.target.value))}>
+      <div className="mb-4 rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+        <label className={labelClass}>Deporte</label>
+        <select className={fieldClass} value={deporteId} onChange={(e) => setDeporteId(Number(e.target.value))}>
           {deportes.map((item) => <option value={item.id} key={item.id}>{item.nombre}</option>)}
         </select>
       </div>
 
       {loading ? <LoadingState /> : grupos.length === 0 ? (
-        <EmptyState title="Sin grupos generados" description="Genera el sorteo cuando tengas al menos dos equipos confirmados." icon="bi-shuffle" />
+        <EmptyState title="Sin grupos generados" description="Genera el sorteo cuando tengas al menos dos equipos confirmados." />
       ) : (
-        <div className="row g-4">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {grupos.map((grupo) => (
-            <div className="col-12 col-lg-6 col-xl-4" key={grupo.id}>
-              <div className="surface-card p-4 h-100">
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <h3 className="h5 mb-0">{grupo.nombre}</h3>
-                  <span className="badge bg-primary-subtle text-primary">{grupo.deporteNombre}</span>
+            <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl" key={grupo.id}>
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <h3 className="m-0 text-lg font-extrabold text-slate-950">{grupo.nombre}</h3>
+                  <Badge>{grupo.deporteNombre}</Badge>
                 </div>
-                <ol className="list-group list-group-numbered">
+                <ol className="space-y-2">
                   {grupo.equipos.map((equipo) => (
-                    <li className="list-group-item d-flex justify-content-between align-items-center" key={equipo.equipoId}>
-                      {equipo.equipoNombre}
-                      <span className="badge text-bg-light">Pos. {equipo.posicion}</span>
+                    <li className="flex items-center justify-between rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700" key={equipo.equipoId}>
+                      <span>{equipo.equipoNombre}</span>
+                      <Badge tone="slate">Pos. {equipo.posicion}</Badge>
                     </li>
                   ))}
                 </ol>
-              </div>
             </div>
           ))}
         </div>

@@ -1,5 +1,8 @@
 "use client";
 
+import { Badge } from "@/components/common/Badge";
+import { DataTable, type DataTableColumn } from "@/components/common/DataTable";
+import { fieldClass } from "@/components/common/formStyles";
 import { EmptyState } from "@/components/common/EmptyState";
 import { LoadingState } from "@/components/common/LoadingState";
 import { PaginationControls } from "@/components/common/PaginationControls";
@@ -20,6 +23,17 @@ export function EstadisticasClient() {
   const rankingTable = useTableControls(ranking, (item, query) =>
     [item.equipo, String(item.puntos), String(item.partidosJugados)].some((value) => value.toLowerCase().includes(query)),
   );
+
+  const rankingColumns: DataTableColumn<RankingEquipo>[] = [
+    { key: "equipo", header: "Equipo", render: (item) => <span className="font-bold text-slate-950">{item.equipo}</span> },
+    { key: "pj", header: "PJ", render: (item) => item.partidosJugados },
+    { key: "v", header: "V", render: (item) => item.victorias },
+    { key: "e", header: "E", render: (item) => item.empates },
+    { key: "d", header: "D", render: (item) => item.derrotas },
+    { key: "gf", header: "GF", render: (item) => item.tantosFavor },
+    { key: "gc", header: "GC", render: (item) => item.tantosContra },
+    { key: "pts", header: "Pts", render: (item) => <Badge tone="slate">{item.puntos}</Badge> },
+  ];
 
   useEffect(() => {
     deporteService.list()
@@ -51,19 +65,18 @@ export function EstadisticasClient() {
         title="Estadisticas"
         description="Consulta ranking de equipos y tabla de anotadores por deporte."
         action={
-          <select className="form-select" style={{ maxWidth: 260 }} value={deporteId} onChange={(e) => setDeporteId(Number(e.target.value))}>
+          <select className={`${fieldClass} max-w-64`} value={deporteId} onChange={(e) => setDeporteId(Number(e.target.value))}>
             {deportes.map((item) => <option value={item.id} key={item.id}>{item.nombre}</option>)}
           </select>
         }
       />
 
       {loading ? <LoadingState /> : ranking.length === 0 && goleadores.length === 0 ? (
-        <EmptyState title="Sin estadisticas" description="Registra resultados para generar ranking y anotadores." icon="bi-graph-up-arrow" />
+        <EmptyState title="Sin estadisticas" description="Registra resultados para generar ranking y anotadores." />
       ) : (
-        <div className="row g-4">
-          <div className="col-12 col-xl-8">
-            <div className="surface-card p-4 h-100">
-              <h3 className="h5 mb-3">Ranking de equipos</h3>
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
+          <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+              <h3 className="mb-3 text-lg font-extrabold text-slate-950">Ranking de equipos</h3>
               <TableToolbar
                 query={rankingTable.query}
                 onQueryChange={rankingTable.setQuery}
@@ -73,55 +86,23 @@ export function EstadisticasClient() {
                 filteredItems={rankingTable.filteredItems}
                 placeholder="Buscar equipo..."
               />
-              <div className="table-responsive">
-                <table className="table table-modern align-middle mb-0">
-                  <thead>
-                    <tr>
-                      <th>Equipo</th>
-                      <th>PJ</th>
-                      <th>V</th>
-                      <th>E</th>
-                      <th>D</th>
-                      <th>GF</th>
-                      <th>GC</th>
-                      <th>Pts</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rankingTable.pageItems.map((item) => (
-                      <tr key={item.equipo}>
-                        <td className="fw-semibold">{item.equipo}</td>
-                        <td>{item.partidosJugados}</td>
-                        <td>{item.victorias}</td>
-                        <td>{item.empates}</td>
-                        <td>{item.derrotas}</td>
-                        <td>{item.tantosFavor}</td>
-                        <td>{item.tantosContra}</td>
-                        <td><span className="badge text-bg-dark">{item.puntos}</span></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <DataTable columns={rankingColumns} items={rankingTable.pageItems} getRowKey={(item) => item.equipo} />
               <PaginationControls page={rankingTable.page} totalPages={rankingTable.totalPages} onPageChange={rankingTable.setPage} />
-            </div>
           </div>
 
-          <div className="col-12 col-xl-4">
-            <div className="surface-card p-4 h-100">
-              <h3 className="h5 mb-3">Anotadores</h3>
-              <div className="list-group list-group-flush">
+          <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+              <h3 className="mb-3 text-lg font-extrabold text-slate-950">Anotadores</h3>
+              <div className="divide-y divide-slate-100">
                 {goleadores.map((item, index) => (
-                  <div className="list-group-item px-0 d-flex justify-content-between align-items-center" key={`${item.nombre}-${index}`}>
+                  <div className="flex items-center justify-between gap-3 py-3" key={`${item.nombre}-${index}`}>
                     <div>
-                      <div className="fw-semibold">{item.nombre}</div>
-                      <div className="small text-soft">Participante</div>
+                      <div className="font-bold text-slate-950">{item.nombre}</div>
+                      <div className="text-xs font-semibold text-slate-500">Participante</div>
                     </div>
-                    <span className="badge bg-danger">{item.anotaciones}</span>
+                    <Badge tone="red">{item.anotaciones}</Badge>
                   </div>
                 ))}
               </div>
-            </div>
           </div>
         </div>
       )}

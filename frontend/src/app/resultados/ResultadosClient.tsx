@@ -1,7 +1,11 @@
 "use client";
 
+import { Badge } from "@/components/common/Badge";
+import { IconActionButton, PrimaryActionButton, RowActions } from "@/components/common/Buttons";
+import { DataTable, type DataTableColumn } from "@/components/common/DataTable";
 import { EmptyState } from "@/components/common/EmptyState";
 import { FormModal } from "@/components/common/FormModal";
+import { fieldClass, labelClass, textareaClass } from "@/components/common/formStyles";
 import { LoadingState } from "@/components/common/LoadingState";
 import { PaginationControls } from "@/components/common/PaginationControls";
 import { PageHeader } from "@/components/common/PageHeader";
@@ -11,6 +15,7 @@ import { useTableControls } from "@/hooks/useTableControls";
 import { participanteService, programacionService, resultadoService } from "@/services/crudServices";
 import type { Participante, Partido, Resultado, ResultadoAnotacionRequest, ResultadoRequest } from "@/types/catalogs";
 import { alerts, getErrorMessage } from "@/utils/alerts";
+import { PlusCircle, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 const emptyForm: ResultadoRequest = {
@@ -118,18 +123,35 @@ export function ResultadosClient() {
     }
   };
 
+  const columns: DataTableColumn<Resultado>[] = [
+    {
+      key: "partido",
+      header: "Partido",
+      render: (item) => (
+        <span className="font-bold text-slate-950">
+          {item.equipoLocal} vs {item.equipoVisitante}
+          <span className="block text-xs font-semibold text-slate-500">{item.observaciones || "Sin observaciones"}</span>
+        </span>
+      ),
+    },
+    { key: "deporte", header: "Deporte", render: (item) => item.deporte },
+    { key: "marcador", header: "Marcador", render: (item) => <Badge tone="slate">{item.puntajeLocal} - {item.puntajeVisitante}</Badge> },
+    { key: "anotaciones", header: "Anotaciones", render: (item) => item.anotaciones?.length ?? 0 },
+    { key: "acciones", header: "Acciones", align: "right", render: (item) => <RowActions onEdit={() => startEdit(item)} onDelete={() => remove(item)} /> },
+  ];
+
   return (
     <>
       <PageHeader
         title="Resultados"
         description="Carga marcadores y observaciones de cada partido."
-        action={<button className="btn btn-primary rounded-pill px-4" onClick={startCreate}><i className="bi bi-plus-circle me-2" />Registrar resultado</button>}
+        action={<PrimaryActionButton onClick={startCreate}>Registrar resultado</PrimaryActionButton>}
       />
 
       {loading ? <LoadingState /> : data.length === 0 ? (
-        <EmptyState title="Sin resultados" description="Registra el marcador cuando finalice una contienda." icon="bi-bar-chart-line" />
+        <EmptyState title="Sin resultados" description="Registra el marcador cuando finalice una contienda." />
       ) : (
-        <div className="surface-card p-4">
+        <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
           <TableToolbar
             query={table.query}
             onQueryChange={table.setQuery}
@@ -139,75 +161,49 @@ export function ResultadosClient() {
             filteredItems={table.filteredItems}
             placeholder="Buscar resultado, equipo o deporte..."
           />
-          <div className="table-responsive">
-            <table className="table table-modern align-middle mb-0">
-              <thead>
-                <tr>
-                  <th>Partido</th>
-                  <th>Deporte</th>
-                  <th>Marcador</th>
-                  <th>Anotaciones</th>
-                  <th className="text-end">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {table.pageItems.map((item) => (
-                  <tr key={item.id}>
-                    <td className="fw-semibold">{item.equipoLocal} vs {item.equipoVisitante}<div className="small text-soft">{item.observaciones || "Sin observaciones"}</div></td>
-                    <td>{item.deporte}</td>
-                    <td><span className="badge text-bg-dark">{item.puntajeLocal} - {item.puntajeVisitante}</span></td>
-                    <td>{item.anotaciones?.length ?? 0}</td>
-                    <td className="crud-actions text-end">
-                      <button className="btn btn-sm btn-outline-primary me-2 icon-button" onClick={() => startEdit(item)} aria-label="Editar"><i className="bi bi-pencil-square" /></button>
-                      <button className="btn btn-sm btn-outline-danger icon-button" onClick={() => remove(item)} aria-label="Eliminar"><i className="bi bi-trash3" /></button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable columns={columns} items={table.pageItems} getRowKey={(item) => item.id} />
           <PaginationControls page={table.page} totalPages={table.totalPages} onPageChange={table.setPage} />
         </div>
       )}
 
       <FormModal open={open} title={editing ? "Editar resultado" : "Registrar resultado"} onClose={() => setOpen(false)} onSubmit={handleSubmit} submitting={submitting}>
-        <div className="row g-3">
-          <div className="col-12">
-            <label className="form-label">Partido</label>
-            <select className="form-select" value={form.partidoId} onChange={(e) => setForm({ ...form, partidoId: Number(e.target.value) })} required>
+        <div className="grid gap-4 md:grid-cols-12">
+          <div className="md:col-span-12">
+            <label className={labelClass}>Partido</label>
+            <select className={fieldClass} value={form.partidoId} onChange={(e) => setForm({ ...form, partidoId: Number(e.target.value) })} required>
               <option value={0} disabled>Seleccionar</option>
               {partidos.map((item) => <option value={item.id} key={item.id}>{item.equipoLocalNombre} vs {item.equipoVisitanteNombre} - {item.deporteNombre}</option>)}
             </select>
           </div>
-          <div className="col-md-6">
-            <label className="form-label">Puntaje local</label>
-            <input type="number" min={0} className="form-control" value={form.puntajeLocal} onChange={(e) => setForm({ ...form, puntajeLocal: Number(e.target.value) })} required />
+          <div className="md:col-span-6">
+            <label className={labelClass}>Puntaje local</label>
+            <input type="number" min={0} className={fieldClass} value={form.puntajeLocal} onChange={(e) => setForm({ ...form, puntajeLocal: Number(e.target.value) })} required />
           </div>
-          <div className="col-md-6">
-            <label className="form-label">Puntaje visitante</label>
-            <input type="number" min={0} className="form-control" value={form.puntajeVisitante} onChange={(e) => setForm({ ...form, puntajeVisitante: Number(e.target.value) })} required />
+          <div className="md:col-span-6">
+            <label className={labelClass}>Puntaje visitante</label>
+            <input type="number" min={0} className={fieldClass} value={form.puntajeVisitante} onChange={(e) => setForm({ ...form, puntajeVisitante: Number(e.target.value) })} required />
           </div>
-          <div className="col-12">
-            <label className="form-label">Observaciones</label>
-            <textarea className="form-control" rows={3} value={form.observaciones ?? ""} onChange={(e) => setForm({ ...form, observaciones: e.target.value })} />
+          <div className="md:col-span-12">
+            <label className={labelClass}>Observaciones</label>
+            <textarea className={textareaClass} rows={3} value={form.observaciones ?? ""} onChange={(e) => setForm({ ...form, observaciones: e.target.value })} />
           </div>
-          <div className="col-12">
-            <div className="d-flex align-items-center justify-content-between gap-3 mb-2">
-              <label className="form-label mb-0">Anotaciones</label>
-              <button type="button" className="btn btn-sm btn-outline-primary rounded-pill" onClick={addAnotacion}>
-                <i className="bi bi-plus-circle me-2" />
+          <div className="md:col-span-12">
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <label className={labelClass}>Anotaciones</label>
+              <button type="button" className="inline-flex h-9 items-center gap-2 rounded-full border border-blue-200 bg-white px-3 text-sm font-bold text-blue-600 transition hover:bg-blue-50" onClick={addAnotacion}>
+                <PlusCircle size={16} />
                 Agregar
               </button>
             </div>
             {(form.anotaciones ?? []).length === 0 ? (
-              <div className="alert alert-info mb-0">Puedes registrar el marcador sin anotadores o agregarlos por participante.</div>
+              <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700">Puedes registrar el marcador sin anotadores o agregarlos por participante.</div>
             ) : (
-              <div className="d-flex flex-column gap-2">
+              <div className="flex flex-col gap-2">
                 {(form.anotaciones ?? []).map((anotacion, index) => (
-                  <div className="row g-2 align-items-center" key={index}>
-                    <div className="col-md-8">
+                  <div className="grid gap-2 md:grid-cols-12" key={index}>
+                    <div className="md:col-span-8">
                       <select
-                        className="form-select"
+                        className={fieldClass}
                         value={anotacion.participanteId}
                         onChange={(e) => setAnotacion(index, { participanteId: Number(e.target.value) })}
                         required
@@ -220,20 +216,20 @@ export function ResultadosClient() {
                         ))}
                       </select>
                     </div>
-                    <div className="col-md-3">
+                    <div className="md:col-span-3">
                       <input
                         type="number"
                         min={1}
-                        className="form-control"
+                        className={fieldClass}
                         value={anotacion.cantidad}
                         onChange={(e) => setAnotacion(index, { cantidad: Number(e.target.value) })}
                         required
                       />
                     </div>
-                    <div className="col-md-1 text-end">
-                      <button type="button" className="btn btn-outline-danger icon-button" onClick={() => removeAnotacion(index)} aria-label="Quitar anotacion">
-                        <i className="bi bi-x-lg" />
-                      </button>
+                    <div className="flex justify-end md:col-span-1">
+                      <IconActionButton label="Quitar anotacion" tone="danger" onClick={() => removeAnotacion(index)}>
+                        <X size={16} />
+                      </IconActionButton>
                     </div>
                   </div>
                 ))}

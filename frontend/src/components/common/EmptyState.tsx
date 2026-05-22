@@ -1,19 +1,19 @@
+import { Inbox } from "lucide-react";
+
 export function EmptyState({
   title,
   description,
-  icon = "bi-inbox",
 }: {
   title: string;
   description: string;
-  icon?: string;
 }) {
   return (
-    <div className="surface-card p-5 text-center">
-      <div className="rounded-circle bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center mb-3 empty-icon">
-        <i className={`bi ${icon} fs-3`} />
+    <div className="rounded-lg border border-slate-200 bg-white/90 p-10 text-center shadow-[0_18px_46px_rgba(15,23,42,0.08)]">
+      <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-blue-50 text-blue-600">
+        <Inbox size={28} />
       </div>
-      <h3 className="h5 mb-2">{title}</h3>
-      <p className="mb-0 text-soft">{description}</p>
+      <h3 className="mb-2 text-lg font-extrabold text-slate-950">{title}</h3>
+      <p className="m-0 text-sm text-slate-500">{description}</p>
     </div>
   );
 }

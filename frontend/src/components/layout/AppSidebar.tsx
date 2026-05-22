@@ -15,23 +15,27 @@ import {
   LogOut,
   Medal,
   Settings,
+  ShieldCheck,
   Shuffle,
   Trophy,
   UserRound,
+  Users,
   UsersRound,
 } from "lucide-react";
 
 const items = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/instituciones", label: "Instituciones", icon: Building2 },
-  { href: "/deportes", label: "Deportes", icon: Trophy },
-  { href: "/equipos", label: "Equipos", icon: UsersRound },
-  { href: "/participantes", label: "Participantes", icon: UserRound },
-  { href: "/inscripciones", label: "Inscripciones", icon: ClipboardCheck },
-  { href: "/sorteos", label: "Sorteos", icon: Shuffle },
-  { href: "/programacion", label: "Programacion", icon: CalendarDays },
-  { href: "/resultados", label: "Resultados", icon: Medal },
-  { href: "/estadisticas", label: "Estadisticas", icon: BarChart3 },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, keys: ["/dashboard", "dashboard"] },
+  { href: "/usuarios", label: "Usuarios", icon: Users, keys: ["/usuarios", "usuarios"] },
+  { href: "/perfiles", label: "Perfiles", icon: ShieldCheck, keys: ["/roles", "/modulos", "roles", "modulos"] },
+  { href: "/instituciones", label: "Instituciones", icon: Building2, keys: ["/instituciones", "instituciones"] },
+  { href: "/deportes", label: "Deportes", icon: Trophy, keys: ["/deportes", "deportes"] },
+  { href: "/equipos", label: "Equipos", icon: UsersRound, keys: ["/equipos", "equipos"] },
+  { href: "/participantes", label: "Participantes", icon: UserRound, keys: ["/participantes", "participantes"] },
+  { href: "/inscripciones", label: "Inscripciones", icon: ClipboardCheck, keys: ["/inscripciones", "inscripciones"] },
+  { href: "/sorteos", label: "Sorteos", icon: Shuffle, keys: ["/sorteos", "sorteos"] },
+  { href: "/programacion", label: "Programacion", icon: CalendarDays, keys: ["/programacion", "/programaciones", "programaciones"] },
+  { href: "/resultados", label: "Resultados", icon: Medal, keys: ["/resultados", "resultados"] },
+  { href: "/estadisticas", label: "Estadisticas", icon: BarChart3, keys: ["/estadisticas", "estadisticas"] },
 ];
 
 function getInitials(name?: string) {
@@ -55,6 +59,16 @@ export function AppSidebar({
 }) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const isAdmin = user?.rolNombre?.toLowerCase() === "administrador";
+  const visibleItems = items.filter((item) => {
+    if (item.href === "/dashboard" || isAdmin) return true;
+    const keys = item.keys.map((key) => key.toLowerCase());
+    return user?.modulos?.some((modulo) => {
+      const ruta = modulo.ruta?.toLowerCase();
+      const nombre = modulo.nombre?.toLowerCase();
+      return keys.includes(ruta) || keys.includes(nombre);
+    });
+  });
 
   const handleLogout = async () => {
     const result = await alerts.confirm("Cerrar sesion", "Se cerrara la sesion actual.");
@@ -94,7 +108,7 @@ export function AppSidebar({
       </div>
 
       <nav className="op-sidebar-nav">
-        {items.map((item) => {
+        {visibleItems.map((item) => {
           const Icon = item.icon;
           const active = pathname === item.href;
 

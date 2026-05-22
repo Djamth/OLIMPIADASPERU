@@ -1,7 +1,10 @@
 "use client";
 
+import { PrimaryActionButton, RowActions } from "@/components/common/Buttons";
+import { DataTable, type DataTableColumn } from "@/components/common/DataTable";
 import { EmptyState } from "@/components/common/EmptyState";
 import { FormModal } from "@/components/common/FormModal";
+import { fieldClass, labelClass } from "@/components/common/formStyles";
 import { LoadingState } from "@/components/common/LoadingState";
 import { PaginationControls } from "@/components/common/PaginationControls";
 import { PageHeader } from "@/components/common/PageHeader";
@@ -88,18 +91,47 @@ export function InstitucionesClient() {
     }
   };
 
+  const columns: DataTableColumn<Institucion>[] = [
+    {
+      key: "nombre",
+      header: "Nombre",
+      render: (item) => <span className="font-bold text-slate-950">{item.nombre}</span>,
+    },
+    {
+      key: "codigo",
+      header: "Codigo",
+      render: (item) => item.codigoModular,
+    },
+    {
+      key: "region",
+      header: "Region",
+      render: (item) => `${item.region} / ${item.ciudad}`,
+    },
+    {
+      key: "contacto",
+      header: "Contacto",
+      render: (item) => <span className="text-slate-500">{item.email || item.telefono || "Sin contacto"}</span>,
+    },
+    {
+      key: "acciones",
+      header: "Acciones",
+      align: "right",
+      render: (item) => <RowActions onEdit={() => startEdit(item)} onDelete={() => remove(item)} />,
+    },
+  ];
+
   return (
     <>
       <PageHeader
         title="Instituciones"
         description="Administra colegios o instituciones participantes."
-        action={<button className="btn btn-primary rounded-pill px-4" onClick={startCreate}><i className="bi bi-plus-circle me-2" />Nueva institucion</button>}
+        action={<PrimaryActionButton onClick={startCreate}>Nueva institucion</PrimaryActionButton>}
       />
 
       {loading ? <LoadingState /> : data.length === 0 ? (
-        <EmptyState title="Sin instituciones" description="Registra la primera institucion para empezar a crear equipos." icon="bi-building" />
+        <EmptyState title="Sin instituciones" description="Registra la primera institucion para empezar a crear equipos." />
       ) : (
-        <div className="surface-card p-4">
+        <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
           <TableToolbar
             query={table.query}
             onQueryChange={table.setQuery}
@@ -109,70 +141,40 @@ export function InstitucionesClient() {
             filteredItems={table.filteredItems}
             placeholder="Buscar institucion, codigo, region..."
           />
-          <div className="table-responsive">
-            <table className="table table-modern align-middle mb-0">
-              <thead>
-                <tr>
-                  <th>Nombre</th>
-                  <th>Codigo</th>
-                  <th>Region</th>
-                  <th>Contacto</th>
-                  <th className="text-end">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {table.pageItems.map((item) => (
-                  <tr key={item.id}>
-                    <td className="fw-semibold">{item.nombre}</td>
-                    <td>{item.codigoModular}</td>
-                    <td>{item.region} / {item.ciudad}</td>
-                    <td className="text-soft">{item.email || item.telefono || "Sin contacto"}</td>
-                    <td className="crud-actions text-end">
-                      <button className="btn btn-sm btn-outline-primary me-2 icon-button" onClick={() => startEdit(item)} aria-label="Editar">
-                        <i className="bi bi-pencil-square" />
-                      </button>
-                      <button className="btn btn-sm btn-outline-danger icon-button" onClick={() => remove(item)} aria-label="Eliminar">
-                        <i className="bi bi-trash3" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable columns={columns} items={table.pageItems} getRowKey={(item) => item.id} />
           <PaginationControls page={table.page} totalPages={table.totalPages} onPageChange={table.setPage} />
         </div>
       )}
 
       <FormModal open={open} title={editing ? "Editar institucion" : "Nueva institucion"} onClose={() => setOpen(false)} onSubmit={handleSubmit} submitting={submitting}>
-        <div className="row g-3">
-          <div className="col-md-8">
-            <label className="form-label">Nombre</label>
-            <input className="form-control" value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required />
+        <div className="grid gap-4 md:grid-cols-12">
+          <div className="md:col-span-8">
+            <label className={labelClass}>Nombre</label>
+            <input className={fieldClass} value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required />
           </div>
-          <div className="col-md-4">
-            <label className="form-label">Codigo modular</label>
-            <input className="form-control" value={form.codigoModular} onChange={(e) => setForm({ ...form, codigoModular: e.target.value })} required />
+          <div className="md:col-span-4">
+            <label className={labelClass}>Codigo modular</label>
+            <input className={fieldClass} value={form.codigoModular} onChange={(e) => setForm({ ...form, codigoModular: e.target.value })} required />
           </div>
-          <div className="col-md-6">
-            <label className="form-label">Region</label>
-            <input className="form-control" value={form.region} onChange={(e) => setForm({ ...form, region: e.target.value })} required />
+          <div className="md:col-span-6">
+            <label className={labelClass}>Region</label>
+            <input className={fieldClass} value={form.region} onChange={(e) => setForm({ ...form, region: e.target.value })} required />
           </div>
-          <div className="col-md-6">
-            <label className="form-label">Ciudad</label>
-            <input className="form-control" value={form.ciudad} onChange={(e) => setForm({ ...form, ciudad: e.target.value })} required />
+          <div className="md:col-span-6">
+            <label className={labelClass}>Ciudad</label>
+            <input className={fieldClass} value={form.ciudad} onChange={(e) => setForm({ ...form, ciudad: e.target.value })} required />
           </div>
-          <div className="col-12">
-            <label className="form-label">Direccion</label>
-            <input className="form-control" value={form.direccion ?? ""} onChange={(e) => setForm({ ...form, direccion: e.target.value })} />
+          <div className="md:col-span-12">
+            <label className={labelClass}>Direccion</label>
+            <input className={fieldClass} value={form.direccion ?? ""} onChange={(e) => setForm({ ...form, direccion: e.target.value })} />
           </div>
-          <div className="col-md-6">
-            <label className="form-label">Telefono</label>
-            <input className="form-control" value={form.telefono ?? ""} onChange={(e) => setForm({ ...form, telefono: e.target.value })} />
+          <div className="md:col-span-6">
+            <label className={labelClass}>Telefono</label>
+            <input className={fieldClass} value={form.telefono ?? ""} onChange={(e) => setForm({ ...form, telefono: e.target.value })} />
           </div>
-          <div className="col-md-6">
-            <label className="form-label">Email</label>
-            <input type="email" className="form-control" value={form.email ?? ""} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+          <div className="md:col-span-6">
+            <label className={labelClass}>Email</label>
+            <input type="email" className={fieldClass} value={form.email ?? ""} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           </div>
         </div>
       </FormModal>

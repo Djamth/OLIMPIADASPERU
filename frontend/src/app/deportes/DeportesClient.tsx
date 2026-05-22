@@ -1,7 +1,11 @@
 "use client";
 
+import { Badge } from "@/components/common/Badge";
+import { PrimaryActionButton, RowActions } from "@/components/common/Buttons";
+import { DataTable, type DataTableColumn } from "@/components/common/DataTable";
 import { EmptyState } from "@/components/common/EmptyState";
 import { FormModal } from "@/components/common/FormModal";
+import { fieldClass, labelClass, textareaClass } from "@/components/common/formStyles";
 import { LoadingState } from "@/components/common/LoadingState";
 import { PaginationControls } from "@/components/common/PaginationControls";
 import { PageHeader } from "@/components/common/PageHeader";
@@ -82,18 +86,26 @@ export function DeportesClient() {
     }
   };
 
+  const columns: DataTableColumn<Deporte>[] = [
+    { key: "deporte", header: "Deporte", render: (item) => <span className="font-bold text-slate-950">{item.nombre}</span> },
+    { key: "descripcion", header: "Descripcion", render: (item) => <span className="text-slate-500">{item.descripcion || "Sin descripcion"}</span> },
+    { key: "jugadores", header: "Jugadores", render: (item) => <Badge>{item.numeroJugadores}</Badge> },
+    { key: "grupo", header: "Max. por grupo", render: (item) => item.maximoEquiposPorGrupo },
+    { key: "acciones", header: "Acciones", align: "right", render: (item) => <RowActions onEdit={() => startEdit(item)} onDelete={() => remove(item)} /> },
+  ];
+
   return (
     <>
       <PageHeader
         title="Deportes"
         description="Administra deportes oficiales, reglas de jugadores y capacidad de grupos."
-        action={<button className="btn btn-primary rounded-pill px-4" onClick={startCreate}><i className="bi bi-plus-circle me-2" />Nuevo deporte</button>}
+        action={<PrimaryActionButton onClick={startCreate}>Nuevo deporte</PrimaryActionButton>}
       />
 
       {loading ? <LoadingState /> : data.length === 0 ? (
-        <EmptyState title="Sin deportes" description="Crea los deportes obligatorios para iniciar la competencia." icon="bi-trophy" />
+        <EmptyState title="Sin deportes" description="Crea los deportes obligatorios para iniciar la competencia." />
       ) : (
-        <div className="surface-card p-4">
+        <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
           <TableToolbar
             query={table.query}
             onQueryChange={table.setQuery}
@@ -103,54 +115,28 @@ export function DeportesClient() {
             filteredItems={table.filteredItems}
             placeholder="Buscar deporte o descripcion..."
           />
-          <div className="table-responsive">
-            <table className="table table-modern align-middle mb-0">
-              <thead>
-                <tr>
-                  <th>Deporte</th>
-                  <th>Descripcion</th>
-                  <th>Jugadores</th>
-                  <th>Max. por grupo</th>
-                  <th className="text-end">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {table.pageItems.map((item) => (
-                  <tr key={item.id}>
-                    <td className="fw-semibold">{item.nombre}</td>
-                    <td className="text-soft">{item.descripcion || "Sin descripcion"}</td>
-                    <td><span className="badge bg-primary-subtle text-primary">{item.numeroJugadores}</span></td>
-                    <td>{item.maximoEquiposPorGrupo}</td>
-                    <td className="crud-actions text-end">
-                      <button className="btn btn-sm btn-outline-primary me-2 icon-button" onClick={() => startEdit(item)} aria-label="Editar"><i className="bi bi-pencil-square" /></button>
-                      <button className="btn btn-sm btn-outline-danger icon-button" onClick={() => remove(item)} aria-label="Eliminar"><i className="bi bi-trash3" /></button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable columns={columns} items={table.pageItems} getRowKey={(item) => item.id} />
           <PaginationControls page={table.page} totalPages={table.totalPages} onPageChange={table.setPage} />
         </div>
       )}
 
       <FormModal open={open} title={editing ? "Editar deporte" : "Nuevo deporte"} onClose={() => setOpen(false)} onSubmit={handleSubmit} submitting={submitting}>
-        <div className="row g-3">
-          <div className="col-md-6">
-            <label className="form-label">Nombre</label>
-            <input className="form-control" value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value.toUpperCase() })} required />
+        <div className="grid gap-4 md:grid-cols-12">
+          <div className="md:col-span-6">
+            <label className={labelClass}>Nombre</label>
+            <input className={fieldClass} value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value.toUpperCase() })} required />
           </div>
-          <div className="col-md-3">
-            <label className="form-label">Jugadores</label>
-            <input type="number" min={1} className="form-control" value={form.numeroJugadores} onChange={(e) => setForm({ ...form, numeroJugadores: Number(e.target.value) })} required />
+          <div className="md:col-span-3">
+            <label className={labelClass}>Jugadores</label>
+            <input type="number" min={1} className={fieldClass} value={form.numeroJugadores} onChange={(e) => setForm({ ...form, numeroJugadores: Number(e.target.value) })} required />
           </div>
-          <div className="col-md-3">
-            <label className="form-label">Max. grupo</label>
-            <input type="number" min={2} className="form-control" value={form.maximoEquiposPorGrupo} onChange={(e) => setForm({ ...form, maximoEquiposPorGrupo: Number(e.target.value) })} required />
+          <div className="md:col-span-3">
+            <label className={labelClass}>Max. grupo</label>
+            <input type="number" min={2} className={fieldClass} value={form.maximoEquiposPorGrupo} onChange={(e) => setForm({ ...form, maximoEquiposPorGrupo: Number(e.target.value) })} required />
           </div>
-          <div className="col-12">
-            <label className="form-label">Descripcion</label>
-            <textarea className="form-control" rows={3} value={form.descripcion ?? ""} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} />
+          <div className="md:col-span-12">
+            <label className={labelClass}>Descripcion</label>
+            <textarea className={textareaClass} rows={3} value={form.descripcion ?? ""} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} />
           </div>
         </div>
       </FormModal>

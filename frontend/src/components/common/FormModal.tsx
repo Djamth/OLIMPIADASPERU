@@ -1,5 +1,9 @@
 "use client";
 
+import { SecondaryButton, SubmitButton } from "@/components/common/Buttons";
+import { CheckCircle2, Loader2, X } from "lucide-react";
+import type { FormEvent, ReactNode } from "react";
+
 export function FormModal({
   open,
   title,
@@ -11,9 +15,9 @@ export function FormModal({
 }: {
   open: boolean;
   title: string;
-  children: React.ReactNode;
+  children: ReactNode;
   onClose: () => void;
-  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   submitLabel?: string;
   submitting?: boolean;
 }) {
@@ -22,33 +26,38 @@ export function FormModal({
   }
 
   return (
-    <div className="modal-backdrop-custom">
-      <div className="modal-card surface-card">
-        <div className="d-flex align-items-center justify-content-between gap-3 border-bottom p-4">
-          <h2 className="h5 mb-0">{title}</h2>
-          <button className="btn btn-sm btn-outline-secondary icon-button" type="button" onClick={onClose} aria-label="Cerrar">
-            <i className="bi bi-x-lg" />
+    <div className="fixed inset-0 z-[1080] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm">
+      <div className="max-h-[calc(100vh-2rem)] w-full max-w-3xl overflow-auto rounded-lg border border-slate-200 bg-white shadow-[0_26px_70px_rgba(15,23,42,0.18)]">
+        <div className="flex items-center justify-between gap-3 border-b border-slate-200 p-5">
+          <h2 className="m-0 text-lg font-extrabold text-slate-950">{title}</h2>
+          <button
+            className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 hover:text-slate-900"
+            type="button"
+            onClick={onClose}
+            aria-label="Cerrar"
+          >
+            <X size={17} />
           </button>
         </div>
         <form onSubmit={onSubmit}>
-          <div className="p-4">{children}</div>
-          <div className="d-flex justify-content-end gap-2 border-top p-4">
-            <button className="btn btn-outline-secondary rounded-pill px-4" type="button" onClick={onClose}>
+          <div className="p-5">{children}</div>
+          <div className="flex justify-end gap-2 border-t border-slate-200 p-5">
+            <SecondaryButton type="button" onClick={onClose}>
               Cancelar
-            </button>
-            <button className="btn btn-primary rounded-pill px-4" type="submit" disabled={submitting}>
+            </SecondaryButton>
+            <SubmitButton type="submit" disabled={submitting}>
               {submitting ? (
                 <>
-                  <span className="spinner-border spinner-border-sm me-2" />
+                  <Loader2 className="animate-spin" size={17} />
                   Guardando...
                 </>
               ) : (
                 <>
-                  <i className="bi bi-check2-circle me-2" />
+                  <CheckCircle2 size={17} />
                   {submitLabel}
                 </>
               )}
-            </button>
+            </SubmitButton>
           </div>
         </form>
       </div>

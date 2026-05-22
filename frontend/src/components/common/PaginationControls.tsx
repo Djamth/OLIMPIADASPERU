@@ -1,5 +1,7 @@
 "use client";
 
+import { ChevronLeft, ChevronRight } from "lucide-react";
+
 export function PaginationControls({
   page,
   totalPages,
@@ -13,31 +15,49 @@ export function PaginationControls({
     .filter((item) => item === 1 || item === totalPages || Math.abs(item - page) <= 1);
 
   return (
-    <div className="pagination-shell d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mt-3">
-      <div className="small text-soft">Pagina {page} de {totalPages}</div>
+    <div className="mt-4 flex flex-col gap-3 rounded-xl border border-slate-100 bg-slate-50/70 p-3 md:flex-row md:items-center md:justify-between">
+      <div className="text-sm font-bold text-slate-500">Pagina {page} de {totalPages}</div>
       <nav aria-label="Paginacion">
-        <ul className="pagination pagination-sm mb-0">
-          <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
-            <button className="page-link" onClick={() => onPageChange(page - 1)} aria-label="Anterior">
-              <i className="bi bi-chevron-left" />
-            </button>
-          </li>
+        <div className="flex items-center gap-1">
+          <button
+            className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={() => onPageChange(page - 1)}
+            disabled={page === 1}
+            aria-label="Anterior"
+            type="button"
+          >
+            <ChevronLeft size={16} />
+          </button>
           {pages.map((item, index) => {
             const previous = pages[index - 1];
             const showGap = previous && item - previous > 1;
             return (
-              <li className={`page-item ${item === page ? "active" : ""}`} key={item}>
-                {showGap && <span className="page-link">...</span>}
-                <button className="page-link" onClick={() => onPageChange(item)}>{item}</button>
-              </li>
+              <span className="flex items-center gap-1" key={item}>
+                {showGap && <span className="px-2 text-sm font-bold text-slate-400">...</span>}
+                <button
+                  className={`h-9 min-w-9 rounded-lg border px-3 text-sm font-bold transition ${
+                    item === page
+                      ? "border-blue-600 bg-blue-600 text-white shadow-[0_10px_20px_rgba(21,101,192,0.22)]"
+                      : "border-slate-200 bg-white text-blue-600 shadow-sm hover:bg-blue-50"
+                  }`}
+                  onClick={() => onPageChange(item)}
+                  type="button"
+                >
+                  {item}
+                </button>
+              </span>
             );
           })}
-          <li className={`page-item ${page === totalPages ? "disabled" : ""}`}>
-            <button className="page-link" onClick={() => onPageChange(page + 1)} aria-label="Siguiente">
-              <i className="bi bi-chevron-right" />
-            </button>
-          </li>
-        </ul>
+          <button
+            className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={() => onPageChange(page + 1)}
+            disabled={page === totalPages}
+            aria-label="Siguiente"
+            type="button"
+          >
+            <ChevronRight size={16} />
+          </button>
+        </div>
       </nav>
     </div>
   );

@@ -1,7 +1,10 @@
 "use client";
 
+import { PrimaryActionButton, RowActions } from "@/components/common/Buttons";
+import { DataTable, type DataTableColumn } from "@/components/common/DataTable";
 import { EmptyState } from "@/components/common/EmptyState";
 import { FormModal } from "@/components/common/FormModal";
+import { fieldClass, labelClass } from "@/components/common/formStyles";
 import { LoadingState } from "@/components/common/LoadingState";
 import { PaginationControls } from "@/components/common/PaginationControls";
 import { PageHeader } from "@/components/common/PageHeader";
@@ -95,18 +98,27 @@ export function ParticipantesClient() {
     }
   };
 
+  const columns: DataTableColumn<Participante>[] = [
+    { key: "participante", header: "Participante", render: (item) => <span className="font-bold text-slate-950">{item.apellidos}, {item.nombres}</span> },
+    { key: "documento", header: "Documento", render: (item) => item.numeroDocumento },
+    { key: "equipo", header: "Equipo", render: (item) => item.equipoNombre },
+    { key: "genero", header: "Genero", render: (item) => item.genero },
+    { key: "codigo", header: "Codigo", render: (item) => <span className="text-slate-500">{item.codigoEstudiante}</span> },
+    { key: "acciones", header: "Acciones", align: "right", render: (item) => <RowActions onEdit={() => startEdit(item)} onDelete={() => remove(item)} /> },
+  ];
+
   return (
     <>
       <PageHeader
         title="Participantes"
         description="Registra jugadores por equipo y prepara plantillas competitivas."
-        action={<button className="btn btn-primary rounded-pill px-4" onClick={startCreate}><i className="bi bi-plus-circle me-2" />Nuevo participante</button>}
+        action={<PrimaryActionButton onClick={startCreate}>Nuevo participante</PrimaryActionButton>}
       />
 
       {loading ? <LoadingState /> : data.length === 0 ? (
-        <EmptyState title="Sin participantes" description="Registra jugadores para confirmar inscripciones por deporte." icon="bi-person-badge" />
+        <EmptyState title="Sin participantes" description="Registra jugadores para confirmar inscripciones por deporte." />
       ) : (
-        <div className="surface-card p-4">
+        <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
           <TableToolbar
             query={table.query}
             onQueryChange={table.setQuery}
@@ -116,71 +128,43 @@ export function ParticipantesClient() {
             filteredItems={table.filteredItems}
             placeholder="Buscar participante, documento, equipo..."
           />
-          <div className="table-responsive">
-            <table className="table table-modern align-middle mb-0">
-              <thead>
-                <tr>
-                  <th>Participante</th>
-                  <th>Documento</th>
-                  <th>Equipo</th>
-                  <th>Genero</th>
-                  <th>Codigo</th>
-                  <th className="text-end">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {table.pageItems.map((item) => (
-                  <tr key={item.id}>
-                    <td className="fw-semibold">{item.apellidos}, {item.nombres}</td>
-                    <td>{item.numeroDocumento}</td>
-                    <td>{item.equipoNombre}</td>
-                    <td>{item.genero}</td>
-                    <td className="text-soft">{item.codigoEstudiante}</td>
-                    <td className="crud-actions text-end">
-                      <button className="btn btn-sm btn-outline-primary me-2 icon-button" onClick={() => startEdit(item)} aria-label="Editar"><i className="bi bi-pencil-square" /></button>
-                      <button className="btn btn-sm btn-outline-danger icon-button" onClick={() => remove(item)} aria-label="Eliminar"><i className="bi bi-trash3" /></button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable columns={columns} items={table.pageItems} getRowKey={(item) => item.id} />
           <PaginationControls page={table.page} totalPages={table.totalPages} onPageChange={table.setPage} />
         </div>
       )}
 
       <FormModal open={open} title={editing ? "Editar participante" : "Nuevo participante"} onClose={() => setOpen(false)} onSubmit={handleSubmit} submitting={submitting}>
-        <div className="row g-3">
-          <div className="col-md-6">
-            <label className="form-label">Nombres</label>
-            <input className="form-control" value={form.nombres} onChange={(e) => setForm({ ...form, nombres: e.target.value })} required />
+        <div className="grid gap-4 md:grid-cols-12">
+          <div className="md:col-span-6">
+            <label className={labelClass}>Nombres</label>
+            <input className={fieldClass} value={form.nombres} onChange={(e) => setForm({ ...form, nombres: e.target.value })} required />
           </div>
-          <div className="col-md-6">
-            <label className="form-label">Apellidos</label>
-            <input className="form-control" value={form.apellidos} onChange={(e) => setForm({ ...form, apellidos: e.target.value })} required />
+          <div className="md:col-span-6">
+            <label className={labelClass}>Apellidos</label>
+            <input className={fieldClass} value={form.apellidos} onChange={(e) => setForm({ ...form, apellidos: e.target.value })} required />
           </div>
-          <div className="col-md-4">
-            <label className="form-label">Documento</label>
-            <input className="form-control" value={form.numeroDocumento} onChange={(e) => setForm({ ...form, numeroDocumento: e.target.value })} required />
+          <div className="md:col-span-4">
+            <label className={labelClass}>Documento</label>
+            <input className={fieldClass} value={form.numeroDocumento} onChange={(e) => setForm({ ...form, numeroDocumento: e.target.value })} required />
           </div>
-          <div className="col-md-4">
-            <label className="form-label">Codigo estudiante</label>
-            <input className="form-control" value={form.codigoEstudiante} onChange={(e) => setForm({ ...form, codigoEstudiante: e.target.value })} required />
+          <div className="md:col-span-4">
+            <label className={labelClass}>Codigo estudiante</label>
+            <input className={fieldClass} value={form.codigoEstudiante} onChange={(e) => setForm({ ...form, codigoEstudiante: e.target.value })} required />
           </div>
-          <div className="col-md-4">
-            <label className="form-label">Nacimiento</label>
-            <input type="date" className="form-control" value={form.fechaNacimiento} onChange={(e) => setForm({ ...form, fechaNacimiento: e.target.value })} required />
+          <div className="md:col-span-4">
+            <label className={labelClass}>Nacimiento</label>
+            <input type="date" className={fieldClass} value={form.fechaNacimiento} onChange={(e) => setForm({ ...form, fechaNacimiento: e.target.value })} required />
           </div>
-          <div className="col-md-6">
-            <label className="form-label">Equipo</label>
-            <select className="form-select" value={form.equipoId} onChange={(e) => setForm({ ...form, equipoId: Number(e.target.value) })} required>
+          <div className="md:col-span-6">
+            <label className={labelClass}>Equipo</label>
+            <select className={fieldClass} value={form.equipoId} onChange={(e) => setForm({ ...form, equipoId: Number(e.target.value) })} required>
               <option value={0} disabled>Seleccionar</option>
               {equipos.map((item) => <option value={item.id} key={item.id}>{item.nombre}</option>)}
             </select>
           </div>
-          <div className="col-md-6">
-            <label className="form-label">Genero</label>
-            <select className="form-select" value={form.genero} onChange={(e) => setForm({ ...form, genero: e.target.value as Genero })}>
+          <div className="md:col-span-6">
+            <label className={labelClass}>Genero</label>
+            <select className={fieldClass} value={form.genero} onChange={(e) => setForm({ ...form, genero: e.target.value as Genero })}>
               {generos.map((item) => <option value={item} key={item}>{item}</option>)}
             </select>
           </div>

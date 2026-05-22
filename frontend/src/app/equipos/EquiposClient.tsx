@@ -1,7 +1,11 @@
 "use client";
 
+import { Badge } from "@/components/common/Badge";
+import { PrimaryActionButton, RowActions } from "@/components/common/Buttons";
+import { DataTable, type DataTableColumn } from "@/components/common/DataTable";
 import { EmptyState } from "@/components/common/EmptyState";
 import { FormModal } from "@/components/common/FormModal";
+import { fieldClass, labelClass } from "@/components/common/formStyles";
 import { LoadingState } from "@/components/common/LoadingState";
 import { PaginationControls } from "@/components/common/PaginationControls";
 import { PageHeader } from "@/components/common/PageHeader";
@@ -92,18 +96,27 @@ export function EquiposClient() {
     }
   };
 
+  const columns: DataTableColumn<Equipo>[] = [
+    { key: "equipo", header: "Equipo", render: (item) => <span className="font-bold text-slate-950">{item.nombre}</span> },
+    { key: "institucion", header: "Institucion", render: (item) => item.institucionNombre },
+    { key: "categoria", header: "Categoria", render: (item) => <Badge>{item.categoria}</Badge> },
+    { key: "genero", header: "Genero", render: (item) => item.genero },
+    { key: "entrenador", header: "Entrenador", render: (item) => <span className="text-slate-500">{item.entrenador}</span> },
+    { key: "acciones", header: "Acciones", align: "right", render: (item) => <RowActions onEdit={() => startEdit(item)} onDelete={() => remove(item)} /> },
+  ];
+
   return (
     <>
       <PageHeader
         title="Equipos"
         description="Gestiona equipos por institucion, categoria, genero y entrenador."
-        action={<button className="btn btn-primary rounded-pill px-4" onClick={startCreate}><i className="bi bi-plus-circle me-2" />Nuevo equipo</button>}
+        action={<PrimaryActionButton onClick={startCreate}>Nuevo equipo</PrimaryActionButton>}
       />
 
       {loading ? <LoadingState /> : data.length === 0 ? (
-        <EmptyState title="Sin equipos" description="Crea equipos para registrar participantes e inscripciones." icon="bi-people" />
+        <EmptyState title="Sin equipos" description="Crea equipos para registrar participantes e inscripciones." />
       ) : (
-        <div className="surface-card p-4">
+        <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
           <TableToolbar
             query={table.query}
             onQueryChange={table.setQuery}
@@ -113,65 +126,37 @@ export function EquiposClient() {
             filteredItems={table.filteredItems}
             placeholder="Buscar equipo, institucion, entrenador..."
           />
-          <div className="table-responsive">
-            <table className="table table-modern align-middle mb-0">
-              <thead>
-                <tr>
-                  <th>Equipo</th>
-                  <th>Institucion</th>
-                  <th>Categoria</th>
-                  <th>Genero</th>
-                  <th>Entrenador</th>
-                  <th className="text-end">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {table.pageItems.map((item) => (
-                  <tr key={item.id}>
-                    <td className="fw-semibold">{item.nombre}</td>
-                    <td>{item.institucionNombre}</td>
-                    <td><span className="badge bg-primary-subtle text-primary">{item.categoria}</span></td>
-                    <td>{item.genero}</td>
-                    <td className="text-soft">{item.entrenador}</td>
-                    <td className="crud-actions text-end">
-                      <button className="btn btn-sm btn-outline-primary me-2 icon-button" onClick={() => startEdit(item)} aria-label="Editar"><i className="bi bi-pencil-square" /></button>
-                      <button className="btn btn-sm btn-outline-danger icon-button" onClick={() => remove(item)} aria-label="Eliminar"><i className="bi bi-trash3" /></button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable columns={columns} items={table.pageItems} getRowKey={(item) => item.id} />
           <PaginationControls page={table.page} totalPages={table.totalPages} onPageChange={table.setPage} />
         </div>
       )}
 
       <FormModal open={open} title={editing ? "Editar equipo" : "Nuevo equipo"} onClose={() => setOpen(false)} onSubmit={handleSubmit} submitting={submitting}>
-        <div className="row g-3">
-          <div className="col-md-6">
-            <label className="form-label">Nombre</label>
-            <input className="form-control" value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required />
+        <div className="grid gap-4 md:grid-cols-12">
+          <div className="md:col-span-6">
+            <label className={labelClass}>Nombre</label>
+            <input className={fieldClass} value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required />
           </div>
-          <div className="col-md-6">
-            <label className="form-label">Entrenador</label>
-            <input className="form-control" value={form.entrenador} onChange={(e) => setForm({ ...form, entrenador: e.target.value })} required />
+          <div className="md:col-span-6">
+            <label className={labelClass}>Entrenador</label>
+            <input className={fieldClass} value={form.entrenador} onChange={(e) => setForm({ ...form, entrenador: e.target.value })} required />
           </div>
-          <div className="col-md-6">
-            <label className="form-label">Institucion</label>
-            <select className="form-select" value={form.institucionId} onChange={(e) => setForm({ ...form, institucionId: Number(e.target.value) })} required>
+          <div className="md:col-span-6">
+            <label className={labelClass}>Institucion</label>
+            <select className={fieldClass} value={form.institucionId} onChange={(e) => setForm({ ...form, institucionId: Number(e.target.value) })} required>
               <option value={0} disabled>Seleccionar</option>
               {instituciones.map((item) => <option value={item.id} key={item.id}>{item.nombre}</option>)}
             </select>
           </div>
-          <div className="col-md-3">
-            <label className="form-label">Categoria</label>
-            <select className="form-select" value={form.categoria} onChange={(e) => setForm({ ...form, categoria: e.target.value as CategoriaEquipo })}>
+          <div className="md:col-span-3">
+            <label className={labelClass}>Categoria</label>
+            <select className={fieldClass} value={form.categoria} onChange={(e) => setForm({ ...form, categoria: e.target.value as CategoriaEquipo })}>
               {categorias.map((item) => <option value={item} key={item}>{item}</option>)}
             </select>
           </div>
-          <div className="col-md-3">
-            <label className="form-label">Genero</label>
-            <select className="form-select" value={form.genero} onChange={(e) => setForm({ ...form, genero: e.target.value as Genero })}>
+          <div className="md:col-span-3">
+            <label className={labelClass}>Genero</label>
+            <select className={fieldClass} value={form.genero} onChange={(e) => setForm({ ...form, genero: e.target.value as Genero })}>
               {generos.map((item) => <option value={item} key={item}>{item}</option>)}
             </select>
           </div>

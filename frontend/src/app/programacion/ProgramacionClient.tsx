@@ -1,7 +1,11 @@
 "use client";
 
+import { Badge } from "@/components/common/Badge";
+import { PrimaryActionButton, RowActions } from "@/components/common/Buttons";
+import { DataTable, type DataTableColumn } from "@/components/common/DataTable";
 import { EmptyState } from "@/components/common/EmptyState";
 import { FormModal } from "@/components/common/FormModal";
+import { fieldClass, labelClass } from "@/components/common/formStyles";
 import { LoadingState } from "@/components/common/LoadingState";
 import { PaginationControls } from "@/components/common/PaginationControls";
 import { PageHeader } from "@/components/common/PageHeader";
@@ -111,18 +115,36 @@ export function ProgramacionClient() {
     }
   };
 
+  const columns: DataTableColumn<Partido>[] = [
+    {
+      key: "partido",
+      header: "Partido",
+      render: (item) => (
+        <span className="font-bold text-slate-950">
+          {item.equipoLocalNombre} vs {item.equipoVisitanteNombre}
+          <span className="block text-xs font-semibold text-slate-500">{item.sede}</span>
+        </span>
+      ),
+    },
+    { key: "deporte", header: "Deporte", render: (item) => item.deporteNombre },
+    { key: "grupo", header: "Grupo", render: (item) => item.grupoNombre ?? "Sin grupo" },
+    { key: "fecha", header: "Fecha", render: (item) => <span className="text-slate-500">{item.fechaHora.replace("T", " ")}</span> },
+    { key: "estado", header: "Estado", render: (item) => <Badge>{item.estado}</Badge> },
+    { key: "acciones", header: "Acciones", align: "right", render: (item) => <RowActions onEdit={() => startEdit(item)} onDelete={() => remove(item)} /> },
+  ];
+
   return (
     <>
       <PageHeader
         title="Programacion"
         description="Organiza partidos por deporte, grupo, sede y fecha."
-        action={<button className="btn btn-primary rounded-pill px-4" onClick={startCreate}><i className="bi bi-calendar-plus me-2" />Programar partido</button>}
+        action={<PrimaryActionButton onClick={startCreate}>Programar partido</PrimaryActionButton>}
       />
 
       {loading ? <LoadingState /> : data.length === 0 ? (
-        <EmptyState title="Sin partidos" description="Programa partidos cuando existan inscripciones confirmadas." icon="bi-calendar-event" />
+        <EmptyState title="Sin partidos" description="Programa partidos cuando existan inscripciones confirmadas." />
       ) : (
-        <div className="surface-card p-4">
+        <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
           <TableToolbar
             query={table.query}
             onQueryChange={table.setQuery}
@@ -132,82 +154,54 @@ export function ProgramacionClient() {
             filteredItems={table.filteredItems}
             placeholder="Buscar partido, deporte, sede..."
           />
-          <div className="table-responsive">
-            <table className="table table-modern align-middle mb-0">
-              <thead>
-                <tr>
-                  <th>Partido</th>
-                  <th>Deporte</th>
-                  <th>Grupo</th>
-                  <th>Fecha</th>
-                  <th>Estado</th>
-                  <th className="text-end">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {table.pageItems.map((item) => (
-                  <tr key={item.id}>
-                    <td className="fw-semibold">{item.equipoLocalNombre} vs {item.equipoVisitanteNombre}<div className="small text-soft">{item.sede}</div></td>
-                    <td>{item.deporteNombre}</td>
-                    <td>{item.grupoNombre ?? "Sin grupo"}</td>
-                    <td className="text-soft">{item.fechaHora.replace("T", " ")}</td>
-                    <td><span className="badge bg-primary-subtle text-primary">{item.estado}</span></td>
-                    <td className="crud-actions text-end">
-                      <button className="btn btn-sm btn-outline-primary me-2 icon-button" onClick={() => startEdit(item)} aria-label="Editar"><i className="bi bi-pencil-square" /></button>
-                      <button className="btn btn-sm btn-outline-danger icon-button" onClick={() => remove(item)} aria-label="Eliminar"><i className="bi bi-trash3" /></button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable columns={columns} items={table.pageItems} getRowKey={(item) => item.id} />
           <PaginationControls page={table.page} totalPages={table.totalPages} onPageChange={table.setPage} />
         </div>
       )}
 
       <FormModal open={open} title={editing ? "Editar partido" : "Programar partido"} onClose={() => setOpen(false)} onSubmit={handleSubmit} submitting={submitting}>
-        <div className="row g-3">
-          <div className="col-md-6">
-            <label className="form-label">Deporte</label>
-            <select className="form-select" value={form.deporteId} onChange={(e) => setForm({ ...form, deporteId: Number(e.target.value), grupoId: null })} required>
+        <div className="grid gap-4 md:grid-cols-12">
+          <div className="md:col-span-6">
+            <label className={labelClass}>Deporte</label>
+            <select className={fieldClass} value={form.deporteId} onChange={(e) => setForm({ ...form, deporteId: Number(e.target.value), grupoId: null })} required>
               <option value={0} disabled>Seleccionar</option>
               {deportes.map((item) => <option value={item.id} key={item.id}>{item.nombre}</option>)}
             </select>
           </div>
-          <div className="col-md-6">
-            <label className="form-label">Grupo</label>
-            <select className="form-select" value={form.grupoId ?? 0} onChange={(e) => setForm({ ...form, grupoId: Number(e.target.value) || null })}>
+          <div className="md:col-span-6">
+            <label className={labelClass}>Grupo</label>
+            <select className={fieldClass} value={form.grupoId ?? 0} onChange={(e) => setForm({ ...form, grupoId: Number(e.target.value) || null })}>
               <option value={0}>Sin grupo</option>
               {grupos.map((item) => <option value={item.id} key={item.id}>{item.nombre}</option>)}
             </select>
           </div>
-          <div className="col-md-6">
-            <label className="form-label">Equipo local</label>
-            <select className="form-select" value={form.equipoLocalId} onChange={(e) => setForm({ ...form, equipoLocalId: Number(e.target.value) })} required>
+          <div className="md:col-span-6">
+            <label className={labelClass}>Equipo local</label>
+            <select className={fieldClass} value={form.equipoLocalId} onChange={(e) => setForm({ ...form, equipoLocalId: Number(e.target.value) })} required>
               <option value={0} disabled>Seleccionar</option>
               {equipos.map((item) => <option value={item.id} key={item.id}>{item.nombre}</option>)}
             </select>
           </div>
-          <div className="col-md-6">
-            <label className="form-label">Equipo visitante</label>
-            <select className="form-select" value={form.equipoVisitanteId} onChange={(e) => setForm({ ...form, equipoVisitanteId: Number(e.target.value) })} required>
+          <div className="md:col-span-6">
+            <label className={labelClass}>Equipo visitante</label>
+            <select className={fieldClass} value={form.equipoVisitanteId} onChange={(e) => setForm({ ...form, equipoVisitanteId: Number(e.target.value) })} required>
               <option value={0} disabled>Seleccionar</option>
               {equipos.map((item) => <option value={item.id} key={item.id}>{item.nombre}</option>)}
             </select>
           </div>
-          <div className="col-md-6">
-            <label className="form-label">Fecha y hora</label>
-            <input type="datetime-local" className="form-control" value={form.fechaHora} onChange={(e) => setForm({ ...form, fechaHora: e.target.value })} required />
+          <div className="md:col-span-6">
+            <label className={labelClass}>Fecha y hora</label>
+            <input type="datetime-local" className={fieldClass} value={form.fechaHora} onChange={(e) => setForm({ ...form, fechaHora: e.target.value })} required />
           </div>
-          <div className="col-md-6">
-            <label className="form-label">Estado</label>
-            <select className="form-select" value={form.estado} onChange={(e) => setForm({ ...form, estado: e.target.value as EstadoPartido })}>
+          <div className="md:col-span-6">
+            <label className={labelClass}>Estado</label>
+            <select className={fieldClass} value={form.estado} onChange={(e) => setForm({ ...form, estado: e.target.value as EstadoPartido })}>
               {estados.map((item) => <option value={item} key={item}>{item}</option>)}
             </select>
           </div>
-          <div className="col-12">
-            <label className="form-label">Sede</label>
-            <input className="form-control" value={form.sede} onChange={(e) => setForm({ ...form, sede: e.target.value })} required />
+          <div className="md:col-span-12">
+            <label className={labelClass}>Sede</label>
+            <input className={fieldClass} value={form.sede} onChange={(e) => setForm({ ...form, sede: e.target.value })} required />
           </div>
         </div>
       </FormModal>
