@@ -13,7 +13,7 @@ export function PaginationControls({
     .filter((item) => item === 1 || item === totalPages || Math.abs(item - page) <= 1);
 
   return (
-    <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mt-3">
+    <div className="pagination-shell d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mt-3">
       <div className="small text-soft">Pagina {page} de {totalPages}</div>
       <nav aria-label="Paginacion">
         <ul className="pagination pagination-sm mb-0">

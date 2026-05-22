@@ -18,9 +18,9 @@ export function TableToolbar({
   placeholder?: string;
 }) {
   return (
-    <div className="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-3">
-      <div className="input-group table-search">
-        <span className="input-group-text bg-white">
+    <div className="table-toolbar d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-3">
+      <div className="input-group table-search premium-input-group">
+        <span className="input-group-text">
           <i className="bi bi-search" />
         </span>
         <input
@@ -30,7 +30,7 @@ export function TableToolbar({
           placeholder={placeholder}
         />
         {query && (
-          <button className="btn btn-outline-secondary icon-button" onClick={() => onQueryChange("")} type="button" aria-label="Limpiar busqueda">
+          <button className="btn btn-light icon-button" onClick={() => onQueryChange("")} type="button" aria-label="Limpiar busqueda">
             <i className="bi bi-x-lg" />
           </button>
         )}

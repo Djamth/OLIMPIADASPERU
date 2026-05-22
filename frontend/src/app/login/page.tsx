@@ -26,7 +26,7 @@ export default function LoginPage() {
       <div className="container py-5">
         <div className="row align-items-center g-5">
           <div className="col-12 col-lg-6 text-white">
-            <span className="chip bg-white text-primary fw-semibold mb-3">
+            <span className="chip login-chip fw-semibold mb-3">
               <i className="bi bi-trophy-fill" />
               Plataforma deportiva institucional
             </span>
@@ -38,15 +38,15 @@ export default function LoginPage() {
             </p>
             <div className="row g-3">
               <div className="col-sm-6">
-                <div className="surface-card p-3 h-100">
-                  <div className="fw-semibold mb-1 text-dark">Reglas por deporte</div>
-                  <div className="small text-soft">Validaciones listas para futbol, basquet, voley y ping pong.</div>
+                <div className="login-feature-card p-3 h-100">
+                  <div className="fw-semibold mb-1">Reglas por deporte</div>
+                  <div className="small">Validaciones listas para futbol, basquet, voley y ping pong.</div>
                 </div>
               </div>
               <div className="col-sm-6">
-                <div className="surface-card p-3 h-100">
-                  <div className="fw-semibold mb-1 text-dark">Resultados y ranking</div>
-                  <div className="small text-soft">Anotaciones reales por participante y estadisticas deportivas.</div>
+                <div className="login-feature-card p-3 h-100">
+                  <div className="fw-semibold mb-1">Resultados y ranking</div>
+                  <div className="small">Anotaciones reales por participante y estadisticas deportivas.</div>
                 </div>
               </div>
             </div>
@@ -56,13 +56,12 @@ export default function LoginPage() {
             <div className="login-panel p-4 p-lg-5">
               <div className="text-center mb-4">
                 <div
-                  className="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle"
-                  style={{ width: 72, height: 72, background: "rgba(21, 101, 192, 0.12)" }}
+                  className="login-lock mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle"
                 >
-                  <i className="bi bi-person-lock text-primary fs-2" />
+                  <i className="bi bi-person-lock fs-2" />
                 </div>
                 <h2 className="h3 mb-1">Iniciar sesion</h2>
-                <p className="text-soft mb-0">Accede al panel de Olimpiadas Peru</p>
+                <p className="mb-0 login-muted">Accede al panel de Olimpiadas Peru</p>
               </div>
 
               <form onSubmit={handleSubmit}>

@@ -2,51 +2,36 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { alerts } from "@/utils/alerts";
+import { Bell, LogOut, Menu } from "lucide-react";
 
-export function AppNavbar({
-  sidebarCollapsed,
-  onToggleSidebar,
-  onOpenMobileMenu,
-}: {
-  sidebarCollapsed: boolean;
-  onToggleSidebar: () => void;
-  onOpenMobileMenu: () => void;
-}) {
+export function AppNavbar({ onOpenMobileMenu }: { onOpenMobileMenu: () => void }) {
   const { user, logout } = useAuth();
 
   const handleLogout = async () => {
     const result = await alerts.confirm("Cerrar sesion", "Se cerrara la sesion actual.");
-    if (result.isConfirmed) {
-      logout();
-    }
+    if (result.isConfirmed) logout();
   };
 
   return (
-    <div className="topbar-blur rounded-4 px-4 py-3 mb-4">
-      <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
-        <div className="d-flex align-items-center gap-3">
-          <button className="btn btn-primary icon-button d-lg-none" onClick={onOpenMobileMenu} aria-label="Abrir menu">
-            <i className="bi bi-list fs-5" />
+    <header className="op-navbar">
+      <div className="op-navbar-top">
+        <div className="op-navbar-title">
+          <button className="op-mobile-menu-button" type="button" onClick={onOpenMobileMenu} aria-label="Abrir menu">
+            <Menu size={20} />
           </button>
-          <button className="btn btn-outline-primary icon-button d-none d-lg-inline-flex" onClick={onToggleSidebar} aria-label="Contraer menu">
-            <i className={`bi ${sidebarCollapsed ? "bi-layout-sidebar-inset" : "bi-layout-sidebar-inset-reverse"}`} />
-          </button>
-          <div>
-          <div className="small text-soft">Panel administrativo</div>
-          <h1 className="h4 mb-0">Olimpiadas Peru</h1>
-          </div>
+          
         </div>
-        <div className="d-flex align-items-center gap-3">
-          <div className="text-end">
-            <div className="fw-semibold">{user?.nombre ?? "Invitado"}</div>
-            <div className="small text-soft">{user?.rolNombre ?? "Sin rol"}</div>
-          </div>
-          <button className="btn btn-outline-primary rounded-pill px-3" onClick={handleLogout}>
-            <i className="bi bi-box-arrow-right me-2" />
-            Salir
+
+        <div className="op-navbar-actions">
+          <button className="op-icon-button" type="button" aria-label="Notificaciones">
+            <Bell size={17} />
+          </button>
+          <div className="op-user-avatar">{(user?.nombre ?? "U").slice(0, 1).toUpperCase()}</div>
+          <button className="op-logout-button" type="button" onClick={handleLogout} aria-label="Cerrar sesion">
+            <LogOut size={17} />
           </button>
         </div>
       </div>
-    </div>
+    </header>
   );
 }

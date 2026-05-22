@@ -1,45 +1,52 @@
 "use client";
 
+import { ProtectedPage } from "@/components/auth/ProtectedPage";
 import { AppNavbar } from "@/components/layout/AppNavbar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
-import { ProtectedPage } from "@/components/auth/ProtectedPage";
+import type { CSSProperties } from "react";
 import { useEffect, useState } from "react";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const sidebarWidth = collapsed ? 72 : 240;
 
   useEffect(() => {
-    document.body.classList.toggle("mobile-menu-open", mobileSidebarOpen);
+    document.body.classList.toggle("mobile-menu-open", sidebarOpen);
 
-    return () => {
-      document.body.classList.remove("mobile-menu-open");
-    };
-  }, [mobileSidebarOpen]);
+    return () => document.body.classList.remove("mobile-menu-open");
+  }, [sidebarOpen]);
 
   return (
     <ProtectedPage>
-      <div className={`app-shell ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
-        <div
-          className={`sidebar-mobile-backdrop ${mobileSidebarOpen ? "show" : ""}`}
-          onClick={() => setMobileSidebarOpen(false)}
-        />
-        <div className={`app-sidebar-wrapper ${mobileSidebarOpen ? "mobile-open" : ""}`}>
+      <main
+        className="op-shell"
+        style={{ "--op-sidebar-width": `${sidebarWidth}px` } as CSSProperties}
+      >
+        <aside className={`op-sidebar ${sidebarOpen ? "is-open" : ""}`}>
           <AppSidebar
-            collapsed={sidebarCollapsed}
-            onNavigate={() => setMobileSidebarOpen(false)}
-            onCloseMobile={() => setMobileSidebarOpen(false)}
+            collapsed={collapsed}
+            onToggleCollapsed={() => setCollapsed((value) => !value)}
+            onNavigate={() => setSidebarOpen(false)}
           />
-        </div>
-        <main className="app-content p-3 p-lg-4 content-panel">
-          <AppNavbar
-            sidebarCollapsed={sidebarCollapsed}
-            onToggleSidebar={() => setSidebarCollapsed((value) => !value)}
-            onOpenMobileMenu={() => setMobileSidebarOpen(true)}
+        </aside>
+
+        {sidebarOpen && (
+          <button
+            className="op-sidebar-overlay"
+            type="button"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Cerrar menu"
           />
-            {children}
-        </main>
-      </div>
+        )}
+
+        <section className="op-main">
+          <div className="op-main-inner">
+            <AppNavbar onOpenMobileMenu={() => setSidebarOpen(true)} />
+            <div className="op-page-content">{children}</div>
+          </div>
+        </section>
+      </main>
     </ProtectedPage>
   );
 }
