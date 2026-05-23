@@ -61,7 +61,7 @@ export function AppSidebar({
   const { user, logout } = useAuth();
   const isAdmin = user?.rolNombre?.toLowerCase() === "administrador";
   const visibleItems = items.filter((item) => {
-    if (item.href === "/dashboard" || isAdmin) return true;
+    if (isAdmin) return true;
     const keys = item.keys.map((key) => key.toLowerCase());
     return user?.modulos?.some((modulo) => {
       const ruta = modulo.ruta?.toLowerCase();

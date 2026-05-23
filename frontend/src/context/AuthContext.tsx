@@ -16,6 +16,22 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+function getLandingRoute(user: LoginResponse) {
+  const routeMap: Record<string, string> = {
+    "/roles": "/perfiles",
+    "/modulos": "/perfiles",
+    "/programaciones": "/programacion",
+  };
+
+  const dashboard = user.modulos?.find((modulo) => modulo.ruta?.toLowerCase() === "/dashboard");
+  if (dashboard || user.rolNombre?.toLowerCase() === "administrador") {
+    return "/dashboard";
+  }
+
+  const firstRoute = user.modulos?.find((modulo) => Boolean(modulo.ruta))?.ruta?.toLowerCase();
+  return firstRoute ? routeMap[firstRoute] ?? firstRoute : "/dashboard";
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -44,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (user && isLoginPage) {
-      router.replace("/dashboard");
+      router.replace(getLandingRoute(user));
     }
   }, [isLoading, pathname, router, user]);
 
@@ -58,7 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(response);
       alerts.close();
       await alerts.success("Bienvenido", "Inicio de sesion realizado correctamente.");
-      router.push("/dashboard");
+      router.push(getLandingRoute(response));
     } catch (error: any) {
       alerts.close();
       const message = error?.response?.data?.mensaje ?? "No se pudo iniciar sesion.";

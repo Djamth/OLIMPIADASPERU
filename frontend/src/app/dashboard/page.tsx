@@ -2,7 +2,9 @@
 
 import { Badge } from "@/components/common/Badge";
 import { LoadingState } from "@/components/common/LoadingState";
+import { hasModuleAccess, RequireModule } from "@/components/auth/RequireModule";
 import { AppShell } from "@/components/layout/AppShell";
+import { useAuth } from "@/context/AuthContext";
 import { dashboardService } from "@/services/adminServices";
 import type { DashboardResumen } from "@/types/admin";
 import { alerts, getErrorMessage } from "@/utils/alerts";
@@ -47,18 +49,26 @@ function statusTone(estado: string): "blue" | "green" | "red" | "amber" | "slate
 }
 
 export default function DashboardPage() {
+  const { user } = useAuth();
   const [summary, setSummary] = useState<DashboardResumen | null>(null);
   const [loading, setLoading] = useState(true);
+  const canViewDashboard = hasModuleAccess(user, ["/dashboard", "dashboard"]);
 
   useEffect(() => {
+    if (!canViewDashboard) {
+      setLoading(false);
+      return;
+    }
+
     dashboardService.resumen()
       .then(setSummary)
       .catch((error) => alerts.error("No se pudo cargar el dashboard", getErrorMessage(error)))
       .finally(() => setLoading(false));
-  }, []);
+  }, [canViewDashboard]);
 
   return (
     <AppShell>
+      <RequireModule keys={["/dashboard", "dashboard"]}>
       <section className="mb-4 flex flex-col gap-5 overflow-hidden rounded-xl border border-blue-900/10 bg-blue-700 p-5 text-white shadow-[0_22px_48px_rgba(21,101,192,0.2)] lg:flex-row lg:items-center lg:justify-between lg:p-8">
         <div>
           <span className="mb-2 block text-xs font-extrabold uppercase text-white/55">Resumen general</span>
@@ -186,6 +196,7 @@ export default function DashboardPage() {
           </div>
         </>
       )}
+      </RequireModule>
     </AppShell>
   );
 }
