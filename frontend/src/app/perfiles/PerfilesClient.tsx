@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/common/Badge";
-import { PrimaryActionButton, RowActions } from "@/components/common/Buttons";
+import { IconActionButton, PrimaryActionButton, RowActions } from "@/components/common/Buttons";
 import { DataTable, type DataTableColumn } from "@/components/common/DataTable";
 import { EmptyState } from "@/components/common/EmptyState";
 import { FormModal } from "@/components/common/FormModal";
@@ -15,17 +15,14 @@ import { moduloService, rolService } from "@/services/adminServices";
 import type { Rol, RolRequest } from "@/types/admin";
 import type { Modulo } from "@/types/auth";
 import { alerts, getErrorMessage } from "@/utils/alerts";
-import { ShieldCheck } from "lucide-react";
+import { LockKeyhole, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 
-type PerfilForm = RolRequest & {
-  moduloIds: number[];
-};
+type PerfilForm = RolRequest;
 
 const emptyForm: PerfilForm = {
   nombre: "",
   estado: "ACTIVO",
-  moduloIds: [],
 };
 
 export function PerfilesClient() {
@@ -34,9 +31,13 @@ export function PerfilesClient() {
   const [modulosPorRol, setModulosPorRol] = useState<Record<number, Modulo[]>>({});
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [accessOpen, setAccessOpen] = useState(false);
   const [editing, setEditing] = useState<Rol | null>(null);
+  const [accessRole, setAccessRole] = useState<Rol | null>(null);
   const [form, setForm] = useState<PerfilForm>(emptyForm);
+  const [accessModuloIds, setAccessModuloIds] = useState<number[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [savingAccess, setSavingAccess] = useState(false);
 
   const table = useTableControls(roles, (item, query) =>
     [item.nombre, item.estado, ...(modulosPorRol[item.id] ?? []).map((modulo) => modulo.nombre)]
@@ -73,18 +74,20 @@ export function PerfilesClient() {
     setForm({
       nombre: item.nombre,
       estado: item.estado,
-      moduloIds: (modulosPorRol[item.id] ?? []).map((modulo) => modulo.id),
     });
     setOpen(true);
   };
 
-  const toggleModulo = (id: number) => {
-    setForm((prev) => ({
-      ...prev,
-      moduloIds: prev.moduloIds.includes(id)
-        ? prev.moduloIds.filter((item) => item !== id)
-        : [...prev.moduloIds, id],
-    }));
+  const startAccess = (item: Rol) => {
+    setAccessRole(item);
+    setAccessModuloIds((modulosPorRol[item.id] ?? []).map((modulo) => modulo.id));
+    setAccessOpen(true);
+  };
+
+  const toggleAccessModulo = (id: number) => {
+    setAccessModuloIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
+    );
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -92,8 +95,11 @@ export function PerfilesClient() {
     setSubmitting(true);
     try {
       const payload = { nombre: form.nombre, estado: form.estado };
-      const saved = editing ? await rolService.update(editing.id, payload) : await rolService.create(payload);
-      await rolService.asignarModulos(saved.id, form.moduloIds);
+      if (editing) {
+        await rolService.update(editing.id, payload);
+      } else {
+        await rolService.create(payload);
+      }
       setOpen(false);
       await alerts.success(editing ? "Perfil actualizado" : "Perfil creado");
       await loadData();
@@ -101,6 +107,22 @@ export function PerfilesClient() {
       await alerts.error("No se pudo guardar", getErrorMessage(error));
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleAccessSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!accessRole) return;
+    setSavingAccess(true);
+    try {
+      const response = await rolService.asignarModulos(accessRole.id, accessModuloIds);
+      setModulosPorRol((prev) => ({ ...prev, [accessRole.id]: response.modulos }));
+      setAccessOpen(false);
+      await alerts.success("Accesos actualizados");
+    } catch (error) {
+      await alerts.error("No se pudieron actualizar los accesos", getErrorMessage(error));
+    } finally {
+      setSavingAccess(false);
     }
   };
 
@@ -133,16 +155,6 @@ export function PerfilesClient() {
       ),
     },
     {
-      key: "modulos",
-      header: "Modulos",
-      render: (item) => (
-        <div className="flex max-w-xl flex-wrap gap-1.5">
-          {(modulosPorRol[item.id] ?? []).slice(0, 4).map((modulo) => <Badge key={modulo.id} tone="slate">{modulo.nombre}</Badge>)}
-          {(modulosPorRol[item.id] ?? []).length > 4 && <Badge tone="blue">+{(modulosPorRol[item.id] ?? []).length - 4}</Badge>}
-        </div>
-      ),
-    },
-    {
       key: "estado",
       header: "Estado",
       render: (item) => <Badge tone={item.estado === "ACTIVO" ? "green" : "slate"}>{item.estado}</Badge>,
@@ -151,7 +163,14 @@ export function PerfilesClient() {
       key: "acciones",
       header: "Acciones",
       align: "right",
-      render: (item) => <RowActions onEdit={() => startEdit(item)} onDelete={() => remove(item)} />,
+      render: (item) => (
+        <div className="flex justify-end gap-2">
+          <IconActionButton label="Gestionar modulos" tone="neutral" onClick={() => startAccess(item)}>
+            <LockKeyhole size={16} />
+          </IconActionButton>
+          <RowActions onEdit={() => startEdit(item)} onDelete={() => remove(item)} />
+        </div>
+      ),
     },
   ];
 
@@ -196,29 +215,40 @@ export function PerfilesClient() {
               </select>
             </div>
           </div>
+        </div>
+      </FormModal>
 
-          <div>
-            <label className={labelClass}>Modulos permitidos</label>
-            <div className="grid gap-2 rounded-xl border border-slate-200 bg-slate-50/80 p-3 md:grid-cols-2">
-              {modulos.map((modulo) => (
-                <label
-                  className={`flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 text-sm font-bold transition ${
-                    form.moduloIds.includes(modulo.id)
-                      ? "border-blue-200 bg-blue-50 text-blue-700"
-                      : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                  }`}
-                  key={modulo.id}
-                >
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4 accent-blue-600"
-                    checked={form.moduloIds.includes(modulo.id)}
-                    onChange={() => toggleModulo(modulo.id)}
-                  />
-                  <span>{modulo.nombre}</span>
-                </label>
-              ))}
-            </div>
+      <FormModal
+        open={accessOpen}
+        title={`Modulos permitidos${accessRole ? ` - ${accessRole.nombre}` : ""}`}
+        onClose={() => setAccessOpen(false)}
+        onSubmit={handleAccessSubmit}
+        submitLabel="Guardar accesos"
+        submitting={savingAccess}
+      >
+        <div className="grid gap-3">
+          <p className="m-0 text-sm font-semibold text-slate-500">
+            Selecciona los modulos que este rol podra visualizar y usar en el sistema.
+          </p>
+          <div className="grid gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 md:grid-cols-2">
+            {modulos.map((modulo) => (
+              <label
+                className={`flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 text-sm font-bold transition ${
+                  accessModuloIds.includes(modulo.id)
+                    ? "border-blue-200 bg-blue-50 text-blue-700"
+                    : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                }`}
+                key={modulo.id}
+              >
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 accent-blue-600"
+                  checked={accessModuloIds.includes(modulo.id)}
+                  onChange={() => toggleAccessModulo(modulo.id)}
+                />
+                <span>{modulo.nombre}</span>
+              </label>
+            ))}
           </div>
         </div>
       </FormModal>

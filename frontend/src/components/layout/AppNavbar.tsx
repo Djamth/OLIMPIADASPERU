@@ -19,10 +19,7 @@ export function AppNavbar({ onOpenMobileMenu }: { onOpenMobileMenu: () => void }
           <button className="op-mobile-menu-button" type="button" onClick={onOpenMobileMenu} aria-label="Abrir menu">
             <Menu size={20} />
           </button>
-          <div>
-            <span>Panel administrativo</span>
-            <h1>Olimpiadas Peru</h1>
-          </div>
+          
         </div>
 
         <div className="op-navbar-actions">

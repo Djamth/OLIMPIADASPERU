@@ -10,7 +10,7 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 export function PrimaryActionButton({ children, className = "", ...props }: ButtonProps) {
   return (
     <button
-      className={`inline-flex h-11 items-center justify-center gap-2 rounded-full bg-blue-700 px-5 text-sm font-black text-white shadow-[0_16px_32px_rgba(21,101,192,0.22)] ring-0 ring-blue-500/20 transition hover:-translate-y-0.5 hover:bg-blue-800 hover:shadow-[0_22px_40px_rgba(21,101,192,0.28)] disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
+      className={`inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-blue-700 px-5 text-sm font-black text-white shadow-[0_16px_32px_rgba(21,101,192,0.22)] ring-0 ring-blue-500/20 transition hover:-translate-y-0.5 hover:bg-blue-800 hover:shadow-[0_22px_40px_rgba(21,101,192,0.28)] disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
       type="button"
       {...props}
     >

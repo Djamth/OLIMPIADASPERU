@@ -34,6 +34,7 @@ export function UsuariosClient() {
   const [editing, setEditing] = useState<Usuario | null>(null);
   const [form, setForm] = useState<UsuarioForm>(emptyForm);
   const [submitting, setSubmitting] = useState(false);
+  const [togglingId, setTogglingId] = useState<number | null>(null);
 
   const table = useTableControls(usuarios, (item, query) =>
     [item.nombre, item.email, item.estado, roles.find((rol) => rol.id === item.rolId)?.nombre ?? ""]
@@ -113,6 +114,27 @@ export function UsuariosClient() {
     }
   };
 
+  const toggleEstado = async (item: Usuario) => {
+    const nuevoEstado = item.estado === "ACTIVO" ? "INACTIVO" : "ACTIVO";
+    setTogglingId(item.id);
+    try {
+      await usuarioService.update(item.id, {
+        nombre: item.nombre,
+        email: item.email,
+        rolId: item.rolId,
+        estado: nuevoEstado,
+      });
+      setUsuarios((prev) =>
+        prev.map((usuario) => (usuario.id === item.id ? { ...usuario, estado: nuevoEstado } : usuario)),
+      );
+      await alerts.success(`Usuario ${nuevoEstado === "ACTIVO" ? "activado" : "desactivado"}`);
+    } catch (error) {
+      await alerts.error("No se pudo cambiar el estado", getErrorMessage(error));
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
   const columns: DataTableColumn<Usuario>[] = [
     {
       key: "nombre",
@@ -132,7 +154,32 @@ export function UsuariosClient() {
     {
       key: "estado",
       header: "Estado",
-      render: (item) => <Badge tone={item.estado === "ACTIVO" ? "green" : "slate"}>{item.estado}</Badge>,
+      render: (item) => {
+        const active = item.estado === "ACTIVO";
+        const disabled = togglingId === item.id;
+
+        return (
+          <button
+            type="button"
+            role="switch"
+            aria-checked={active}
+            disabled={disabled}
+            onClick={() => toggleEstado(item)}
+            className={`inline-flex h-8 w-16 items-center rounded-full border p-1 transition disabled:cursor-not-allowed disabled:opacity-60 ${
+              active ? "border-emerald-200 bg-emerald-500" : "border-slate-200 bg-slate-300"
+            }`}
+            title={active ? "Desactivar usuario" : "Activar usuario"}
+          >
+            <span
+              className={`grid h-6 w-6 place-items-center rounded-full bg-white text-[9px] font-black shadow-sm transition ${
+                active ? "translate-x-8 text-emerald-700" : "translate-x-0 text-slate-500"
+              }`}
+            >
+              {active ? "ON" : "OFF"}
+            </span>
+          </button>
+        );
+      },
     },
     {
       key: "acciones",
