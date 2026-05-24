@@ -21,55 +21,55 @@ public class RolController {
     private final RolService rolService;
     
     @PostMapping
-    @PreAuthorize("@rolSecurityService.esAdministrador(authentication)")
+    @PreAuthorize("@rolSecurityService.esAdministrador(authentication) and @rolSecurityService.tieneModulo(authentication, 'roles')")
     public ResponseEntity<RolDTO> crearRol(@RequestBody RolDTO rolDTO) {
         return ResponseEntity.status(HttpStatus.CREATED).body(rolService.crearRol(rolDTO));
     }
     
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("@rolSecurityService.tieneModulo(authentication, 'roles')")
     public ResponseEntity<List<RolDTO>> obtenerTodos() {
         return ResponseEntity.ok(rolService.obtenerTodos());
     }
     
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("@rolSecurityService.tieneModulo(authentication, 'roles')")
     public ResponseEntity<RolDTO> obtenerPorId(@PathVariable Integer id) {
         return ResponseEntity.ok(rolService.obtenerPorId(id));
     }
 
     @GetMapping("/{id}/modulos")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("@rolSecurityService.tieneModulo(authentication, 'roles')")
     public ResponseEntity<RolModulosDTO> obtenerModulos(@PathVariable Integer id) {
         return ResponseEntity.ok(rolService.obtenerRolModulos(id));
     }
     
     @PutMapping("/{id}")
-    @PreAuthorize("@rolSecurityService.esAdministrador(authentication)")
+    @PreAuthorize("@rolSecurityService.esAdministrador(authentication) and @rolSecurityService.tieneModulo(authentication, 'roles')")
     public ResponseEntity<RolDTO> actualizarRol(@PathVariable Integer id, @RequestBody RolDTO rolDTO) {
         return ResponseEntity.ok(rolService.actualizarRol(id, rolDTO));
     }
 
     @PutMapping("/{id}/modulos")
-    @PreAuthorize("@rolSecurityService.esAdministrador(authentication)")
+    @PreAuthorize("@rolSecurityService.esAdministrador(authentication) and @rolSecurityService.tieneModulo(authentication, 'roles')")
     public ResponseEntity<RolModulosDTO> asignarModulos(@PathVariable Integer id, @RequestBody AsignarModulosRolDTO asignarModulosRolDTO) {
         return ResponseEntity.ok(rolService.asignarModulos(id, asignarModulosRolDTO));
     }
 
     @PostMapping("/{rolId}/modulos/{moduloId}")
-    @PreAuthorize("@rolSecurityService.esAdministrador(authentication)")
+    @PreAuthorize("@rolSecurityService.esAdministrador(authentication) and @rolSecurityService.tieneModulo(authentication, 'roles')")
     public ResponseEntity<RolModulosDTO> agregarModuloAlRol(@PathVariable Integer rolId, @PathVariable Integer moduloId) {
         return ResponseEntity.ok(rolService.agregarModuloAlRol(rolId, moduloId));
     }
 
     @DeleteMapping("/{rolId}/modulos/{moduloId}")
-    @PreAuthorize("@rolSecurityService.esAdministrador(authentication)")
+    @PreAuthorize("@rolSecurityService.esAdministrador(authentication) and @rolSecurityService.tieneModulo(authentication, 'roles')")
     public ResponseEntity<RolModulosDTO> removerModuloDelRol(@PathVariable Integer rolId, @PathVariable Integer moduloId) {
         return ResponseEntity.ok(rolService.removerModuloDelRol(rolId, moduloId));
     }
     
     @DeleteMapping("/{id}")
-    @PreAuthorize("@rolSecurityService.esAdministrador(authentication)")
+    @PreAuthorize("@rolSecurityService.esAdministrador(authentication) and @rolSecurityService.tieneModulo(authentication, 'roles')")
     public ResponseEntity<Void> eliminarRol(@PathVariable Integer id) {
         rolService.eliminarRol(id);
         return ResponseEntity.noContent().build();

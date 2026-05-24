@@ -19,7 +19,7 @@ public class DashboardController {
     private final DashboardService dashboardService;
 
     @GetMapping("/resumen")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("@rolSecurityService.tieneModulo(authentication, 'dashboard')")
     public ResponseEntity<DashboardResumenResponse> obtenerResumen() {
         return ResponseEntity.ok(dashboardService.obtenerResumen());
     }
