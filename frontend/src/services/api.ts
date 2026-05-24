@@ -19,3 +19,18 @@ api.interceptors.request.use((config) => {
 
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error?.response?.status === 403) {
+      error.response.data = {
+        ...(error.response.data ?? {}),
+        mensaje: error.response.data?.mensaje ?? "Tu perfil no tiene permisos para realizar esta operacion.",
+      };
+
+    }
+
+    return Promise.reject(error);
+  },
+);

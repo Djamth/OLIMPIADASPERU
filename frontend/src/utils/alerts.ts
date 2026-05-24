@@ -45,6 +45,12 @@ export const alerts = {
 
 export function getErrorMessage(error: unknown) {
   const axiosError = error as AxiosError<{ mensaje?: string; message?: string }>;
+  if (axiosError.response?.status === 403) {
+    return axiosError.response?.data?.mensaje
+      ?? axiosError.response?.data?.message
+      ?? "Tu perfil no tiene permisos para realizar esta operacion.";
+  }
+
   return axiosError.response?.data?.mensaje
     ?? axiosError.response?.data?.message
     ?? "No se pudo completar la operacion.";

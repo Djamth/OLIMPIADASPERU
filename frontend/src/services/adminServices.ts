@@ -1,6 +1,7 @@
 import { api } from "@/services/api";
 import type { Modulo } from "@/types/auth";
 import type {
+  Auditoria,
   DashboardResumen,
   Rol,
   RolModulos,
@@ -64,6 +65,13 @@ export const moduloService = {
 export const dashboardService = {
   async resumen() {
     const { data } = await api.get<DashboardResumen>("/api/dashboard/resumen");
+    return data;
+  },
+};
+
+export const auditoriaService = {
+  async list() {
+    const { data } = await api.get<Auditoria[]>("/api/auditoria");
     return data;
   },
 };

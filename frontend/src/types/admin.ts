@@ -60,8 +60,38 @@ export interface DashboardUpcomingMatch {
   estado: string;
 }
 
+export interface DashboardRecentResult {
+  id: number;
+  deporte: string;
+  encuentro: string;
+  puntajeLocal: number;
+  puntajeVisitante: number;
+  ganador: string;
+  observaciones?: string | null;
+}
+
+export interface DashboardActivity {
+  id: number;
+  usuario: string;
+  accion: string;
+  descripcion: string;
+  fecha: string;
+}
+
 export interface DashboardResumen {
   metricas: DashboardMetric[];
   avanceFuncional: DashboardProgress[];
   proximasContiendas: DashboardUpcomingMatch[];
+  ultimosResultados: DashboardRecentResult[];
+  actividadReciente: DashboardActivity[];
+}
+
+export interface Auditoria {
+  id: number;
+  usuarioId?: number | null;
+  usuarioNombre: string;
+  usuarioEmail?: string | null;
+  accion: string;
+  descripcion: string;
+  fecha: string;
 }

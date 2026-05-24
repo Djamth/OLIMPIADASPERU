@@ -123,7 +123,14 @@ public class UsuarioService {
             usuario.setRol(rol);
         }
         if (SecurityUtils.isAdmin() && usuarioDTO.getEstado() != null) {
-            usuario.setEstado(Usuario.Estado.valueOf(usuarioDTO.getEstado()));
+            Usuario.Estado nuevoEstado = Usuario.Estado.valueOf(usuarioDTO.getEstado());
+            if (id.equals(SecurityUtils.getCurrentUserId()) && nuevoEstado == Usuario.Estado.INACTIVO) {
+                throw new RuntimeException("No puedes desactivarte a ti mismo");
+            }
+            if (nuevoEstado == Usuario.Estado.INACTIVO) {
+                validarUltimoAdministrador(usuario);
+            }
+            usuario.setEstado(nuevoEstado);
         }
 
         return mapearADTO(usuarioRepository.save(usuario));

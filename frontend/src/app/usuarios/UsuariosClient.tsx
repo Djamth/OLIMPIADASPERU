@@ -10,6 +10,7 @@ import { LoadingState } from "@/components/common/LoadingState";
 import { PageHeader } from "@/components/common/PageHeader";
 import { PaginationControls } from "@/components/common/PaginationControls";
 import { TableToolbar } from "@/components/common/TableToolbar";
+import { useAuth } from "@/context/AuthContext";
 import { useTableControls } from "@/hooks/useTableControls";
 import { rolService, usuarioService } from "@/services/adminServices";
 import type { Rol, Usuario, UsuarioCreateRequest, UsuarioUpdateRequest } from "@/types/admin";
@@ -27,6 +28,7 @@ const emptyForm: UsuarioForm = {
 };
 
 export function UsuariosClient() {
+  const { user } = useAuth();
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [roles, setRoles] = useState<Rol[]>([]);
   const [loading, setLoading] = useState(true);
@@ -103,6 +105,11 @@ export function UsuariosClient() {
   };
 
   const remove = async (item: Usuario) => {
+    if (item.id === user?.id) {
+      await alerts.error("Accion no permitida", "No puedes eliminar tu propio usuario.");
+      return;
+    }
+
     const result = await alerts.confirm("Eliminar usuario", `Se eliminara ${item.nombre}.`);
     if (!result.isConfirmed) return;
     try {
@@ -116,6 +123,19 @@ export function UsuariosClient() {
 
   const toggleEstado = async (item: Usuario) => {
     const nuevoEstado = item.estado === "ACTIVO" ? "INACTIVO" : "ACTIVO";
+    const isSelf = item.id === user?.id;
+
+    if (isSelf && nuevoEstado === "INACTIVO") {
+      await alerts.error("Accion no permitida", "No puedes desactivar tu propio usuario.");
+      return;
+    }
+
+    const result = await alerts.confirm(
+      nuevoEstado === "ACTIVO" ? "Activar usuario" : "Desactivar usuario",
+      `Se cambiara el estado de ${item.nombre} a ${nuevoEstado}.`,
+    );
+    if (!result.isConfirmed) return;
+
     setTogglingId(item.id);
     try {
       await usuarioService.update(item.id, {
@@ -156,7 +176,8 @@ export function UsuariosClient() {
       header: "Estado",
       render: (item) => {
         const active = item.estado === "ACTIVO";
-        const disabled = togglingId === item.id;
+        const isSelf = item.id === user?.id;
+        const disabled = togglingId === item.id || (isSelf && active);
 
         return (
           <button
@@ -168,7 +189,7 @@ export function UsuariosClient() {
             className={`inline-flex h-8 w-16 items-center rounded-full border p-1 transition disabled:cursor-not-allowed disabled:opacity-60 ${
               active ? "border-emerald-200 bg-emerald-500" : "border-slate-200 bg-slate-300"
             }`}
-            title={active ? "Desactivar usuario" : "Activar usuario"}
+            title={isSelf && active ? "No puedes desactivar tu propio usuario" : active ? "Desactivar usuario" : "Activar usuario"}
           >
             <span
               className={`grid h-6 w-6 place-items-center rounded-full bg-white text-[9px] font-black shadow-sm transition ${

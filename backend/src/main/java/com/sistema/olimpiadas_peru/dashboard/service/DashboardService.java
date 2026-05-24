@@ -2,8 +2,12 @@ package com.sistema.olimpiadas_peru.dashboard.service;
 
 import com.sistema.olimpiadas_peru.common.enums.EstadoInscripcion;
 import com.sistema.olimpiadas_peru.common.enums.EstadoPartido;
+import com.sistema.olimpiadas_peru.auth1.model.Auditoria;
+import com.sistema.olimpiadas_peru.auth1.repository.AuditoriaRepository;
+import com.sistema.olimpiadas_peru.dashboard.dto.DashboardActivityResponse;
 import com.sistema.olimpiadas_peru.dashboard.dto.DashboardMetricResponse;
 import com.sistema.olimpiadas_peru.dashboard.dto.DashboardProgressResponse;
+import com.sistema.olimpiadas_peru.dashboard.dto.DashboardRecentResultResponse;
 import com.sistema.olimpiadas_peru.dashboard.dto.DashboardResumenResponse;
 import com.sistema.olimpiadas_peru.dashboard.dto.DashboardUpcomingMatchResponse;
 import com.sistema.olimpiadas_peru.equipo.repository.EquipoRepository;
@@ -11,6 +15,7 @@ import com.sistema.olimpiadas_peru.inscripcion.repository.InscripcionRepository;
 import com.sistema.olimpiadas_peru.participante.repository.ParticipanteRepository;
 import com.sistema.olimpiadas_peru.programacion.entity.Partido;
 import com.sistema.olimpiadas_peru.programacion.repository.PartidoRepository;
+import com.sistema.olimpiadas_peru.resultado.entity.Resultado;
 import com.sistema.olimpiadas_peru.resultado.repository.ResultadoRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +31,7 @@ public class DashboardService {
     private final PartidoRepository partidoRepository;
     private final ResultadoRepository resultadoRepository;
     private final InscripcionRepository inscripcionRepository;
+    private final AuditoriaRepository auditoriaRepository;
 
     @Transactional(readOnly = true)
     public DashboardResumenResponse obtenerResumen() {
@@ -61,7 +67,20 @@ public class DashboardService {
                 .map(this::toUpcoming)
                 .toList();
 
-        return new DashboardResumenResponse(metricas, avance, proximas);
+        List<DashboardRecentResultResponse> ultimosResultados = resultadoRepository
+                .findTop5ByOrderByCreatedAtDesc()
+                .stream()
+                .map(this::toRecentResult)
+                .toList();
+
+        List<DashboardActivityResponse> actividad = auditoriaRepository
+                .findTop20ByOrderByFechaDesc()
+                .stream()
+                .limit(5)
+                .map(this::toActivity)
+                .toList();
+
+        return new DashboardResumenResponse(metricas, avance, proximas, ultimosResultados, actividad);
     }
 
     private int porcentaje(long parte, long total) {
@@ -79,5 +98,32 @@ public class DashboardService {
                 partido.getFechaHora(),
                 partido.getSede(),
                 partido.getEstado());
+    }
+
+    private DashboardRecentResultResponse toRecentResult(Resultado resultado) {
+        Partido partido = resultado.getPartido();
+        String local = partido.getEquipoLocal().getNombre();
+        String visitante = partido.getEquipoVisitante().getNombre();
+        String ganador = resultado.getPuntajeLocal().equals(resultado.getPuntajeVisitante())
+                ? "Empate"
+                : resultado.getPuntajeLocal() > resultado.getPuntajeVisitante() ? local : visitante;
+
+        return new DashboardRecentResultResponse(
+                resultado.getId(),
+                partido.getDeporte().getNombre(),
+                local + " vs " + visitante,
+                resultado.getPuntajeLocal(),
+                resultado.getPuntajeVisitante(),
+                ganador,
+                resultado.getObservaciones());
+    }
+
+    private DashboardActivityResponse toActivity(Auditoria auditoria) {
+        return new DashboardActivityResponse(
+                auditoria.getId(),
+                auditoria.getUsuario() != null ? auditoria.getUsuario().getNombre() : "Sistema",
+                auditoria.getAccion(),
+                auditoria.getDescripcion(),
+                auditoria.getFecha());
     }
 }

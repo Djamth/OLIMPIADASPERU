@@ -39,7 +39,8 @@ VALUES
     (9, 'Programaciones', '/programaciones', 'calendar-days'),
     (10, 'Resultados', '/resultados', 'medal'),
     (11, 'Estadisticas', '/estadisticas', 'bar-chart-3'),
-    (12, 'Dashboard', '/dashboard', 'layout-dashboard')
+    (12, 'Dashboard', '/dashboard', 'layout-dashboard'),
+    (13, 'Auditoria', '/auditoria', 'history')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO roles (id, nombre, estado)
@@ -51,7 +52,7 @@ ON CONFLICT (nombre) DO NOTHING;
 
 INSERT INTO rol_modulos (rol_id, modulo_id)
 VALUES
-    (1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7), (1, 8), (1, 9), (1, 10), (1, 11), (1, 12),
+    (1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7), (1, 8), (1, 9), (1, 10), (1, 11), (1, 12), (1, 13),
     (2, 4), (2, 5), (2, 6), (2, 7), (2, 8), (2, 9), (2, 10), (2, 11), (2, 12),
     (3, 9), (3, 10), (3, 11), (3, 12)
 ON CONFLICT DO NOTHING;

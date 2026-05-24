@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   ClipboardCheck,
   HelpCircle,
+  History,
   LayoutDashboard,
   LogOut,
   Medal,
@@ -36,6 +37,7 @@ const items = [
   { href: "/programacion", label: "Programacion", icon: CalendarDays, keys: ["/programacion", "/programaciones", "programaciones"] },
   { href: "/resultados", label: "Resultados", icon: Medal, keys: ["/resultados", "resultados"] },
   { href: "/estadisticas", label: "Estadisticas", icon: BarChart3, keys: ["/estadisticas", "estadisticas"] },
+  { href: "/auditoria", label: "Auditoria", icon: History, keys: ["/auditoria", "auditoria"] },
 ];
 
 function getInitials(name?: string) {

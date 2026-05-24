@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface AuditoriaRepository extends JpaRepository<Auditoria, Integer> {
     List<Auditoria> findByUsuarioId(Integer usuarioId);
+
+    List<Auditoria> findTop20ByOrderByFechaDesc();
 }

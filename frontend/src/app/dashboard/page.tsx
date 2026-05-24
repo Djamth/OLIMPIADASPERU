@@ -23,12 +23,13 @@ const metricIcons = [UsersRound, ClipboardCheck, CalendarDays, Medal];
 const bars = [28, 54, 48, 82, 22, 74, 76, 86, 58, 31];
 
 const moduleLinks = [
-  { href: "/usuarios", label: "Usuarios", value: "Accesos" },
-  { href: "/perfiles", label: "Perfiles", value: "Roles y modulos" },
-  { href: "/instituciones", label: "Instituciones", value: "Clientes y sedes" },
-  { href: "/equipos", label: "Equipos", value: "Delegaciones" },
-  { href: "/programacion", label: "Programacion", value: "Calendario" },
-  { href: "/resultados", label: "Resultados", value: "Marcadores" },
+  { href: "/usuarios", label: "Usuarios", value: "Accesos", keys: ["/usuarios", "usuarios"] },
+  { href: "/perfiles", label: "Perfiles", value: "Roles y modulos", keys: ["/roles", "/modulos", "roles", "modulos"] },
+  { href: "/instituciones", label: "Instituciones", value: "Clientes y sedes", keys: ["/instituciones", "instituciones"] },
+  { href: "/equipos", label: "Equipos", value: "Delegaciones", keys: ["/equipos", "equipos"] },
+  { href: "/programacion", label: "Programacion", value: "Calendario", keys: ["/programacion", "/programaciones", "programaciones"] },
+  { href: "/resultados", label: "Resultados", value: "Marcadores", keys: ["/resultados", "resultados"] },
+  { href: "/auditoria", label: "Auditoria", value: "Bitacora", keys: ["/auditoria", "auditoria"] },
 ];
 
 function formatDate(value: string) {
@@ -53,6 +54,7 @@ export default function DashboardPage() {
   const [summary, setSummary] = useState<DashboardResumen | null>(null);
   const [loading, setLoading] = useState(true);
   const canViewDashboard = hasModuleAccess(user, ["/dashboard", "dashboard"]);
+  const visibleModuleLinks = moduleLinks.filter((item) => hasModuleAccess(user, item.keys));
 
   useEffect(() => {
     if (!canViewDashboard) {
@@ -178,7 +180,7 @@ export default function DashboardPage() {
                 <h3 className="text-xl font-extrabold text-slate-950">Modulos rapidos</h3>
               </div>
               <div className="grid gap-3">
-                {moduleLinks.map((item) => (
+                {visibleModuleLinks.map((item) => (
                   <Link
                     href={item.href}
                     className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 p-3 text-slate-950 transition hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
@@ -190,6 +192,50 @@ export default function DashboardPage() {
                     </span>
                     <ArrowUpRight size={16} />
                   </Link>
+                ))}
+              </div>
+            </section>
+          </div>
+
+          <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+            <section className="surface-card h-full p-5">
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-xl font-extrabold text-slate-950">Ultimos resultados</h3>
+                <Badge tone="green">Marcadores</Badge>
+              </div>
+              <div className="grid gap-3">
+                {(summary.ultimosResultados ?? []).length === 0 ? (
+                  <p className="m-0 text-sm font-semibold text-slate-500">Aun no hay resultados registrados.</p>
+                ) : (summary.ultimosResultados ?? []).map((item) => (
+                  <div className="rounded-lg border border-slate-100 bg-slate-50 p-3" key={item.id}>
+                    <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-xs font-black uppercase text-blue-700">{item.deporte}</span>
+                      <strong className="text-lg font-black text-slate-950">{item.puntajeLocal} - {item.puntajeVisitante}</strong>
+                    </div>
+                    <div className="text-sm font-bold text-slate-800">{item.encuentro}</div>
+                    <div className="mt-1 text-xs font-semibold text-slate-500">Ganador: {item.ganador}</div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="surface-card h-full p-5">
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-xl font-extrabold text-slate-950">Actividad reciente</h3>
+                <Badge tone="slate">Auditoria</Badge>
+              </div>
+              <div className="grid gap-3">
+                {(summary.actividadReciente ?? []).length === 0 ? (
+                  <p className="m-0 text-sm font-semibold text-slate-500">No hay actividad administrativa reciente.</p>
+                ) : (summary.actividadReciente ?? []).map((item) => (
+                  <div className="rounded-lg border border-slate-100 bg-white p-3 shadow-sm" key={item.id}>
+                    <div className="mb-1 flex items-center justify-between gap-2">
+                      <span className="text-xs font-black uppercase text-slate-500">{item.accion}</span>
+                      <span className="text-[11px] font-bold text-slate-400">{formatDate(item.fecha)}</span>
+                    </div>
+                    <div className="text-sm font-bold text-slate-900">{item.usuario}</div>
+                    <p className="m-0 mt-1 text-xs font-semibold text-slate-500">{item.descripcion}</p>
+                  </div>
                 ))}
               </div>
             </section>
