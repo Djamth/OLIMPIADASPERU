@@ -6,8 +6,8 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { fieldClass, labelClass } from "@/components/common/formStyles";
 import { LoadingState } from "@/components/common/LoadingState";
 import { PageHeader } from "@/components/common/PageHeader";
-import { deporteService, sorteoService } from "@/services/crudServices";
-import type { Deporte, Grupo } from "@/types/catalogs";
+import { deporteService, inscripcionService, sorteoService } from "@/services/crudServices";
+import type { Deporte, Grupo, Inscripcion } from "@/types/catalogs";
 import { alerts, getErrorMessage } from "@/utils/alerts";
 import { useEffect, useState } from "react";
 
@@ -15,6 +15,7 @@ export function SorteosClient() {
   const [deportes, setDeportes] = useState<Deporte[]>([]);
   const [deporteId, setDeporteId] = useState<number>(0);
   const [grupos, setGrupos] = useState<Grupo[]>([]);
+  const [inscripciones, setInscripciones] = useState<Inscripcion[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,9 +30,19 @@ export function SorteosClient() {
 
   useEffect(() => {
     if (!deporteId) return;
-    sorteoService.listarGrupos(deporteId)
-      .then(setGrupos)
-      .catch(() => setGrupos([]));
+    Promise.all([
+      sorteoService.listarGrupos(deporteId).catch(() => []),
+      inscripcionService.list({ deporteId }),
+    ])
+      .then(([gruposData, inscripcionesData]) => {
+        setGrupos(gruposData);
+        setInscripciones(inscripcionesData);
+      })
+      .catch((error) => {
+        setGrupos([]);
+        setInscripciones([]);
+        alerts.error("Error al cargar datos del sorteo", getErrorMessage(error));
+      });
   }, [deporteId]);
 
   const generar = async () => {
@@ -58,10 +69,52 @@ export function SorteosClient() {
       />
 
       <div className="mb-4 rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
-        <label className={labelClass}>Deporte</label>
-        <select className={fieldClass} value={deporteId} onChange={(e) => setDeporteId(Number(e.target.value))}>
-          {deportes.map((item) => <option value={item.id} key={item.id}>{item.nombre}</option>)}
-        </select>
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-700">Equipos inscritos</p>
+            <h3 className="mt-1 text-xl font-black text-slate-950">
+              {inscripciones.filter((item) => item.estado === "CONFIRMADA").length} confirmados de {inscripciones.length} inscritos
+            </h3>
+            <p className="mt-1 text-sm font-semibold text-slate-500">
+              El sorteo usa solo equipos con inscripcion confirmada y plantilla valida.
+            </p>
+          </div>
+          <div>
+            <label className={labelClass}>Deporte</label>
+            <select className={fieldClass} value={deporteId} onChange={(e) => setDeporteId(Number(e.target.value))}>
+              {deportes.map((item) => <option value={item.id} key={item.id}>{item.nombre}</option>)}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div className="mb-4 rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <h3 className="m-0 text-lg font-extrabold text-slate-950">Equipos inscritos en el deporte</h3>
+            <p className="mt-1 text-sm font-semibold text-slate-500">Estos equipos son la base para generar las series.</p>
+          </div>
+          <Badge tone="blue">{inscripciones.length} inscritos</Badge>
+        </div>
+        {inscripciones.length === 0 ? (
+          <div className="rounded-lg border border-amber-100 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-700">
+            Aun no hay equipos inscritos para este deporte.
+          </div>
+        ) : (
+          <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+            {inscripciones.map((item) => (
+              <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2" key={item.id}>
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-black text-slate-800">{item.equipoNombre}</div>
+                  <div className="text-xs font-semibold text-slate-500">{item.fechaInscripcion}</div>
+                </div>
+                <Badge tone={item.estado === "CONFIRMADA" ? "green" : item.estado === "CANCELADA" ? "red" : "amber"}>
+                  {item.estado}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {loading ? <LoadingState /> : grupos.length === 0 ? (

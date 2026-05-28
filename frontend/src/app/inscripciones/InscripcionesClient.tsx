@@ -28,7 +28,11 @@ const emptyForm: InscripcionRequest = {
 };
 
 export function InscripcionesClient() {
-  const loader = useCallback(() => inscripcionService.list(), []);
+  const [deporteFiltroId, setDeporteFiltroId] = useState<number>(0);
+  const loader = useCallback(
+    () => inscripcionService.list(deporteFiltroId ? { deporteId: deporteFiltroId } : undefined),
+    [deporteFiltroId],
+  );
   const { data, loading, reload } = useAsyncList<Inscripcion>(loader);
   const [equipos, setEquipos] = useState<Equipo[]>([]);
   const [deportes, setDeportes] = useState<Deporte[]>([]);
@@ -36,6 +40,7 @@ export function InscripcionesClient() {
   const [editing, setEditing] = useState<Inscripcion | null>(null);
   const [form, setForm] = useState<InscripcionRequest>(emptyForm);
   const [submitting, setSubmitting] = useState(false);
+  const selectedDeporte = deportes.find((item) => item.id === deporteFiltroId);
   const table = useTableControls(data, (item, query) =>
     [item.equipoNombre, item.deporteNombre, item.estado, item.fechaInscripcion]
       .some((value) => value.toLowerCase().includes(query)),
@@ -52,7 +57,7 @@ export function InscripcionesClient() {
 
   const startCreate = () => {
     setEditing(null);
-    setForm({ ...emptyForm, equipoId: equipos[0]?.id ?? 0, deporteId: deportes[0]?.id ?? 0 });
+    setForm({ ...emptyForm, equipoId: equipos[0]?.id ?? 0, deporteId: deporteFiltroId || deportes[0]?.id || 0 });
     setOpen(true);
   };
 
@@ -77,6 +82,7 @@ export function InscripcionesClient() {
         message = "Inscripcion actualizada";
       } else {
         await inscripcionService.create(form);
+        setDeporteFiltroId(form.deporteId);
       }
       setOpen(false);
       await reload();
@@ -125,20 +131,61 @@ export function InscripcionesClient() {
       />
 
       {loading ? <LoadingState /> : data.length === 0 ? (
-        <EmptyState title="Sin inscripciones" description="Inscribe equipos para poder sortear grupos y programar partidos." />
+        <div className="grid gap-5">
+          <section className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+            <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-700">Filtro por deporte</p>
+                <h3 className="mt-1 text-xl font-black text-slate-950">{selectedDeporte?.nombre ?? "Todos los deportes"}</h3>
+                <p className="mt-1 text-sm font-semibold text-slate-500">Revisa solo los equipos inscritos en una disciplina.</p>
+              </div>
+              <div>
+                <label className={labelClass}>Deporte</label>
+                <select className={fieldClass} value={deporteFiltroId} onChange={(e) => setDeporteFiltroId(Number(e.target.value))}>
+                  <option value={0}>Todos los deportes</option>
+                  {deportes.map((item) => <option value={item.id} key={item.id}>{item.nombre}</option>)}
+                </select>
+              </div>
+            </div>
+          </section>
+          <EmptyState title="Sin inscripciones" description="Inscribe equipos para poder sortear grupos y programar partidos." />
+        </div>
       ) : (
-        <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
-          <TableToolbar
-            query={table.query}
-            onQueryChange={table.setQuery}
-            pageSize={table.pageSize}
-            onPageSizeChange={table.setPageSize}
-            totalItems={table.totalItems}
-            filteredItems={table.filteredItems}
-            placeholder="Buscar equipo, deporte o estado..."
-          />
-          <DataTable columns={columns} items={table.pageItems} getRowKey={(item) => item.id} />
-          <PaginationControls page={table.page} totalPages={table.totalPages} onPageChange={table.setPage} />
+        <div className="grid gap-5">
+          <section className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+            <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-700">Filtro por deporte</p>
+                <h3 className="mt-1 text-xl font-black text-slate-950">{selectedDeporte?.nombre ?? "Todos los deportes"}</h3>
+                <p className="mt-1 text-sm font-semibold text-slate-500">
+                  {selectedDeporte
+                    ? `${data.length} equipos inscritos en ${selectedDeporte.nombre}.`
+                    : `${data.length} inscripciones registradas en todos los deportes.`}
+                </p>
+              </div>
+              <div>
+                <label className={labelClass}>Deporte</label>
+                <select className={fieldClass} value={deporteFiltroId} onChange={(e) => setDeporteFiltroId(Number(e.target.value))}>
+                  <option value={0}>Todos los deportes</option>
+                  {deportes.map((item) => <option value={item.id} key={item.id}>{item.nombre}</option>)}
+                </select>
+              </div>
+            </div>
+          </section>
+
+          <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+            <TableToolbar
+              query={table.query}
+              onQueryChange={table.setQuery}
+              pageSize={table.pageSize}
+              onPageSizeChange={table.setPageSize}
+              totalItems={table.totalItems}
+              filteredItems={table.filteredItems}
+              placeholder="Buscar equipo, deporte o estado..."
+            />
+            <DataTable columns={columns} items={table.pageItems} getRowKey={(item) => item.id} />
+            <PaginationControls page={table.page} totalPages={table.totalPages} onPageChange={table.setPage} />
+          </div>
         </div>
       )}
 
