@@ -15,6 +15,7 @@ import {
   UserRound,
   UsersRound,
 } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 const featureItems = [
@@ -147,9 +148,9 @@ export default function LoginPage() {
                   />
                   Recordarme
                 </label>
-                <button className="font-bold text-blue-600 transition hover:text-blue-800" type="button">
-                  Olvidaste tu contrasena?
-                </button>
+                <Link className="font-bold text-blue-600 transition hover:text-blue-800" href="/recuperar-password">
+                  Olvidaste tu contraseña?
+                </Link>
               </div>
 
               <button

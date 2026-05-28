@@ -16,6 +16,8 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+const publicRoutes = ["/login", "/recuperar-password", "/reset-password"];
+
 function getLandingRoute(user: LoginResponse) {
   const routeMap: Record<string, string> = {
     "/roles": "/perfiles",
@@ -54,8 +56,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    const isPublicRoute = publicRoutes.includes(pathname);
     const isLoginPage = pathname === "/login";
-    if (!user && !isLoginPage) {
+    if (!user && !isPublicRoute) {
       router.replace("/login");
     }
 

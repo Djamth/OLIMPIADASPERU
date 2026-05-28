@@ -3,6 +3,20 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  codigo: string;
+  nuevaPassword: string;
+}
+
+export interface ApiMessageResponse {
+  mensaje: string;
+}
+
 export interface Modulo {
   id: number;
   nombre: string;
