@@ -26,6 +26,23 @@ const emptyForm: ResultadoRequest = {
   anotaciones: [],
 };
 
+function getSportLabels(deporte?: string) {
+  const normalized = (deporte ?? "").toUpperCase();
+  if (normalized.includes("FUTBOL") || normalized.includes("FUTSAL")) {
+    return { plural: "goles", singular: "gol", title: "Goleadores", helper: "Registra quien marco y cuantos goles hizo." };
+  }
+  if (normalized.includes("BASQUET")) {
+    return { plural: "puntos", singular: "punto", title: "Encestadores", helper: "Registra puntos individuales para obtener encestadores." };
+  }
+  if (normalized.includes("VOLEY")) {
+    return { plural: "sets", singular: "set", title: "Sets por participante", helper: "Registra participacion en sets ganados o puntos destacados." };
+  }
+  if (normalized.includes("PING")) {
+    return { plural: "puntos/sets", singular: "punto/set", title: "Puntos/Sets individuales", helper: "Registra puntos o sets ganados por participante." };
+  }
+  return { plural: "anotaciones", singular: "anotacion", title: "Estadisticas individuales", helper: "Registra el aporte individual por participante." };
+}
+
 export function ResultadosClient() {
   const loader = useCallback(() => resultadoService.list(), []);
   const { data, loading, reload } = useAsyncList<Resultado>(loader);
@@ -35,6 +52,11 @@ export function ResultadosClient() {
   const [editing, setEditing] = useState<Resultado | null>(null);
   const [form, setForm] = useState<ResultadoRequest>(emptyForm);
   const [submitting, setSubmitting] = useState(false);
+  const selectedPartido = partidos.find((item) => item.id === form.partidoId);
+  const selectedLabels = getSportLabels(selectedPartido?.deporteNombre ?? editing?.deporte);
+  const participantesDelPartido = selectedPartido
+    ? participantes.filter((item) => item.equipoId === selectedPartido.equipoLocalId || item.equipoId === selectedPartido.equipoVisitanteId)
+    : participantes;
   const table = useTableControls(data, (item, query) =>
     [item.equipoLocal, item.equipoVisitante, item.deporte, item.observaciones ?? "", String(item.puntajeLocal), String(item.puntajeVisitante)]
       .some((value) => value.toLowerCase().includes(query)),
@@ -56,9 +78,10 @@ export function ResultadosClient() {
   };
 
   const addAnotacion = () => {
+    const firstParticipant = participantesDelPartido[0]?.id ?? 0;
     setForm({
       ...form,
-      anotaciones: [...(form.anotaciones ?? []), { participanteId: participantes[0]?.id ?? 0, cantidad: 1 }],
+      anotaciones: [...(form.anotaciones ?? []), { participanteId: firstParticipant, cantidad: 1 }],
     });
   };
 
@@ -71,7 +94,7 @@ export function ResultadosClient() {
 
   const startCreate = () => {
     setEditing(null);
-    setForm({ ...emptyForm, partidoId: partidos[0]?.id ?? 0 });
+    setForm({ ...emptyForm, partidoId: partidos[0]?.id ?? 0, anotaciones: [] });
     setOpen(true);
   };
 
@@ -136,7 +159,26 @@ export function ResultadosClient() {
     },
     { key: "deporte", header: "Deporte", render: (item) => item.deporte },
     { key: "marcador", header: "Marcador", render: (item) => <Badge tone="slate">{item.puntajeLocal} - {item.puntajeVisitante}</Badge> },
-    { key: "anotaciones", header: "Anotaciones", render: (item) => item.anotaciones?.length ?? 0 },
+    {
+      key: "anotaciones",
+      header: "Estadisticas individuales",
+      render: (item) => {
+        const labels = getSportLabels(item.deporte);
+        if (!item.anotaciones?.length) {
+          return <span className="text-xs font-semibold text-slate-400">Sin detalle</span>;
+        }
+        return (
+          <div className="flex max-w-xs flex-wrap gap-1.5">
+            {item.anotaciones.slice(0, 3).map((anotacion) => (
+              <Badge tone="blue" key={`${item.id}-${anotacion.participanteId}`}>
+                {anotacion.participanteNombreCompleto}: {anotacion.cantidad} {labels.plural}
+              </Badge>
+            ))}
+            {item.anotaciones.length > 3 && <Badge tone="slate">+{item.anotaciones.length - 3}</Badge>}
+          </div>
+        );
+      },
+    },
     { key: "acciones", header: "Acciones", align: "right", render: (item) => <RowActions onEdit={() => startEdit(item)} onDelete={() => remove(item)} /> },
   ];
 
@@ -170,7 +212,12 @@ export function ResultadosClient() {
         <div className="grid gap-4 md:grid-cols-12">
           <div className="md:col-span-12">
             <label className={labelClass}>Partido</label>
-            <select className={fieldClass} value={form.partidoId} onChange={(e) => setForm({ ...form, partidoId: Number(e.target.value) })} required>
+            <select
+              className={fieldClass}
+              value={form.partidoId}
+              onChange={(e) => setForm({ ...form, partidoId: Number(e.target.value), anotaciones: [] })}
+              required
+            >
               <option value={0} disabled>Seleccionar</option>
               {partidos.map((item) => <option value={item.id} key={item.id}>{item.equipoLocalNombre} vs {item.equipoVisitanteNombre} - {item.deporteNombre}</option>)}
             </select>
@@ -189,14 +236,24 @@ export function ResultadosClient() {
           </div>
           <div className="md:col-span-12">
             <div className="mb-2 flex items-center justify-between gap-3">
-              <label className={labelClass}>Anotaciones</label>
-              <button type="button" className="inline-flex h-9 items-center gap-2 rounded-full border border-blue-200 bg-white px-3 text-sm font-bold text-blue-600 transition hover:bg-blue-50" onClick={addAnotacion}>
+              <div>
+                <label className={labelClass}>{selectedLabels.title}</label>
+                <p className="mt-1 text-xs font-semibold text-slate-500">{selectedLabels.helper}</p>
+              </div>
+              <button
+                type="button"
+                className="inline-flex h-9 items-center gap-2 rounded-full border border-blue-200 bg-white px-3 text-sm font-bold text-blue-600 transition hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-50"
+                onClick={addAnotacion}
+                disabled={!selectedPartido || participantesDelPartido.length === 0}
+              >
                 <PlusCircle size={16} />
                 Agregar
               </button>
             </div>
             {(form.anotaciones ?? []).length === 0 ? (
-              <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700">Puedes registrar el marcador sin anotadores o agregarlos por participante.</div>
+              <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700">
+                Puedes registrar el marcador sin detalle individual o agregar {selectedLabels.plural} por participante.
+              </div>
             ) : (
               <div className="flex flex-col gap-2">
                 {(form.anotaciones ?? []).map((anotacion, index) => (
@@ -209,7 +266,7 @@ export function ResultadosClient() {
                         required
                       >
                         <option value={0} disabled>Seleccionar participante</option>
-                        {participantes.map((item) => (
+                        {participantesDelPartido.map((item) => (
                           <option value={item.id} key={item.id}>
                             {item.apellidos}, {item.nombres} - {item.equipoNombre}
                           </option>
@@ -223,6 +280,7 @@ export function ResultadosClient() {
                         className={fieldClass}
                         value={anotacion.cantidad}
                         onChange={(e) => setAnotacion(index, { cantidad: Number(e.target.value) })}
+                        title={`Cantidad de ${selectedLabels.plural}`}
                         required
                       />
                     </div>

@@ -130,8 +130,26 @@ SELECT
     equipo_id * 100 + jugador_nro,
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP,
-    'Jugador' || jugador_nro,
-    'Equipo' || equipo_id,
+    CASE
+        WHEN equipo_id IN (2, 9, 10, 11, 12, 13, 14)
+            OR (equipo_id IN (21, 22, 23, 24, 25, 26) AND jugador_nro % 2 = 0)
+        THEN (ARRAY[
+            'Valeria', 'Camila', 'Luciana', 'Sofia', 'Mariana', 'Daniela', 'Alejandra', 'Fernanda',
+            'Gabriela', 'Antonella', 'Andrea', 'Paula', 'Renata', 'Ximena', 'Isabella', 'Natalia',
+            'Carolina', 'Milagros', 'Fiorella', 'Claudia', 'Patricia', 'Rosa', 'Diana', 'Elena'
+        ])[((equipo_id + jugador_nro - 2) % 24) + 1]
+        ELSE (ARRAY[
+            'Luis', 'Diego', 'Carlos', 'Jorge', 'Miguel', 'Andres', 'Sebastian', 'Mateo',
+            'Alonso', 'Nicolas', 'Adrian', 'Fernando', 'Rodrigo', 'Bruno', 'Gabriel', 'Emilio',
+            'Franco', 'Martin', 'Piero', 'Santiago', 'Hector', 'Rafael', 'Ivan', 'Oscar'
+        ])[((equipo_id + jugador_nro - 2) % 24) + 1]
+    END,
+    (ARRAY[
+        'Quispe', 'Flores', 'Ramos', 'Mendoza', 'Torres', 'Vargas', 'Castillo', 'Rojas',
+        'Huaman', 'Chavez', 'Salazar', 'Medina', 'Paredes', 'Cruz', 'Reyes', 'Aguilar',
+        'Campos', 'Herrera', 'Soto', 'Navarro', 'Leon', 'Caceres', 'Valverde', 'Arias',
+        'Carrasco', 'Espinoza', 'Benavides', 'Lopez', 'Garcia', 'Morales'
+    ])[((equipo_id * 3 + jugador_nro - 4) % 30) + 1],
     '90' || LPAD(equipo_id::text, 2, '0') || LPAD(jugador_nro::text, 2, '0'),
     CASE
         WHEN equipo_id IN (2, 9, 10, 11, 12, 13, 14) THEN 'FEMENINO'
@@ -152,7 +170,10 @@ FROM (
     ) AS jugador_nro
     FROM generate_series(1, 26) AS equipos(equipo_id)
 ) plantilla
-ON CONFLICT DO NOTHING;
+ON CONFLICT (id) DO UPDATE
+SET nombres = EXCLUDED.nombres,
+    apellidos = EXCLUDED.apellidos,
+    updated_at = CURRENT_TIMESTAMP;
 
 INSERT INTO inscripciones (id, created_at, updated_at, equipo_id, deporte_id, estado, fecha_inscripcion)
 VALUES

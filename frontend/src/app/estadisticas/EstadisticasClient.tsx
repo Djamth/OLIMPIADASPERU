@@ -14,12 +14,31 @@ import type { Deporte, Goleador, RankingEquipo } from "@/types/catalogs";
 import { alerts, getErrorMessage } from "@/utils/alerts";
 import { useEffect, useState } from "react";
 
+function getSportLabels(deporte?: string) {
+  const normalized = (deporte ?? "").toUpperCase();
+  if (normalized.includes("FUTBOL") || normalized.includes("FUTSAL")) {
+    return { rankingFor: "GF", rankingAgainst: "GC", rankingTitle: "Puntos por equipo", individualTitle: "Goleadores", amount: "goles" };
+  }
+  if (normalized.includes("BASQUET")) {
+    return { rankingFor: "PF", rankingAgainst: "PC", rankingTitle: "Puntos por equipo", individualTitle: "Encestadores", amount: "puntos" };
+  }
+  if (normalized.includes("VOLEY")) {
+    return { rankingFor: "SF", rankingAgainst: "SC", rankingTitle: "Ranking por sets", individualTitle: "Sets por participante", amount: "sets" };
+  }
+  if (normalized.includes("PING")) {
+    return { rankingFor: "PF/SF", rankingAgainst: "PC/SC", rankingTitle: "Ranking por puntos/sets", individualTitle: "Puntos/Sets por participante", amount: "puntos/sets" };
+  }
+  return { rankingFor: "AF", rankingAgainst: "AC", rankingTitle: "Ranking por deporte", individualTitle: "Estadisticas individuales", amount: "anotaciones" };
+}
+
 export function EstadisticasClient() {
   const [deportes, setDeportes] = useState<Deporte[]>([]);
   const [deporteId, setDeporteId] = useState<number>(0);
   const [ranking, setRanking] = useState<RankingEquipo[]>([]);
   const [goleadores, setGoleadores] = useState<Goleador[]>([]);
   const [loading, setLoading] = useState(true);
+  const selectedDeporte = deportes.find((item) => item.id === deporteId);
+  const labels = getSportLabels(selectedDeporte?.nombre);
   const rankingTable = useTableControls(ranking, (item, query) =>
     [item.equipo, String(item.puntos), String(item.partidosJugados)].some((value) => value.toLowerCase().includes(query)),
   );
@@ -30,8 +49,8 @@ export function EstadisticasClient() {
     { key: "v", header: "V", render: (item) => item.victorias },
     { key: "e", header: "E", render: (item) => item.empates },
     { key: "d", header: "D", render: (item) => item.derrotas },
-    { key: "gf", header: "GF", render: (item) => item.tantosFavor },
-    { key: "gc", header: "GC", render: (item) => item.tantosContra },
+    { key: "gf", header: labels.rankingFor, render: (item) => item.tantosFavor },
+    { key: "gc", header: labels.rankingAgainst, render: (item) => item.tantosContra },
     { key: "pts", header: "Pts", render: (item) => <Badge tone="slate">{item.puntos}</Badge> },
   ];
 
@@ -63,7 +82,7 @@ export function EstadisticasClient() {
     <>
       <PageHeader
         title="Estadisticas"
-        description="Consulta ranking de equipos y tabla de anotadores por deporte."
+        description="Consulta puntos por equipo, ranking por deporte y estadisticas individuales."
         action={
           <select className={`${fieldClass} max-w-64`} value={deporteId} onChange={(e) => setDeporteId(Number(e.target.value))}>
             {deportes.map((item) => <option value={item.id} key={item.id}>{item.nombre}</option>)}
@@ -76,7 +95,12 @@ export function EstadisticasClient() {
       ) : (
         <div className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
           <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
-              <h3 className="mb-3 text-lg font-extrabold text-slate-950">Ranking de equipos</h3>
+              <div className="mb-3">
+                <h3 className="text-lg font-extrabold text-slate-950">{labels.rankingTitle}</h3>
+                <p className="text-xs font-semibold text-slate-500">
+                  PJ: partidos jugados, V/E/D: victorias, empates y derrotas, Pts: puntaje acumulado.
+                </p>
+              </div>
               <TableToolbar
                 query={rankingTable.query}
                 onQueryChange={rankingTable.setQuery}
@@ -91,15 +115,20 @@ export function EstadisticasClient() {
           </div>
 
           <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
-              <h3 className="mb-3 text-lg font-extrabold text-slate-950">Anotadores</h3>
+              <div className="mb-3">
+                <h3 className="text-lg font-extrabold text-slate-950">{labels.individualTitle}</h3>
+                <p className="text-xs font-semibold text-slate-500">
+                  Acumulado por participante a partir del detalle registrado en Resultados.
+                </p>
+              </div>
               <div className="divide-y divide-slate-100">
                 {goleadores.map((item, index) => (
-                  <div className="flex items-center justify-between gap-3 py-3" key={`${item.nombre}-${index}`}>
+                  <div className="flex items-center justify-between gap-3 py-3" key={`${item.participanteId}-${index}`}>
                     <div>
                       <div className="font-bold text-slate-950">{item.nombre}</div>
-                      <div className="text-xs font-semibold text-slate-500">Participante</div>
+                      <div className="text-xs font-semibold text-slate-500">{item.equipo} · {item.indicador}</div>
                     </div>
-                    <Badge tone="red">{item.anotaciones}</Badge>
+                    <Badge tone="red">{item.anotaciones} {labels.amount}</Badge>
                   </div>
                 ))}
               </div>

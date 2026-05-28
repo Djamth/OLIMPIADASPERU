@@ -2,6 +2,7 @@ package com.sistema.olimpiadas_peru.estadistica.service;
 
 import com.sistema.olimpiadas_peru.estadistica.dto.GoleadorResponse;
 import com.sistema.olimpiadas_peru.estadistica.dto.RankingEquipoResponse;
+import com.sistema.olimpiadas_peru.participante.entity.Participante;
 import com.sistema.olimpiadas_peru.resultado.entity.ResultadoAnotacion;
 import com.sistema.olimpiadas_peru.resultado.repository.ResultadoAnotacionRepository;
 import com.sistema.olimpiadas_peru.resultado.entity.Resultado;
@@ -10,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,16 +24,21 @@ public class EstadisticaService {
     private final ResultadoAnotacionRepository resultadoAnotacionRepository;
 
     public List<GoleadorResponse> obtenerGoleadores(Long deporteId) {
-        Map<String, Integer> acumulado = new HashMap<>();
+        Map<Long, AnotadorBuilder> acumulado = new HashMap<>();
         for (Resultado resultado : resultadoRepository.findByPartidoDeporteId(deporteId)) {
+            String deporte = resultado.getPartido().getDeporte().getNombre();
+            String indicador = obtenerIndicadorIndividual(deporte);
             for (ResultadoAnotacion anotacion : resultadoAnotacionRepository.findByResultadoId(resultado.getId())) {
-                String nombreCompleto = anotacion.getParticipante().getNombres() + " " + anotacion.getParticipante().getApellidos();
-                acumulado.merge(nombreCompleto, anotacion.getCantidad(), Integer::sum);
+                Participante participante = anotacion.getParticipante();
+                acumulado
+                        .computeIfAbsent(participante.getId(), key -> new AnotadorBuilder(participante, deporte, indicador))
+                        .cantidad += anotacion.getCantidad();
             }
         }
-        return acumulado.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-                .map(entry -> new GoleadorResponse(entry.getKey(), entry.getValue()))
+        return acumulado.values().stream()
+                .sorted(Comparator.comparingInt(AnotadorBuilder::getCantidad).reversed()
+                        .thenComparing(AnotadorBuilder::getNombre))
+                .map(AnotadorBuilder::toResponse)
                 .toList();
     }
 
@@ -110,5 +117,53 @@ public class EstadisticaService {
                     tantosFavor,
                     tantosContra);
         }
+    }
+
+    private static class AnotadorBuilder {
+        private final Long participanteId;
+        private final String nombre;
+        private final Long equipoId;
+        private final String equipo;
+        private final String deporte;
+        private final String indicador;
+        private int cantidad;
+
+        private AnotadorBuilder(Participante participante, String deporte, String indicador) {
+            this.participanteId = participante.getId();
+            this.nombre = participante.getNombres() + " " + participante.getApellidos();
+            this.equipoId = participante.getEquipo().getId();
+            this.equipo = participante.getEquipo().getNombre();
+            this.deporte = deporte;
+            this.indicador = indicador;
+        }
+
+        private int getCantidad() {
+            return cantidad;
+        }
+
+        private String getNombre() {
+            return nombre;
+        }
+
+        private GoleadorResponse toResponse() {
+            return new GoleadorResponse(participanteId, nombre, equipoId, equipo, deporte, indicador, cantidad);
+        }
+    }
+
+    private String obtenerIndicadorIndividual(String deporte) {
+        String normalizado = deporte == null ? "" : deporte.trim().toUpperCase(Locale.ROOT);
+        if (normalizado.contains("FUTBOL") || normalizado.contains("FUTSAL")) {
+            return "Goles";
+        }
+        if (normalizado.contains("BASQUET")) {
+            return "Puntos anotados";
+        }
+        if (normalizado.contains("VOLEY")) {
+            return "Sets ganados";
+        }
+        if (normalizado.contains("PING")) {
+            return "Puntos/Sets";
+        }
+        return "Anotaciones";
     }
 }

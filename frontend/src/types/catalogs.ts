@@ -158,7 +158,12 @@ export interface ResultadoRequest {
 }
 
 export interface Goleador {
+  participanteId: number;
   nombre: string;
+  equipoId: number;
+  equipo: string;
+  deporte: string;
+  indicador: string;
   anotaciones: number;
 }
 
