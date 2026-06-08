@@ -212,9 +212,4 @@ npm run build
 npm run start
 ```
 
-## Notas
 
-- El frontend ya no depende de Bootstrap.
-- El diseño principal usa Tailwind CSS.
-- Si se modifica el backend o se agregan nuevos modulos, actualizar los tipos y servicios correspondientes.
-- Si el dashboard no carga, verificar que el backend haya sido reiniciado despues de agregar `/api/dashboard/resumen`.
