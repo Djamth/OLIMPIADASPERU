@@ -17,6 +17,10 @@ export function SorteosClient() {
   const [grupos, setGrupos] = useState<Grupo[]>([]);
   const [inscripciones, setInscripciones] = useState<Inscripcion[]>([]);
   const [loading, setLoading] = useState(true);
+  const confirmadas = inscripciones.filter((item) => item.estado === "CONFIRMADA").length;
+  const pendientes = inscripciones.filter((item) => item.estado === "PENDIENTE").length;
+  const canceladas = inscripciones.filter((item) => item.estado === "CANCELADA").length;
+  const puedeGenerar = Boolean(deporteId) && confirmadas >= 2;
 
   useEffect(() => {
     deporteService.list()
@@ -46,6 +50,10 @@ export function SorteosClient() {
   }, [deporteId]);
 
   const generar = async () => {
+    if (!puedeGenerar) {
+      await alerts.warning("Sorteo no disponible", "Se requieren al menos dos equipos confirmados para generar grupos.");
+      return;
+    }
     const result = await alerts.confirm("Generar sorteo", "Se reemplazaran los grupos existentes del deporte seleccionado.");
     if (!result.isConfirmed || !deporteId) return;
     alerts.loading("Generando grupos");
@@ -65,7 +73,7 @@ export function SorteosClient() {
       <PageHeader
         title="Sorteos"
         description="Genera series aleatorias por deporte con equipos confirmados."
-        action={<PrimaryActionButton onClick={generar} disabled={!deporteId}>Generar sorteo</PrimaryActionButton>}
+        action={<PrimaryActionButton onClick={generar} disabled={!puedeGenerar}>Generar sorteo</PrimaryActionButton>}
       />
 
       <div className="mb-4 rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
@@ -73,7 +81,7 @@ export function SorteosClient() {
           <div>
             <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-700">Equipos inscritos</p>
             <h3 className="mt-1 text-xl font-black text-slate-950">
-              {inscripciones.filter((item) => item.estado === "CONFIRMADA").length} confirmados de {inscripciones.length} inscritos
+              {confirmadas} confirmados de {inscripciones.length} inscritos
             </h3>
             <p className="mt-1 text-sm font-semibold text-slate-500">
               El sorteo usa solo equipos con inscripcion confirmada y plantilla valida.
@@ -86,6 +94,25 @@ export function SorteosClient() {
             </select>
           </div>
         </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+            <div className="text-2xl font-black text-emerald-700">{confirmadas}</div>
+            <div className="text-xs font-black uppercase text-emerald-600">Confirmadas</div>
+          </div>
+          <div className="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+            <div className="text-2xl font-black text-amber-700">{pendientes}</div>
+            <div className="text-xs font-black uppercase text-amber-600">Pendientes</div>
+          </div>
+          <div className="rounded-lg border border-red-100 bg-red-50 px-4 py-3">
+            <div className="text-2xl font-black text-red-700">{canceladas}</div>
+            <div className="text-xs font-black uppercase text-red-600">Canceladas</div>
+          </div>
+        </div>
+        {!puedeGenerar && (
+          <div className="mt-4 rounded-lg border border-amber-100 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-700">
+            El boton de sorteo se habilita cuando existan al menos dos equipos confirmados.
+          </div>
+        )}
       </div>
 
       <div className="mb-4 rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">

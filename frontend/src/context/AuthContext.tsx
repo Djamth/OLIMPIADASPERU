@@ -16,7 +16,7 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-const publicRoutes = ["/login", "/recuperar-password", "/reset-password"];
+const publicRoutes = ["/", "/login", "/recuperar-password", "/reset-password"];
 
 function getLandingRoute(user: LoginResponse) {
   const routeMap: Record<string, string> = {

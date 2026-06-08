@@ -3,6 +3,7 @@ import type { Modulo } from "@/types/auth";
 import type {
   Auditoria,
   DashboardResumen,
+  PublicDashboardResumen,
   Rol,
   RolModulos,
   RolRequest,
@@ -65,6 +66,13 @@ export const moduloService = {
 export const dashboardService = {
   async resumen() {
     const { data } = await api.get<DashboardResumen>("/api/dashboard/resumen");
+    return data;
+  },
+};
+
+export const publicDashboardService = {
+  async resumen() {
+    const { data } = await api.get<PublicDashboardResumen>("/api/public/resumen");
     return data;
   },
 };

@@ -12,11 +12,11 @@ import { PageHeader } from "@/components/common/PageHeader";
 import { TableToolbar } from "@/components/common/TableToolbar";
 import { useAsyncList } from "@/hooks/useAsyncList";
 import { useTableControls } from "@/hooks/useTableControls";
-import { participanteService, programacionService, resultadoService } from "@/services/crudServices";
-import type { Participante, Partido, Resultado, ResultadoAnotacionRequest, ResultadoRequest } from "@/types/catalogs";
+import { deporteService, participanteService, programacionService, resultadoService } from "@/services/crudServices";
+import type { Deporte, Participante, Partido, Resultado, ResultadoAnotacionRequest, ResultadoRequest } from "@/types/catalogs";
 import { alerts, getErrorMessage } from "@/utils/alerts";
 import { PlusCircle, X } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 const emptyForm: ResultadoRequest = {
   partidoId: 0,
@@ -44,16 +44,27 @@ function getSportLabels(deporte?: string) {
 }
 
 export function ResultadosClient() {
-  const loader = useCallback(() => resultadoService.list(), []);
+  const [deporteFiltroId, setDeporteFiltroId] = useState<number>(0);
+  const loader = useCallback(
+    () => resultadoService.list(deporteFiltroId ? { deporteId: deporteFiltroId } : undefined),
+    [deporteFiltroId],
+  );
   const { data, loading, reload } = useAsyncList<Resultado>(loader);
+  const [deportes, setDeportes] = useState<Deporte[]>([]);
   const [partidos, setPartidos] = useState<Partido[]>([]);
   const [participantes, setParticipantes] = useState<Participante[]>([]);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Resultado | null>(null);
   const [form, setForm] = useState<ResultadoRequest>(emptyForm);
   const [submitting, setSubmitting] = useState(false);
+  const selectedDeporte = deportes.find((item) => item.id === deporteFiltroId);
   const selectedPartido = partidos.find((item) => item.id === form.partidoId);
   const selectedLabels = getSportLabels(selectedPartido?.deporteNombre ?? editing?.deporte);
+  const resultadoPartidoIds = useMemo(() => new Set(data.map((item) => item.partidoId)), [data]);
+  const partidosDisponibles = useMemo(() => {
+    const partidosFiltrados = deporteFiltroId ? partidos.filter((item) => item.deporteId === deporteFiltroId) : partidos;
+    return partidosFiltrados.filter((item) => editing?.partidoId === item.id || !resultadoPartidoIds.has(item.id));
+  }, [deporteFiltroId, editing?.partidoId, partidos, resultadoPartidoIds]);
   const participantesDelPartido = selectedPartido
     ? participantes.filter((item) => item.equipoId === selectedPartido.equipoLocalId || item.equipoId === selectedPartido.equipoVisitanteId)
     : participantes;
@@ -63,8 +74,9 @@ export function ResultadosClient() {
   );
 
   useEffect(() => {
-    Promise.all([programacionService.list(), participanteService.list()])
-      .then(([partidosData, participantesData]) => {
+    Promise.all([deporteService.list(), programacionService.list(), participanteService.list()])
+      .then(([deportesData, partidosData, participantesData]) => {
+        setDeportes(deportesData);
         setPartidos(partidosData);
         setParticipantes(participantesData);
       })
@@ -94,7 +106,7 @@ export function ResultadosClient() {
 
   const startCreate = () => {
     setEditing(null);
-    setForm({ ...emptyForm, partidoId: partidos[0]?.id ?? 0, anotaciones: [] });
+    setForm({ ...emptyForm, partidoId: partidosDisponibles[0]?.id ?? 0, anotaciones: [] });
     setOpen(true);
   };
 
@@ -115,6 +127,14 @@ export function ResultadosClient() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!editing && resultadoPartidoIds.has(form.partidoId)) {
+      await alerts.warning("Resultado duplicado", "El partido seleccionado ya tiene un resultado registrado.");
+      return;
+    }
+    if (!form.partidoId) {
+      await alerts.warning("Partido requerido", "Selecciona un partido disponible para registrar el resultado.");
+      return;
+    }
     setSubmitting(true);
     try {
       let message = "Resultado registrado";
@@ -123,6 +143,8 @@ export function ResultadosClient() {
         message = "Resultado actualizado";
       } else {
         await resultadoService.create(form);
+        const partido = partidos.find((item) => item.id === form.partidoId);
+        setDeporteFiltroId(partido?.deporteId ?? deporteFiltroId);
       }
       setOpen(false);
       await reload();
@@ -187,24 +209,63 @@ export function ResultadosClient() {
       <PageHeader
         title="Resultados"
         description="Carga marcadores y observaciones de cada partido."
-        action={<PrimaryActionButton onClick={startCreate}>Registrar resultado</PrimaryActionButton>}
+        action={<PrimaryActionButton onClick={startCreate} disabled={partidosDisponibles.length === 0}>Registrar resultado</PrimaryActionButton>}
       />
 
       {loading ? <LoadingState /> : data.length === 0 ? (
-        <EmptyState title="Sin resultados" description="Registra el marcador cuando finalice una contienda." />
+        <div className="grid gap-5">
+          <section className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+            <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-700">Filtro por deporte</p>
+                <h3 className="mt-1 text-xl font-black text-slate-950">{selectedDeporte?.nombre ?? "Todos los deportes"}</h3>
+                <p className="mt-1 text-sm font-semibold text-slate-500">Revisa marcadores y estadisticas individuales por disciplina.</p>
+              </div>
+              <div>
+                <label className={labelClass}>Deporte</label>
+                <select className={fieldClass} value={deporteFiltroId} onChange={(e) => setDeporteFiltroId(Number(e.target.value))}>
+                  <option value={0}>Todos los deportes</option>
+                  {deportes.map((item) => <option value={item.id} key={item.id}>{item.nombre}</option>)}
+                </select>
+              </div>
+            </div>
+          </section>
+          <EmptyState title="Sin resultados" description="Registra el marcador cuando finalice una contienda." />
+        </div>
       ) : (
-        <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
-          <TableToolbar
-            query={table.query}
-            onQueryChange={table.setQuery}
-            pageSize={table.pageSize}
-            onPageSizeChange={table.setPageSize}
-            totalItems={table.totalItems}
-            filteredItems={table.filteredItems}
-            placeholder="Buscar resultado, equipo o deporte..."
-          />
-          <DataTable columns={columns} items={table.pageItems} getRowKey={(item) => item.id} />
-          <PaginationControls page={table.page} totalPages={table.totalPages} onPageChange={table.setPage} />
+        <div className="grid gap-5">
+          <section className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+            <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-700">Filtro por deporte</p>
+                <h3 className="mt-1 text-xl font-black text-slate-950">{selectedDeporte?.nombre ?? "Todos los deportes"}</h3>
+                <p className="mt-1 text-sm font-semibold text-slate-500">
+                  {selectedDeporte ? `${data.length} resultados registrados en ${selectedDeporte.nombre}.` : `${data.length} resultados registrados.`}
+                </p>
+              </div>
+              <div>
+                <label className={labelClass}>Deporte</label>
+                <select className={fieldClass} value={deporteFiltroId} onChange={(e) => setDeporteFiltroId(Number(e.target.value))}>
+                  <option value={0}>Todos los deportes</option>
+                  {deportes.map((item) => <option value={item.id} key={item.id}>{item.nombre}</option>)}
+                </select>
+              </div>
+            </div>
+          </section>
+
+          <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+            <TableToolbar
+              query={table.query}
+              onQueryChange={table.setQuery}
+              pageSize={table.pageSize}
+              onPageSizeChange={table.setPageSize}
+              totalItems={table.totalItems}
+              filteredItems={table.filteredItems}
+              placeholder="Buscar resultado, equipo o deporte..."
+            />
+            <DataTable columns={columns} items={table.pageItems} getRowKey={(item) => item.id} />
+            <PaginationControls page={table.page} totalPages={table.totalPages} onPageChange={table.setPage} />
+          </div>
         </div>
       )}
 
@@ -219,8 +280,11 @@ export function ResultadosClient() {
               required
             >
               <option value={0} disabled>Seleccionar</option>
-              {partidos.map((item) => <option value={item.id} key={item.id}>{item.equipoLocalNombre} vs {item.equipoVisitanteNombre} - {item.deporteNombre}</option>)}
+              {partidosDisponibles.map((item) => <option value={item.id} key={item.id}>{item.equipoLocalNombre} vs {item.equipoVisitanteNombre} - {item.deporteNombre}</option>)}
             </select>
+            <p className="mt-1 text-xs font-semibold text-slate-500">
+              Solo se muestran partidos que aun no tienen resultado registrado.
+            </p>
           </div>
           <div className="md:col-span-6">
             <label className={labelClass}>Puntaje local</label>

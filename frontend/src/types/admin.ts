@@ -86,6 +86,12 @@ export interface DashboardResumen {
   actividadReciente: DashboardActivity[];
 }
 
+export interface PublicDashboardResumen {
+  metricas: DashboardMetric[];
+  proximasContiendas: DashboardUpcomingMatch[];
+  ultimosResultados: DashboardRecentResult[];
+}
+
 export interface Auditoria {
   id: number;
   usuarioId?: number | null;
