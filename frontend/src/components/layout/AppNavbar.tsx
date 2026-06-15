@@ -9,7 +9,7 @@ export function AppNavbar({ onOpenMobileMenu }: { onOpenMobileMenu: () => void }
 
   const handleLogout = async () => {
     const result = await alerts.confirm("Cerrar sesion", "Se cerrara la sesion actual.");
-    if (result.isConfirmed) logout();
+    if (result.isConfirmed) await logout();
   };
 
   return (

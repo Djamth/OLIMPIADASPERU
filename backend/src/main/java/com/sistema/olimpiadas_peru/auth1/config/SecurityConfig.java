@@ -47,10 +47,11 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers(
-                    "/api/auth/**",
-                    "/olimpiadas/api/auth/**",
+                    "/api/auth/login",
+                    "/api/auth/refresh-token",
+                    "/api/auth/forgot-password",
+                    "/api/auth/reset-password",
                     "/api/public/**",
-                    "/olimpiadas/api/public/**",
                     "/swagger-ui/**",
                     "/swagger-ui.html",
                     "/v3/api-docs/**",
@@ -85,10 +86,10 @@ public class SecurityConfig {
                 .filter(value -> !value.isEmpty())
                 .toList());
             
-            configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+            configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
             configuration.setAllowedHeaders(List.of("*"));
-            configuration.setExposedHeaders(List.of("Authorization", "X-Refresh-Token"));
-            configuration.setAllowCredentials(false);
+            configuration.setExposedHeaders(List.of("Content-Disposition"));
+            configuration.setAllowCredentials(true);
             configuration.setMaxAge(3600L);
             return configuration;
         };

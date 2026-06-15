@@ -3,6 +3,7 @@ package com.sistema.olimpiadas_peru.auth1.service;
 import com.sistema.olimpiadas_peru.auth1.dto.LoginRequestDTO;
 import com.sistema.olimpiadas_peru.auth1.dto.LoginResponseDTO;
 import com.sistema.olimpiadas_peru.auth1.dto.ModuloDTO;
+import com.sistema.olimpiadas_peru.auth1.dto.RefreshTokenResponseDTO;
 import com.sistema.olimpiadas_peru.auth1.dto.UsuarioCreateDTO;
 import com.sistema.olimpiadas_peru.auth1.dto.UsuarioDTO;
 import com.sistema.olimpiadas_peru.auth1.model.Modulo;
@@ -12,6 +13,7 @@ import com.sistema.olimpiadas_peru.auth1.repository.PasswordResetTokenRepository
 import com.sistema.olimpiadas_peru.auth1.repository.UsuarioRepository;
 import com.sistema.olimpiadas_peru.auth1.security.JwtTokenProvider;
 import com.sistema.olimpiadas_peru.auth1.security.SecurityUtils;
+import com.sistema.olimpiadas_peru.auth1.security.TokenBlacklistService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,6 +28,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
@@ -33,8 +36,10 @@ public class UsuarioService {
     private final RolService rolService;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final TokenBlacklistService tokenBlacklistService;
     private final AuditoriaService auditoriaService;
 
+    @Transactional
     public UsuarioDTO crearUsuario(UsuarioCreateDTO usuarioCreateDTO) {
         Usuario usuarioExistente = usuarioRepository.findByEmail(usuarioCreateDTO.getEmail()).orElse(null);
         if (usuarioExistente != null) {
@@ -107,6 +112,40 @@ public class UsuarioService {
             .build();
     }
 
+    public RefreshTokenResponseDTO renovarSesion(String refreshToken) {
+        if (!jwtTokenProvider.validateToken(refreshToken)
+            || tokenBlacklistService.isBlacklisted(refreshToken)
+            || !"REFRESH".equalsIgnoreCase(jwtTokenProvider.getTokenType(refreshToken))) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token invalido o expirado");
+        }
+
+        Integer userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
+        Usuario usuario = usuarioRepository.findWithRolAndModulosById(userId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario no disponible"));
+
+        boolean sesionHabilitada = usuario.getEstado() == Usuario.Estado.ACTIVO
+            && !Boolean.TRUE.equals(usuario.getEliminado())
+            && usuario.getRol() != null
+            && usuario.getRol().getEstado() == Rol.Estado.ACTIVO;
+
+        if (!sesionHabilitada) {
+            tokenBlacklistService.blacklist(refreshToken);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "La sesion ya no esta habilitada");
+        }
+
+        tokenBlacklistService.blacklist(refreshToken);
+        String nuevoAccessToken = jwtTokenProvider.generateAccessToken(usuario.getEmail(), usuario.getId());
+        String nuevoRefreshToken = jwtTokenProvider.generateRefreshToken(usuario.getEmail(), usuario.getId());
+
+        return RefreshTokenResponseDTO.builder()
+            .accessToken(nuevoAccessToken)
+            .refreshToken(nuevoRefreshToken)
+            .expiresIn(jwtTokenProvider.getAccessTokenExpirationMs())
+            .tokenType("Bearer")
+            .build();
+    }
+
+    @Transactional
     public UsuarioDTO actualizarUsuario(Integer id, UsuarioDTO usuarioDTO) {
         Usuario usuario = usuarioRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
@@ -136,6 +175,7 @@ public class UsuarioService {
         return mapearADTO(usuarioRepository.save(usuario));
     }
 
+    @Transactional
     public void desactivarUsuario(Integer id, Integer usuarioActualId) {
         Usuario usuario = usuarioRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));

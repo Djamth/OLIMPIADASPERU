@@ -12,6 +12,7 @@ import com.sistema.olimpiadas_peru.auth1.repository.UsuarioRepository;
 import com.sistema.olimpiadas_peru.auth1.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.LinkedHashSet;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class RolService {
     
     private final RolRepository rolRepository;
@@ -28,6 +30,7 @@ public class RolService {
     private final UsuarioRepository usuarioRepository;
     private final AuditoriaService auditoriaService;
     
+    @Transactional
     public RolDTO crearRol(RolDTO rolDTO) {
         Rol rol = Rol.builder()
             .nombre(rolDTO.getNombre())
@@ -51,6 +54,7 @@ public class RolService {
         return mapearADTO(rol);
     }
     
+    @Transactional
     public RolDTO actualizarRol(Integer id, RolDTO rolDTO) {
         Rol rol = rolRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Rol no encontrado"));
@@ -61,6 +65,7 @@ public class RolService {
         return mapearADTO(rolRepository.save(rol));
     }
     
+    @Transactional
     public void eliminarRol(Integer id) {
         Rol rol = rolRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Rol no encontrado"));
@@ -93,6 +98,7 @@ public class RolService {
         return mapearARolModulosDTO(rol);
     }
 
+    @Transactional
     public RolModulosDTO asignarModulos(Integer rolId, AsignarModulosRolDTO asignarModulosRolDTO) {
         Rol rol = rolRepository.findWithModulosById(rolId)
             .orElseThrow(() -> new RuntimeException("Rol no encontrado"));
@@ -119,6 +125,7 @@ public class RolService {
         return mapearARolModulosDTO(rolGuardado);
     }
 
+    @Transactional
     public RolModulosDTO agregarModuloAlRol(Integer rolId, Integer moduloId) {
         Rol rol = rolRepository.findWithModulosById(rolId)
             .orElseThrow(() -> new RuntimeException("Rol no encontrado"));
@@ -143,6 +150,7 @@ public class RolService {
         return mapearARolModulosDTO(rolGuardado);
     }
 
+    @Transactional
     public RolModulosDTO removerModuloDelRol(Integer rolId, Integer moduloId) {
         Rol rol = rolRepository.findWithModulosById(rolId)
             .orElseThrow(() -> new RuntimeException("Rol no encontrado"));

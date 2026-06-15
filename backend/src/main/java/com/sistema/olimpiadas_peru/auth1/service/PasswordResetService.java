@@ -11,11 +11,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.concurrent.ThreadLocalRandom;
+import java.security.SecureRandom;
 
 @Service
 @RequiredArgsConstructor
 public class PasswordResetService {
+
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
@@ -30,11 +32,12 @@ public class PasswordResetService {
     public void solicitarRecuperacion(String email) {
         passwordResetTokenRepository.deleteByFechaExpiracionBefore(LocalDateTime.now());
 
-        Usuario usuario = usuarioRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("El correo ingresado no pertenece a ningun usuario"));
+        Usuario usuario = usuarioRepository.findByEmail(email).orElse(null);
 
-        if (usuario.getEstado() != Usuario.Estado.ACTIVO) {
-            throw new RuntimeException("El usuario asociado al correo esta inactivo");
+        if (usuario == null
+            || usuario.getEstado() != Usuario.Estado.ACTIVO
+            || Boolean.TRUE.equals(usuario.getEliminado())) {
+            return;
         }
 
         passwordResetTokenRepository.deleteByUsuario_Id(usuario.getId());
@@ -52,7 +55,7 @@ public class PasswordResetService {
         String contenido = """
             Hola %s,
 
-            Recibimos una solicitud para restablecer tu contrasena en el Sistema de Votacion.
+            Recibimos una solicitud para restablecer tu contrasena en Olimpiadas Peru.
 
             Usa este codigo de 6 digitos para continuar con el cambio de tu contrasena:
             %s
@@ -62,7 +65,7 @@ public class PasswordResetService {
             Si no solicitaste este cambio, puedes ignorar este correo.
             """.formatted(usuario.getNombre(), token, expirationMinutes);
 
-        emailService.enviarCorreo(usuario.getEmail(), "Recuperacion de contrasena - Sistema de Votacion", contenido);
+        emailService.enviarCorreo(usuario.getEmail(), "Recuperacion de contrasena - Olimpiadas Peru", contenido);
 
         auditoriaService.registrar(
             usuario.getId(),
@@ -104,6 +107,6 @@ public class PasswordResetService {
     }
 
     private String generarCodigo() {
-        return "%06d".formatted(ThreadLocalRandom.current().nextInt(0, 1_000_000));
+        return "%06d".formatted(SECURE_RANDOM.nextInt(1_000_000));
     }
 }

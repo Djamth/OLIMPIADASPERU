@@ -11,15 +11,18 @@ import com.sistema.olimpiadas_peru.equipo.service.EquipoService;
 import com.sistema.olimpiadas_peru.inscripcion.dto.InscripcionRequest;
 import com.sistema.olimpiadas_peru.inscripcion.dto.InscripcionResponse;
 import com.sistema.olimpiadas_peru.inscripcion.entity.Inscripcion;
+import com.sistema.olimpiadas_peru.inscripcion.event.InscripcionConfirmadaEvent;
 import com.sistema.olimpiadas_peru.inscripcion.repository.InscripcionRepository;
 import com.sistema.olimpiadas_peru.participante.repository.ParticipanteRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class InscripcionService {
 
     private final InscripcionRepository inscripcionRepository;
@@ -27,6 +30,7 @@ public class InscripcionService {
     private final DeporteService deporteService;
     private final ReglaDeporteService reglaDeporteService;
     private final ParticipanteRepository participanteRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public List<InscripcionResponse> findAll() {
         return inscripcionRepository.findAll().stream().map(this::toResponse).toList();
@@ -49,14 +53,19 @@ public class InscripcionService {
 
         Inscripcion inscripcion = new Inscripcion();
         applyChanges(inscripcion, request);
-        return toResponse(inscripcionRepository.save(inscripcion));
+        Inscripcion guardada = inscripcionRepository.save(inscripcion);
+        publicarConfirmacionSiCorresponde(guardada, null);
+        return toResponse(guardada);
     }
 
     @Transactional
     public InscripcionResponse update(Long id, InscripcionRequest request) {
         Inscripcion inscripcion = getEntity(id);
+        EstadoInscripcion estadoAnterior = inscripcion.getEstado();
         applyChanges(inscripcion, request);
-        return toResponse(inscripcionRepository.save(inscripcion));
+        Inscripcion guardada = inscripcionRepository.save(inscripcion);
+        publicarConfirmacionSiCorresponde(guardada, estadoAnterior);
+        return toResponse(guardada);
     }
 
     @Transactional
@@ -92,5 +101,20 @@ public class InscripcionService {
                 inscripcion.getDeporte().getNombre(),
                 inscripcion.getEstado(),
                 inscripcion.getFechaInscripcion());
+    }
+
+    private void publicarConfirmacionSiCorresponde(Inscripcion inscripcion, EstadoInscripcion estadoAnterior) {
+        if (inscripcion.getEstado() != EstadoInscripcion.CONFIRMADA
+            || estadoAnterior == EstadoInscripcion.CONFIRMADA) {
+            return;
+        }
+
+        Equipo equipo = inscripcion.getEquipo();
+        eventPublisher.publishEvent(new InscripcionConfirmadaEvent(
+            equipo.getInstitucion().getEmail(),
+            equipo.getInstitucion().getNombre(),
+            equipo.getNombre(),
+            inscripcion.getDeporte().getNombre()
+        ));
     }
 }

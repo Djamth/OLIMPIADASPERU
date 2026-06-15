@@ -5,16 +5,19 @@ import com.sistema.olimpiadas_peru.auth1.model.Modulo;
 import com.sistema.olimpiadas_peru.auth1.repository.ModuloRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ModuloService {
 
     private final ModuloRepository moduloRepository;
 
+    @Transactional
     public ModuloDTO crearModulo(ModuloDTO moduloDTO) {
         Modulo modulo = Modulo.builder()
             .nombre(moduloDTO.getNombre())
@@ -38,6 +41,7 @@ public class ModuloService {
         return mapearADTO(modulo);
     }
 
+    @Transactional
     public ModuloDTO actualizarModulo(Integer id, ModuloDTO moduloDTO) {
         Modulo modulo = moduloRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Modulo no encontrado"));
@@ -49,6 +53,7 @@ public class ModuloService {
         return mapearADTO(moduloRepository.save(modulo));
     }
 
+    @Transactional
     public void eliminarModulo(Integer id) {
         moduloRepository.deleteById(id);
     }

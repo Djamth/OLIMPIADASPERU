@@ -26,6 +26,7 @@ public class AuditoriaService {
             .toList();
     }
 
+    @Transactional
     public void registrar(Integer usuarioId, String accion, String descripcion) {
         Usuario usuario = null;
         if (usuarioId != null) {

@@ -13,6 +13,8 @@ import { deporteService, estadisticaService } from "@/services/crudServices";
 import type { Deporte, Goleador, RankingEquipo } from "@/types/catalogs";
 import { alerts, getErrorMessage } from "@/utils/alerts";
 import { useEffect, useState } from "react";
+import { Download, FileSpreadsheet } from "lucide-react";
+import { SecondaryButton } from "@/components/common/Buttons";
 
 function getSportLabels(deporte?: string) {
   const normalized = (deporte ?? "").toUpperCase();
@@ -37,6 +39,7 @@ export function EstadisticasClient() {
   const [ranking, setRanking] = useState<RankingEquipo[]>([]);
   const [goleadores, setGoleadores] = useState<Goleador[]>([]);
   const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState<"pdf" | "excel" | null>(null);
   const selectedDeporte = deportes.find((item) => item.id === deporteId);
   const labels = getSportLabels(selectedDeporte?.nombre);
   const rankingTable = useTableControls(ranking, (item, query) =>
@@ -78,15 +81,38 @@ export function EstadisticasClient() {
       .finally(() => setLoading(false));
   }, [deporteId]);
 
+  const downloadReport = async (format: "pdf" | "excel") => {
+    if (!deporteId) return;
+    setDownloading(format);
+    try {
+      await estadisticaService.descargarReporte(deporteId, format);
+      await alerts.success("Reporte generado", `El archivo ${format.toUpperCase()} se descargo correctamente.`);
+    } catch (error) {
+      await alerts.error("No se pudo generar el reporte", getErrorMessage(error));
+    } finally {
+      setDownloading(null);
+    }
+  };
+
   return (
     <>
       <PageHeader
         title="Estadisticas"
         description="Consulta puntos por equipo, ranking por deporte y estadisticas individuales."
         action={
-          <select className={`${fieldClass} max-w-64`} value={deporteId} onChange={(e) => setDeporteId(Number(e.target.value))}>
-            {deportes.map((item) => <option value={item.id} key={item.id}>{item.nombre}</option>)}
-          </select>
+          <div className="flex flex-wrap items-center gap-2">
+            <select className={`${fieldClass} max-w-64`} value={deporteId} onChange={(e) => setDeporteId(Number(e.target.value))}>
+              {deportes.map((item) => <option value={item.id} key={item.id}>{item.nombre}</option>)}
+            </select>
+            <SecondaryButton disabled={!deporteId || Boolean(downloading)} onClick={() => void downloadReport("pdf")}>
+              <Download size={16} />
+              {downloading === "pdf" ? "Generando..." : "PDF"}
+            </SecondaryButton>
+            <SecondaryButton disabled={!deporteId || Boolean(downloading)} onClick={() => void downloadReport("excel")}>
+              <FileSpreadsheet size={16} />
+              {downloading === "excel" ? "Generando..." : "Excel"}
+            </SecondaryButton>
+          </div>
         }
       />
 

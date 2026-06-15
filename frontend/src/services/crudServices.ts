@@ -67,4 +67,21 @@ export const estadisticaService = {
     const { data } = await api.get<RankingEquipo[]>(`/api/estadisticas/deporte/${deporteId}/ranking`);
     return data;
   },
+  async descargarReporte(deporteId: number, formato: "pdf" | "excel") {
+    const response = await api.get<Blob>(`/api/reportes/estadisticas/${deporteId}/${formato}`, {
+      responseType: "blob",
+    });
+    const disposition = String(response.headers["content-disposition"] ?? "");
+    const match = disposition.match(/filename="?([^";]+)"?/i);
+    const extension = formato === "excel" ? "xlsx" : "pdf";
+    const fileName = match?.[1] ?? `estadisticas-${deporteId}.${extension}`;
+    const url = URL.createObjectURL(response.data);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  },
 };

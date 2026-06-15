@@ -7,6 +7,15 @@ export const authService = {
     return data;
   },
 
+  async me() {
+    const { data } = await api.get("/api/auth/me");
+    return data;
+  },
+
+  async logout() {
+    await api.post("/api/auth/logout");
+  },
+
   async forgotPassword(payload: ForgotPasswordRequest) {
     const { data } = await api.post<ApiMessageResponse>("/api/auth/forgot-password", payload);
     return data;

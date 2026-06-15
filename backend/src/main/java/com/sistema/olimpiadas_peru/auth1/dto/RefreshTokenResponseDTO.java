@@ -6,21 +6,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class LoginResponseDTO {
-    private Integer id;
-    private String nombre;
-    private String email;
-    private Integer rolId;
-    private String rolNombre;
-    private String estado;
-    private List<ModuloDTO> modulos;
+public class RefreshTokenResponseDTO {
     private String accessToken;
     private String refreshToken;
     private Long expiresIn;

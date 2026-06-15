@@ -1,6 +1,7 @@
 "use client";
 
 import { authService } from "@/services/authService";
+import { clearStoredSession } from "@/services/api";
 import type { LoginRequest, LoginResponse } from "@/types/auth";
 import { alerts } from "@/utils/alerts";
 import { usePathname, useRouter } from "next/navigation";
@@ -11,7 +12,7 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (payload: LoginRequest) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -41,14 +42,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("op_user");
-    const storedToken = localStorage.getItem("op_access_token");
+    let active = true;
 
-    if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser) as LoginResponse);
-    }
+    const restoreSession = async () => {
+      const storedUser = localStorage.getItem("op_user");
 
-    setIsLoading(false);
+      if (storedUser) {
+        try {
+          await authService.me();
+          if (active) {
+            setUser(JSON.parse(storedUser) as LoginResponse);
+          }
+        } catch {
+          clearStoredSession();
+        }
+      }
+
+      if (active) {
+        setIsLoading(false);
+      }
+    };
+
+    void restoreSession();
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -71,8 +89,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     alerts.loading("Validando acceso");
     try {
       const response = await authService.login(payload);
-      localStorage.setItem("op_access_token", response.accessToken);
-      localStorage.setItem("op_refresh_token", response.refreshToken);
       localStorage.setItem("op_user", JSON.stringify(response));
       setUser(response);
       alerts.close();
@@ -86,12 +102,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [router]);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem("op_access_token");
-    localStorage.removeItem("op_refresh_token");
-    localStorage.removeItem("op_user");
-    setUser(null);
-    router.push("/login");
+  const logout = useCallback(async () => {
+    try {
+      await authService.logout();
+    } catch {
+      // La sesion local se elimina incluso si el token ya expiro.
+    } finally {
+      clearStoredSession();
+      setUser(null);
+      router.push("/login");
+    }
   }, [router]);
 
   const value = useMemo<AuthContextValue>(

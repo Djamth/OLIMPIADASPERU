@@ -56,6 +56,14 @@ public class JwtTokenProvider {
         return jwtExpirationMs;
     }
 
+    public long getRefreshTokenExpirationMs() {
+        return refreshTokenExpirationMs;
+    }
+
+    public Date getExpirationFromToken(String token) {
+        return parseClaims(token).getExpiration();
+    }
+
     private String buildToken(String email, Integer userId, long expirationMs, String type) {
         Date now = new Date();
         Date expiration = new Date(now.getTime() + expirationMs);

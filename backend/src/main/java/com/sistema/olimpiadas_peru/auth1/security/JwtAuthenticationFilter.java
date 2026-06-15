@@ -23,19 +23,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private final TokenBlacklistService tokenBlacklistService;
     private final UsuarioRepository usuarioRepository;
+    private final AuthCookieService authCookieService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
         throws ServletException, IOException {
 
         // No intentamos autenticar JWT en endpoints públicos
-        String path = request.getServletPath();
-        boolean esPublico = path.startsWith("/api/auth") || path.startsWith("/olimpiadas/api/auth");
-        if (esPublico) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
         String token = extractToken(request);
 
         if (token != null
@@ -47,7 +41,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             Integer userId = jwtTokenProvider.getUserIdFromToken(token);
             Usuario usuario = usuarioRepository.findWithRolAndModulosById(userId).orElse(null);
 
-            if (usuario != null && usuario.getEstado() == Usuario.Estado.ACTIVO) {
+            if (usuario != null
+                && usuario.getEstado() == Usuario.Estado.ACTIVO
+                && !Boolean.TRUE.equals(usuario.getEliminado())
+                && usuario.getRol() != null
+                && usuario.getRol().getEstado() == com.sistema.olimpiadas_peru.auth1.model.Rol.Estado.ACTIVO) {
                 AuthenticatedUser principal = new AuthenticatedUser(
                     usuario.getId(),
                     usuario.getEmail(),
@@ -69,6 +67,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
         }
-        return null;
+        return authCookieService.getAccessToken(request);
     }
 }

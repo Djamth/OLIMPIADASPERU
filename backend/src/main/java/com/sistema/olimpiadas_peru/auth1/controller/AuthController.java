@@ -5,16 +5,19 @@ import com.sistema.olimpiadas_peru.auth1.dto.ApiResponseDTO;
 import com.sistema.olimpiadas_peru.auth1.dto.LoginResponseDTO;
 import com.sistema.olimpiadas_peru.auth1.dto.ForgotPasswordRequestDTO;
 import com.sistema.olimpiadas_peru.auth1.dto.ResetPasswordRequestDTO;
-import com.sistema.olimpiadas_peru.auth1.security.JwtTokenProvider;
+import com.sistema.olimpiadas_peru.auth1.dto.RefreshTokenResponseDTO;
+import com.sistema.olimpiadas_peru.auth1.security.AuthCookieService;
+import com.sistema.olimpiadas_peru.auth1.security.AuthRateLimitService;
 import com.sistema.olimpiadas_peru.auth1.security.TokenBlacklistService;
 import com.sistema.olimpiadas_peru.auth1.service.PasswordResetService;
 import com.sistema.olimpiadas_peru.auth1.service.UsuarioService;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,48 +30,65 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class AuthController {
 
     private final UsuarioService usuarioService;
-    private final JwtTokenProvider jwtTokenProvider;
     private final TokenBlacklistService tokenBlacklistService;
     private final PasswordResetService passwordResetService;
+    private final AuthCookieService authCookieService;
+    private final AuthRateLimitService authRateLimitService;
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequestDTO loginRequestDTO) {
-        return ResponseEntity.ok(usuarioService.login(loginRequestDTO));
+    public ResponseEntity<LoginResponseDTO> login(
+        @Valid @RequestBody LoginRequestDTO loginRequestDTO,
+        HttpServletRequest request,
+        HttpServletResponse response,
+        @RequestHeader(value = "X-Auth-Mode", required = false) String authMode) {
+
+        String clientId = request.getRemoteAddr();
+        authRateLimitService.checkLogin(clientId, loginRequestDTO.getEmail());
+        try {
+            LoginResponseDTO session = usuarioService.login(loginRequestDTO);
+            authRateLimitService.resetLogin(clientId, loginRequestDTO.getEmail());
+            authCookieService.writeSession(response, session.getAccessToken(), session.getRefreshToken());
+            return ResponseEntity.ok(sanitizeForBrowser(session, authMode));
+        } catch (RuntimeException exception) {
+            authRateLimitService.registerLoginFailure(clientId, loginRequestDTO.getEmail());
+            throw exception;
+        }
     }
 
     @PostMapping("/refresh-token")
-    public ResponseEntity<Map<String, Object>> refreshToken(@RequestHeader("Authorization") String authorizationHeader) {
-        String refreshToken = extractBearerToken(authorizationHeader);
+    public ResponseEntity<RefreshTokenResponseDTO> refreshToken(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+        @RequestHeader(value = "X-Auth-Mode", required = false) String authMode) {
 
-        if (!jwtTokenProvider.validateToken(refreshToken)
-            || tokenBlacklistService.isBlacklisted(refreshToken)
-            || !"REFRESH".equalsIgnoreCase(jwtTokenProvider.getTokenType(refreshToken))) {
-            throw new RuntimeException("Refresh token invalido");
-        }
-
-        String accessToken = jwtTokenProvider.generateAccessToken(
-            jwtTokenProvider.getEmailFromToken(refreshToken),
-            jwtTokenProvider.getUserIdFromToken(refreshToken)
+        String refreshToken = firstNonBlank(
+            extractBearerToken(authorizationHeader),
+            authCookieService.getRefreshToken(request)
         );
-
-        return ResponseEntity.ok(Map.of(
-            "accessToken", accessToken,
-            "expiresIn", jwtTokenProvider.getAccessTokenExpirationMs(),
-            "tokenType", "Bearer"
-        ));
+        RefreshTokenResponseDTO session = usuarioService.renovarSesion(refreshToken);
+        authCookieService.writeSession(response, session.getAccessToken(), session.getRefreshToken());
+        return ResponseEntity.ok(sanitizeForBrowser(session, authMode));
     }
 
     @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> logout(
         HttpServletRequest request,
+        HttpServletResponse response,
         @RequestHeader(value = "X-Refresh-Token", required = false) String refreshTokenHeader) {
 
-        tokenBlacklistService.blacklist(extractBearerToken(request.getHeader("Authorization")));
-        tokenBlacklistService.blacklist(extractBearerToken(refreshTokenHeader));
+        tokenBlacklistService.blacklist(firstNonBlank(
+            extractBearerToken(request.getHeader("Authorization")),
+            authCookieService.getAccessToken(request)
+        ));
+        tokenBlacklistService.blacklist(firstNonBlank(
+            extractBearerToken(refreshTokenHeader),
+            authCookieService.getRefreshToken(request)
+        ));
+        authCookieService.clearSession(response);
         return ResponseEntity.ok(Map.of("mensaje", "Sesion cerrada correctamente"));
     }
 
@@ -78,15 +98,23 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<ApiResponseDTO> forgotPassword(@RequestBody ForgotPasswordRequestDTO requestDTO) {
+    public ResponseEntity<ApiResponseDTO> forgotPassword(
+        @Valid @RequestBody ForgotPasswordRequestDTO requestDTO,
+        HttpServletRequest request) {
+
+        authRateLimitService.consumePasswordRequest("forgot", request.getRemoteAddr(), requestDTO.getEmail());
         passwordResetService.solicitarRecuperacion(requestDTO.getEmail());
         return ResponseEntity.ok(ApiResponseDTO.builder()
-            .mensaje("Te enviamos un codigo de 6 digitos a tu correo")
+            .mensaje("Si el correo esta registrado y activo, recibira un codigo de recuperacion")
             .build());
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<ApiResponseDTO> resetPassword(@RequestBody ResetPasswordRequestDTO requestDTO) {
+    public ResponseEntity<ApiResponseDTO> resetPassword(
+        @Valid @RequestBody ResetPasswordRequestDTO requestDTO,
+        HttpServletRequest request) {
+
+        authRateLimitService.consumePasswordRequest("reset", request.getRemoteAddr(), requestDTO.getEmail());
         passwordResetService.resetearPassword(
             requestDTO.getEmail(),
             requestDTO.getCodigo(),
@@ -102,5 +130,33 @@ public class AuthController {
             return null;
         }
         return authorizationHeader.substring(7);
+    }
+
+    private LoginResponseDTO sanitizeForBrowser(LoginResponseDTO session, String authMode) {
+        if (isBearerMode(authMode)) {
+            return session;
+        }
+        session.setAccessToken(null);
+        session.setRefreshToken(null);
+        session.setTokenType("Cookie");
+        return session;
+    }
+
+    private RefreshTokenResponseDTO sanitizeForBrowser(RefreshTokenResponseDTO session, String authMode) {
+        if (isBearerMode(authMode)) {
+            return session;
+        }
+        session.setAccessToken(null);
+        session.setRefreshToken(null);
+        session.setTokenType("Cookie");
+        return session;
+    }
+
+    private boolean isBearerMode(String authMode) {
+        return "bearer".equalsIgnoreCase(authMode);
+    }
+
+    private String firstNonBlank(String first, String second) {
+        return first != null && !first.isBlank() ? first : second;
     }
 }

@@ -32,8 +32,8 @@ export interface LoginResponse {
   rolNombre: string;
   estado: string;
   modulos: Modulo[];
-  accessToken: string;
-  refreshToken: string;
+  accessToken?: string;
+  refreshToken?: string;
   expiresIn: number;
   tokenType: string;
 }
