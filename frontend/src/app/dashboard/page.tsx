@@ -24,12 +24,12 @@ const bars = [28, 54, 48, 82, 22, 74, 76, 86, 58, 31];
 
 const moduleLinks = [
   { href: "/usuarios", label: "Usuarios", value: "Accesos", keys: ["/usuarios", "usuarios"] },
-  { href: "/perfiles", label: "Perfiles", value: "Roles y modulos", keys: ["/roles", "/modulos", "roles", "modulos"] },
+  { href: "/perfiles", label: "Perfiles", value: "Roles y módulos", keys: ["/roles", "/modulos", "roles", "modulos"] },
   { href: "/instituciones", label: "Instituciones", value: "Clientes y sedes", keys: ["/instituciones", "instituciones"] },
   { href: "/equipos", label: "Equipos", value: "Delegaciones", keys: ["/equipos", "equipos"] },
-  { href: "/programacion", label: "Programacion", value: "Calendario", keys: ["/programacion", "/programaciones", "programaciones"] },
+  { href: "/programacion", label: "Programación", value: "Calendario", keys: ["/programacion", "/programaciones", "programaciones"] },
   { href: "/resultados", label: "Resultados", value: "Marcadores", keys: ["/resultados", "resultados"] },
-  { href: "/auditoria", label: "Auditoria", value: "Bitacora", keys: ["/auditoria", "auditoria"] },
+  { href: "/auditoria", label: "Auditoría", value: "Bitácora", keys: ["/auditoria", "auditoria"] },
 ];
 
 function formatDate(value: string) {
@@ -74,9 +74,9 @@ export default function DashboardPage() {
       <section className="mb-4 flex flex-col gap-5 overflow-hidden rounded-xl border border-blue-900/10 bg-blue-700 p-5 text-white shadow-[0_22px_48px_rgba(21,101,192,0.2)] lg:flex-row lg:items-center lg:justify-between lg:p-8">
         <div>
           <span className="mb-2 block text-xs font-extrabold uppercase text-white/55">Resumen general</span>
-          <h2 className="mb-2 text-3xl font-extrabold tracking-normal md:text-4xl">Gestion central de Olimpiadas Peru</h2>
+          <h2 className="mb-2 text-3xl font-extrabold tracking-normal md:text-4xl">Gestión central de Olimpiadas Perú</h2>
           <p className="max-w-3xl text-sm font-medium text-white/75">
-            Monitorea equipos, deportes, programacion, resultados y estadisticas desde un solo panel.
+            Monitorea equipos, deportes, programación, resultados y estadísticas desde un solo panel.
           </p>
         </div>
         <Link
@@ -128,7 +128,7 @@ export default function DashboardPage() {
                   <h3 className="mb-1 text-xl font-extrabold text-slate-950">Actividad semanal</h3>
                   <p className="text-sm font-medium text-slate-500">Partidos registrados por fecha y estado de competencia.</p>
                 </div>
-                <span className="w-fit rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-extrabold text-slate-700">Ultimos 10 dias</span>
+                <span className="w-fit rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-extrabold text-slate-700">Últimos 10 días</span>
               </div>
               <div className="grid h-56 grid-cols-10 items-end gap-3 rounded-lg border border-slate-100 bg-slate-50 p-4">
                 {bars.map((height, index) => (
@@ -143,7 +143,7 @@ export default function DashboardPage() {
           <div className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
             <section className="surface-card h-full p-5">
               <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-xl font-extrabold text-slate-950">Proximas contiendas</h3>
+                <h3 className="text-xl font-extrabold text-slate-950">Próximas contiendas</h3>
                 <Badge tone="blue">En agenda</Badge>
               </div>
               <div className="overflow-x-auto rounded-xl border border-slate-100">
@@ -177,7 +177,7 @@ export default function DashboardPage() {
             <section className="surface-card h-full p-5">
               <div className="mb-4 flex items-center gap-2">
                 <Trophy className="text-red-600" size={20} />
-                <h3 className="text-xl font-extrabold text-slate-950">Modulos rapidos</h3>
+                <h3 className="text-xl font-extrabold text-slate-950">Módulos rápidos</h3>
               </div>
               <div className="grid gap-3">
                 {visibleModuleLinks.map((item) => (
@@ -200,12 +200,12 @@ export default function DashboardPage() {
           <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
             <section className="surface-card h-full p-5">
               <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-xl font-extrabold text-slate-950">Ultimos resultados</h3>
+                <h3 className="text-xl font-extrabold text-slate-950">Últimos resultados</h3>
                 <Badge tone="green">Marcadores</Badge>
               </div>
               <div className="grid gap-3">
                 {(summary.ultimosResultados ?? []).length === 0 ? (
-                  <p className="m-0 text-sm font-semibold text-slate-500">Aun no hay resultados registrados.</p>
+                  <p className="m-0 text-sm font-semibold text-slate-500">Aún no hay resultados registrados.</p>
                 ) : (summary.ultimosResultados ?? []).map((item) => (
                   <div className="rounded-lg border border-slate-100 bg-slate-50 p-3" key={item.id}>
                     <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
@@ -222,7 +222,7 @@ export default function DashboardPage() {
             <section className="surface-card h-full p-5">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-xl font-extrabold text-slate-950">Actividad reciente</h3>
-                <Badge tone="slate">Auditoria</Badge>
+                <Badge tone="slate">Auditoría</Badge>
               </div>
               <div className="grid gap-3">
                 {(summary.actividadReciente ?? []).length === 0 ? (

@@ -5,6 +5,7 @@ import com.sistema.olimpiadas_peru.institucion.dto.InstitucionRequest;
 import com.sistema.olimpiadas_peru.institucion.dto.InstitucionResponse;
 import com.sistema.olimpiadas_peru.institucion.entity.Institucion;
 import com.sistema.olimpiadas_peru.institucion.repository.InstitucionRepository;
+import com.sistema.olimpiadas_peru.auth1.security.InstitucionAccessService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,9 +17,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class InstitucionService {
 
     private final InstitucionRepository institucionRepository;
+    private final InstitucionAccessService accessService;
 
     public List<InstitucionResponse> findAll() {
-        return institucionRepository.findAll().stream().map(this::toResponse).toList();
+        return accessService.institucionActual()
+                .map(id -> List.of(toResponse(getEntity(id))))
+                .orElseGet(() -> institucionRepository.findAll().stream().map(this::toResponse).toList());
     }
 
     public InstitucionResponse findById(Long id) {
@@ -45,18 +49,24 @@ public class InstitucionService {
     }
 
     public Institucion getEntity(Long id) {
+        accessService.validar(id);
         return institucionRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Institucion no encontrada con id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Institución no encontrada con id " + id));
     }
 
     private void applyChanges(Institucion institucion, InstitucionRequest request) {
         institucion.setNombre(request.nombre());
         institucion.setCodigoModular(request.codigoModular());
+        institucion.setRuc(request.ruc());
+        institucion.setTipo(request.tipo());
+        institucion.setNivelEducativo(request.nivelEducativo());
         institucion.setRegion(request.region());
         institucion.setCiudad(request.ciudad());
         institucion.setDireccion(request.direccion());
         institucion.setTelefono(request.telefono());
         institucion.setEmail(request.email());
+        institucion.setAdministradorNombre(request.administradorNombre());
+        institucion.setAdministradorEmail(request.administradorEmail());
     }
 
     private InstitucionResponse toResponse(Institucion institucion) {
@@ -64,10 +74,15 @@ public class InstitucionService {
                 institucion.getId(),
                 institucion.getNombre(),
                 institucion.getCodigoModular(),
+                institucion.getRuc(),
+                institucion.getTipo(),
+                institucion.getNivelEducativo(),
                 institucion.getRegion(),
                 institucion.getCiudad(),
                 institucion.getDireccion(),
                 institucion.getTelefono(),
-                institucion.getEmail());
+                institucion.getEmail(),
+                institucion.getAdministradorNombre(),
+                institucion.getAdministradorEmail());
     }
 }

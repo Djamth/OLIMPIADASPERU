@@ -21,7 +21,7 @@ import { useState } from "react";
 const featureItems = [
   { label: "Deportes", icon: Trophy },
   { label: "Resultados", icon: Medal },
-  { label: "Estadisticas", icon: BarChart3 },
+  { label: "Estadísticas", icon: BarChart3 },
   { label: "Atletas", icon: UsersRound },
   { label: "Competencias", icon: ShieldCheck },
 ];
@@ -64,7 +64,7 @@ export default function LoginPage() {
             </div>
             <h1 className="text-6xl font-black uppercase tracking-normal drop-shadow-xl">Olimpiadas</h1>
             <p className="mt-3 text-lg font-bold uppercase tracking-[0.18em] text-sky-100/90">
-              Sistema de gestion deportiva
+              Sistema de gestión deportiva
             </p>
 
             <div className="mt-12 grid w-full max-w-3xl grid-cols-5 gap-5">
@@ -90,7 +90,7 @@ export default function LoginPage() {
                 <UserRound size={38} />
               </div>
               <h2 className="text-4xl font-black tracking-normal text-slate-950">Bienvenido</h2>
-              <p className="mt-2 text-base font-semibold text-slate-500">Inicia sesion para continuar</p>
+              <p className="mt-2 text-base font-semibold text-slate-500">Inicia sesión para continuar</p>
             </div>
 
             <form className="grid gap-5" onSubmit={handleSubmit}>
@@ -112,7 +112,7 @@ export default function LoginPage() {
               </label>
 
               <label className="grid gap-2">
-                <span className="text-sm font-black text-slate-800">Contrasena</span>
+                <span className="text-sm font-black text-slate-800">Contraseña</span>
                 <span className="flex">
                   <span className="grid h-14 w-14 place-items-center rounded-l-xl border border-slate-200 bg-white text-slate-500">
                     <LockKeyhole size={21} />
@@ -123,14 +123,14 @@ export default function LoginPage() {
                       className={`${inputClass} pr-12`}
                       value={form.password}
                       onChange={(event) => setForm((prev) => ({ ...prev, password: event.target.value }))}
-                      placeholder="Ingresa tu contrasena"
+                      placeholder="Ingresa tu contraseña"
                       required
                     />
                     <button
                       className="absolute right-3 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-slate-400 transition hover:bg-slate-50 hover:text-blue-600"
                       type="button"
                       onClick={() => setShowPassword((value) => !value)}
-                      aria-label={showPassword ? "Ocultar contrasena" : "Mostrar contrasena"}
+                      aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                     >
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
@@ -149,7 +149,7 @@ export default function LoginPage() {
                   Recordarme
                 </label>
                 <Link className="font-bold text-blue-600 transition hover:text-blue-800" href="/recuperar-password">
-                  Olvidaste tu contraseña?
+                  ¿Olvidaste tu contraseña?
                 </Link>
               </div>
 
@@ -166,7 +166,7 @@ export default function LoginPage() {
                 ) : (
                   <>
                     <LogIn size={21} />
-                    Iniciar sesion
+                    Iniciar sesión
                   </>
                 )}
               </button>

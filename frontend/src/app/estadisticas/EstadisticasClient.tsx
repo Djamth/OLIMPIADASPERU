@@ -30,7 +30,7 @@ function getSportLabels(deporte?: string) {
   if (normalized.includes("PING")) {
     return { rankingFor: "PF/SF", rankingAgainst: "PC/SC", rankingTitle: "Ranking por puntos/sets", individualTitle: "Puntos/Sets por participante", amount: "puntos/sets" };
   }
-  return { rankingFor: "AF", rankingAgainst: "AC", rankingTitle: "Ranking por deporte", individualTitle: "Estadisticas individuales", amount: "anotaciones" };
+  return { rankingFor: "AF", rankingAgainst: "AC", rankingTitle: "Ranking por deporte", individualTitle: "Estadísticas individuales", amount: "anotaciones" };
 }
 
 export function EstadisticasClient() {
@@ -77,7 +77,7 @@ export function EstadisticasClient() {
         setRanking(rankingData);
         setGoleadores(goleadoresData);
       })
-      .catch((error) => alerts.error("Error al cargar estadisticas", getErrorMessage(error)))
+      .catch((error) => alerts.error("Error al cargar estadísticas", getErrorMessage(error)))
       .finally(() => setLoading(false));
   }, [deporteId]);
 
@@ -97,8 +97,8 @@ export function EstadisticasClient() {
   return (
     <>
       <PageHeader
-        title="Estadisticas"
-        description="Consulta puntos por equipo, ranking por deporte y estadisticas individuales."
+        title="Estadísticas"
+        description="Consulta puntos por equipo, ranking por deporte y estadísticas individuales."
         action={
           <div className="flex flex-wrap items-center gap-2">
             <select className={`${fieldClass} max-w-64`} value={deporteId} onChange={(e) => setDeporteId(Number(e.target.value))}>
@@ -117,7 +117,7 @@ export function EstadisticasClient() {
       />
 
       {loading ? <LoadingState /> : ranking.length === 0 && goleadores.length === 0 ? (
-        <EmptyState title="Sin estadisticas" description="Registra resultados para generar ranking y anotadores." />
+        <EmptyState title="Sin estadísticas" description="Registra resultados para generar ranking y anotadores." />
       ) : (
         <div className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
           <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">

@@ -12,6 +12,13 @@ public interface InscripcionRepository extends JpaRepository<Inscripcion, Long> 
 
     List<Inscripcion> findByDeporteIdAndEstado(Long deporteId, EstadoInscripcion estado);
 
+    List<Inscripcion> findByEventoIdAndDeporteIdAndEstado(
+            Long eventoId, Long deporteId, EstadoInscripcion estado);
+
+    List<Inscripcion> findByEventoId(Long eventoId);
+
+    List<Inscripcion> findByEventoIdAndDeporteId(Long eventoId, Long deporteId);
+
     Optional<Inscripcion> findByEquipoIdAndDeporteId(Long equipoId, Long deporteId);
 
     Optional<Inscripcion> findByEquipoIdAndDeporteIdAndEstado(Long equipoId, Long deporteId, EstadoInscripcion estado);

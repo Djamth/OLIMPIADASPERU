@@ -4,6 +4,7 @@ import com.sistema.olimpiadas_peru.common.entity.BaseEntity;
 import com.sistema.olimpiadas_peru.common.enums.EstadoInscripcion;
 import com.sistema.olimpiadas_peru.deporte.entity.Deporte;
 import com.sistema.olimpiadas_peru.equipo.entity.Equipo;
+import com.sistema.olimpiadas_peru.evento.entity.Evento;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -36,4 +37,8 @@ public class Inscripcion extends BaseEntity {
 
     @Column(nullable = false)
     private LocalDate fechaInscripcion;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "evento_id")
+    private Evento evento;
 }

@@ -28,8 +28,10 @@ public class ResultadoController {
     private final ResultadoService resultadoService;
 
     @GetMapping
-    public ResponseEntity<List<ResultadoResponse>> findAll(@RequestParam(required = false) Long deporteId) {
-        return ResponseEntity.ok(resultadoService.findAll(deporteId));
+    public ResponseEntity<List<ResultadoResponse>> findAll(
+            @RequestParam(required = false) Long deporteId,
+            @RequestParam(required = false) Long eventoId) {
+        return ResponseEntity.ok(resultadoService.findAll(eventoId, deporteId));
     }
 
     @GetMapping("/{id}")

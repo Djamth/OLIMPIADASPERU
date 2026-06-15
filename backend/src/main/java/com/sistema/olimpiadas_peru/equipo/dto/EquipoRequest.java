@@ -15,5 +15,12 @@ public record EquipoRequest(
         @NotBlank(message = "El entrenador es obligatorio")
         String entrenador,
         @NotNull(message = "La institucion es obligatoria")
-        Long institucionId) {
+        Long institucionId,
+        Long categoriaEventoId,
+        Long deporteId) {
+
+    public EquipoRequest(String nombre, CategoriaEquipo categoria, Genero genero,
+                         String entrenador, Long institucionId) {
+        this(nombre, categoria, genero, entrenador, institucionId, null, null);
+    }
 }

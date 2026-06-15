@@ -89,7 +89,7 @@ public class AuthController {
             authCookieService.getRefreshToken(request)
         ));
         authCookieService.clearSession(response);
-        return ResponseEntity.ok(Map.of("mensaje", "Sesion cerrada correctamente"));
+        return ResponseEntity.ok(Map.of("mensaje", "Sesión cerrada correctamente"));
     }
 
     @GetMapping("/me")
@@ -105,7 +105,7 @@ public class AuthController {
         authRateLimitService.consumePasswordRequest("forgot", request.getRemoteAddr(), requestDTO.getEmail());
         passwordResetService.solicitarRecuperacion(requestDTO.getEmail());
         return ResponseEntity.ok(ApiResponseDTO.builder()
-            .mensaje("Si el correo esta registrado y activo, recibira un codigo de recuperacion")
+            .mensaje("Si el correo está registrado y activo, recibirá un código de recuperación")
             .build());
     }
 
@@ -121,7 +121,7 @@ public class AuthController {
             requestDTO.getNuevaPassword()
         );
         return ResponseEntity.ok(ApiResponseDTO.builder()
-            .mensaje("Contrasena actualizada correctamente")
+            .mensaje("Contraseña actualizada correctamente")
             .build());
     }
 

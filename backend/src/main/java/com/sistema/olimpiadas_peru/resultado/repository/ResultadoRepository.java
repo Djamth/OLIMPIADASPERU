@@ -11,5 +11,8 @@ public interface ResultadoRepository extends JpaRepository<Resultado, Long> {
 
     List<Resultado> findByPartidoDeporteId(Long deporteId);
 
+    List<Resultado> findByPartidoEquipoLocalCategoriaEventoEventoIdAndPartidoDeporteId(
+            Long eventoId, Long deporteId);
+
     List<Resultado> findTop5ByOrderByCreatedAtDesc();
 }

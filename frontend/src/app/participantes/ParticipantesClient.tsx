@@ -1,6 +1,7 @@
 "use client";
 
-import { PrimaryActionButton, RowActions } from "@/components/common/Buttons";
+import { IconActionButton, PrimaryActionButton, RowActions } from "@/components/common/Buttons";
+import { CountryFlag } from "@/components/common/CountryFlag";
 import { DataTable, type DataTableColumn } from "@/components/common/DataTable";
 import { EmptyState } from "@/components/common/EmptyState";
 import { FormModal } from "@/components/common/FormModal";
@@ -11,10 +12,10 @@ import { PageHeader } from "@/components/common/PageHeader";
 import { TableToolbar } from "@/components/common/TableToolbar";
 import { useAsyncList } from "@/hooks/useAsyncList";
 import { useTableControls } from "@/hooks/useTableControls";
-import { equipoService, participanteService } from "@/services/crudServices";
-import type { Equipo, Genero, Participante, ParticipanteRequest } from "@/types/catalogs";
+import { equipoService, participanteService, plantillaService } from "@/services/crudServices";
+import type { Equipo, Genero, Participante, ParticipanteRequest, PlantillaEquipoRequest, RolParticipante } from "@/types/catalogs";
 import { alerts, getErrorMessage } from "@/utils/alerts";
-import { UsersRound } from "lucide-react";
+import { Link2, UsersRound } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 const generos: Genero[] = ["MASCULINO", "FEMENINO", "MIXTO"];
@@ -27,6 +28,9 @@ const emptyForm: ParticipanteRequest = {
   fechaNacimiento: "2009-01-01",
   codigoEstudiante: "",
   equipoId: 0,
+  rolEquipo: "JUGADOR",
+  numeroCamiseta: null,
+  fotografiaUrl: "",
 };
 
 export function ParticipantesClient() {
@@ -34,20 +38,22 @@ export function ParticipantesClient() {
   const { data, loading, reload } = useAsyncList<Participante>(loader);
   const [equipos, setEquipos] = useState<Equipo[]>([]);
   const [equipoId, setEquipoId] = useState<number>(0);
+  const [teamData, setTeamData] = useState<Participante[]>([]);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Participante | null>(null);
   const [form, setForm] = useState<ParticipanteRequest>(emptyForm);
   const [submitting, setSubmitting] = useState(false);
+  const [assigning, setAssigning] = useState<Participante | null>(null);
+  const [assignment, setAssignment] = useState<PlantillaEquipoRequest>({
+    participanteId: 0, equipoId: 0, rol: "JUGADOR", numeroCamiseta: null,
+  });
   const selectedEquipo = equipos.find((item) => item.id === equipoId);
   const participantesPorEquipo = useMemo(() => {
     const grouped = new Map<number, number>();
     data.forEach((item) => grouped.set(item.equipoId, (grouped.get(item.equipoId) ?? 0) + 1));
     return grouped;
   }, [data]);
-  const filteredByTeam = useMemo(
-    () => equipoId ? data.filter((item) => item.equipoId === equipoId) : data,
-    [data, equipoId],
-  );
+  const filteredByTeam = equipoId ? teamData : data;
   const table = useTableControls(filteredByTeam, (item, query) =>
     [item.nombres, item.apellidos, item.numeroDocumento, item.genero, item.codigoEstudiante, item.equipoNombre, item.institucionNombre]
       .some((value) => value.toLowerCase().includes(query)),
@@ -61,6 +67,13 @@ export function ParticipantesClient() {
       })
       .catch((error) => alerts.error("Error al cargar equipos", getErrorMessage(error)));
   }, []);
+
+  useEffect(() => {
+    if (!equipoId) return;
+    participanteService.list({ equipoId })
+      .then(setTeamData)
+      .catch((error) => alerts.error("Error al cargar la plantilla", getErrorMessage(error)));
+  }, [equipoId, data]);
 
   const startCreate = () => {
     setEditing(null);
@@ -78,6 +91,9 @@ export function ParticipantesClient() {
       fechaNacimiento: item.fechaNacimiento,
       codigoEstudiante: item.codigoEstudiante,
       equipoId: item.equipoId,
+      rolEquipo: item.rolEquipo ?? "JUGADOR",
+      numeroCamiseta: item.numeroCamiseta ?? null,
+      fotografiaUrl: item.fotografiaUrl ?? "",
     });
     setOpen(true);
   };
@@ -116,13 +132,46 @@ export function ParticipantesClient() {
     }
   };
 
+  const startAssignment = (item: Participante) => {
+    const alternative = equipos.find((equipo) => equipo.id !== item.equipoId);
+    setAssigning(item);
+    setAssignment({
+      participanteId: item.id,
+      equipoId: alternative?.id ?? 0,
+      rol: "JUGADOR",
+      numeroCamiseta: null,
+    });
+  };
+
+  const saveAssignment = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSubmitting(true);
+    try {
+      await plantillaService.create(assignment);
+      setAssigning(null);
+      setEquipoId(assignment.equipoId);
+      setTeamData(await participanteService.list({ equipoId: assignment.equipoId }));
+      await alerts.success("Participante asignado", "Ahora puede competir en el otro deporte sin duplicar sus datos personales.");
+    } catch (error) {
+      await alerts.error("No se pudo asignar", getErrorMessage(error));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const columns: DataTableColumn<Participante>[] = [
     { key: "participante", header: "Participante", render: (item) => <span className="font-bold text-slate-950">{item.apellidos}, {item.nombres}</span> },
     { key: "documento", header: "Documento", render: (item) => item.numeroDocumento },
-    { key: "equipo", header: "Equipo", render: (item) => item.equipoNombre },
+    { key: "equipo", header: "Equipo", render: (item) => <div><span className="flex items-center gap-2 font-semibold"><CountryFlag code={item.bandera} /> {item.equipoNombre}</span><p className="text-xs text-slate-500">{item.deporteNombre}</p></div> },
+    { key: "rol", header: "Rol / Dorsal", render: (item) => `${item.rolEquipo ?? "JUGADOR"}${item.numeroCamiseta ? ` #${item.numeroCamiseta}` : ""}` },
     { key: "genero", header: "Genero", render: (item) => item.genero },
     { key: "codigo", header: "Codigo", render: (item) => <span className="text-slate-500">{item.codigoEstudiante}</span> },
-    { key: "acciones", header: "Acciones", align: "right", render: (item) => <RowActions onEdit={() => startEdit(item)} onDelete={() => remove(item)} /> },
+    { key: "acciones", header: "Acciones", align: "right", render: (item) => (
+      <div className="flex justify-end gap-2">
+        <IconActionButton label="Asignar a otro equipo" tone="neutral" onClick={() => startAssignment(item)}><Link2 size={16} /></IconActionButton>
+        <RowActions onEdit={() => startEdit(item)} onDelete={() => remove(item)} />
+      </div>
+    ) },
   ];
 
   return (
@@ -217,6 +266,22 @@ export function ParticipantesClient() {
             <label className={labelClass}>Nombres</label>
             <input className={fieldClass} value={form.nombres} onChange={(e) => setForm({ ...form, nombres: e.target.value })} required />
           </div>
+          <div className="md:col-span-4">
+            <label className={labelClass}>Rol</label>
+            <select className={fieldClass} value={form.rolEquipo ?? "JUGADOR"} onChange={(e) => setForm({ ...form, rolEquipo: e.target.value as RolParticipante })}>
+              <option value="JUGADOR">Jugador</option>
+              <option value="CAPITAN">Capitan</option>
+              <option value="SUPLENTE">Suplente</option>
+            </select>
+          </div>
+          <div className="md:col-span-4">
+            <label className={labelClass}>Número de camiseta</label>
+            <input type="number" min={1} className={fieldClass} value={form.numeroCamiseta ?? ""} onChange={(e) => setForm({ ...form, numeroCamiseta: e.target.value ? Number(e.target.value) : null })} />
+          </div>
+          <div className="md:col-span-4">
+            <label className={labelClass}>Fotografia (URL)</label>
+            <input className={fieldClass} value={form.fotografiaUrl ?? ""} onChange={(e) => setForm({ ...form, fotografiaUrl: e.target.value })} />
+          </div>
           <div className="md:col-span-6">
             <label className={labelClass}>Apellidos</label>
             <input className={fieldClass} value={form.apellidos} onChange={(e) => setForm({ ...form, apellidos: e.target.value })} required />
@@ -245,6 +310,35 @@ export function ParticipantesClient() {
             <select className={fieldClass} value={form.genero} onChange={(e) => setForm({ ...form, genero: e.target.value as Genero })}>
               {generos.map((item) => <option value={item} key={item}>{item}</option>)}
             </select>
+          </div>
+        </div>
+      </FormModal>
+
+      <FormModal open={Boolean(assigning)} title="Asignar participante a otro deporte" onClose={() => setAssigning(null)} onSubmit={saveAssignment} submitting={submitting}>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="md:col-span-2 rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm font-semibold text-blue-800">
+            {assigning?.nombres} {assigning?.apellidos} conservara su DNI y datos personales.
+          </div>
+          <div className="md:col-span-2">
+            <label className={labelClass}>Nuevo equipo</label>
+            <select className={fieldClass} value={assignment.equipoId} onChange={(e) => setAssignment({ ...assignment, equipoId: Number(e.target.value) })} required>
+              <option value={0}>Seleccionar</option>
+              {equipos.filter((item) => item.id !== assigning?.equipoId).map((item) => (
+                <option value={item.id} key={item.id}>{item.paisNombre} - {item.deporteNombre} - {item.nombre}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className={labelClass}>Rol</label>
+            <select className={fieldClass} value={assignment.rol} onChange={(e) => setAssignment({ ...assignment, rol: e.target.value as RolParticipante })}>
+              <option value="JUGADOR">Jugador</option>
+              <option value="CAPITAN">Capitan</option>
+              <option value="SUPLENTE">Suplente</option>
+            </select>
+          </div>
+          <div>
+            <label className={labelClass}>Número de camiseta</label>
+            <input type="number" min={1} className={fieldClass} value={assignment.numeroCamiseta ?? ""} onChange={(e) => setAssignment({ ...assignment, numeroCamiseta: e.target.value ? Number(e.target.value) : null })} />
           </div>
         </div>
       </FormModal>

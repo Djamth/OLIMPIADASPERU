@@ -69,7 +69,7 @@ export function AuditoriaClient() {
     },
     {
       key: "descripcion",
-      header: "Descripcion",
+      header: "Descripción",
       render: (item) => <span className="text-slate-600">{item.descripcion}</span>,
     },
   ];
@@ -92,7 +92,7 @@ export function AuditoriaClient() {
             onPageSizeChange={table.setPageSize}
             totalItems={table.totalItems}
             filteredItems={table.filteredItems}
-            placeholder="Buscar usuario, accion o descripcion..."
+            placeholder="Buscar usuario, acción o descripción..."
           />
           <DataTable columns={columns} items={table.pageItems} getRowKey={(item) => item.id} />
           <PaginationControls page={table.page} totalPages={table.totalPages} onPageChange={table.setPage} />

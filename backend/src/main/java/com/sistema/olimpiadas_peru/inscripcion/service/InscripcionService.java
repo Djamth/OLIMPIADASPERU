@@ -14,6 +14,9 @@ import com.sistema.olimpiadas_peru.inscripcion.entity.Inscripcion;
 import com.sistema.olimpiadas_peru.inscripcion.event.InscripcionConfirmadaEvent;
 import com.sistema.olimpiadas_peru.inscripcion.repository.InscripcionRepository;
 import com.sistema.olimpiadas_peru.participante.repository.ParticipanteRepository;
+import com.sistema.olimpiadas_peru.participante.service.PlantillaEquipoService;
+import com.sistema.olimpiadas_peru.evento.service.EventoReglaService;
+import com.sistema.olimpiadas_peru.auth1.security.InstitucionAccessService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,13 +34,27 @@ public class InscripcionService {
     private final ReglaDeporteService reglaDeporteService;
     private final ParticipanteRepository participanteRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final PlantillaEquipoService plantillaEquipoService;
+    private final EventoReglaService eventoReglaService;
+    private final InstitucionAccessService accessService;
 
     public List<InscripcionResponse> findAll() {
-        return inscripcionRepository.findAll().stream().map(this::toResponse).toList();
+        return filtrarAlcance(inscripcionRepository.findAll()).stream().map(this::toResponse).toList();
     }
 
     public List<InscripcionResponse> findByDeporte(Long deporteId) {
-        return inscripcionRepository.findByDeporteId(deporteId).stream().map(this::toResponse).toList();
+        return filtrarAlcance(inscripcionRepository.findByDeporteId(deporteId)).stream().map(this::toResponse).toList();
+    }
+
+    public List<InscripcionResponse> findAll(Long eventoId, Long deporteId) {
+        if (eventoId != null && deporteId != null) {
+            return filtrarAlcance(inscripcionRepository.findByEventoIdAndDeporteId(eventoId, deporteId))
+                    .stream().map(this::toResponse).toList();
+        }
+        if (eventoId != null) {
+            return filtrarAlcance(inscripcionRepository.findByEventoId(eventoId)).stream().map(this::toResponse).toList();
+        }
+        return deporteId != null ? findByDeporte(deporteId) : findAll();
     }
 
     public InscripcionResponse findById(Long id) {
@@ -74,25 +91,40 @@ public class InscripcionService {
     }
 
     public Inscripcion getEntity(Long id) {
-        return inscripcionRepository.findById(id)
+        Inscripcion inscripcion = inscripcionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Inscripcion no encontrada con id " + id));
+        accessService.validar(inscripcion.getEquipo().getInstitucion().getId());
+        return inscripcion;
     }
 
     private void applyChanges(Inscripcion inscripcion, InscripcionRequest request) {
         Equipo equipo = equipoService.getEntity(request.equipoId());
+        if (equipo.getCategoriaEvento() != null) {
+            eventoReglaService.validarInscripciones(equipo.getCategoriaEvento().getEvento());
+        }
         Deporte deporte = deporteService.getEntity(request.deporteId());
+        if (equipo.getDeporte() != null && !equipo.getDeporte().getId().equals(deporte.getId())) {
+            throw new BusinessException("El equipo fue creado para el deporte " + equipo.getDeporte().getNombre());
+        }
         reglaDeporteService.validarInscripcion(deporte, equipo);
         if (request.estado() == EstadoInscripcion.CONFIRMADA) {
-            reglaDeporteService.validarEquipoCompleto(deporte, participanteRepository.countByEquipoId(equipo.getId()));
+            long plantillaCount = plantillaEquipoService.countByEquipo(equipo.getId());
+            reglaDeporteService.validarEquipoCompleto(deporte,
+                    plantillaCount < 0 ? participanteRepository.countByEquipoId(equipo.getId()) : plantillaCount);
         }
 
         inscripcion.setEquipo(equipo);
         inscripcion.setDeporte(deporte);
         inscripcion.setEstado(request.estado());
         inscripcion.setFechaInscripcion(request.fechaInscripcion());
+        inscripcion.setEvento(equipo.getCategoriaEvento() == null
+                ? null
+                : equipo.getCategoriaEvento().getEvento());
     }
 
     private InscripcionResponse toResponse(Inscripcion inscripcion) {
+        var categoria = inscripcion.getEquipo().getCategoriaEvento();
+        var evento = inscripcion.getEvento();
         return new InscripcionResponse(
                 inscripcion.getId(),
                 inscripcion.getEquipo().getId(),
@@ -100,7 +132,13 @@ public class InscripcionService {
                 inscripcion.getDeporte().getId(),
                 inscripcion.getDeporte().getNombre(),
                 inscripcion.getEstado(),
-                inscripcion.getFechaInscripcion());
+                inscripcion.getFechaInscripcion(),
+                evento == null ? null : evento.getId(),
+                evento == null ? null : evento.getNombre(),
+                categoria == null ? null : categoria.getId(),
+                categoria == null ? null : categoria.getNombre(),
+                categoria == null ? null : categoria.getPais().getNombre(),
+                categoria == null ? null : categoria.getPais().getBandera());
     }
 
     private void publicarConfirmacionSiCorresponde(Inscripcion inscripcion, EstadoInscripcion estadoAnterior) {
@@ -116,5 +154,12 @@ public class InscripcionService {
             equipo.getNombre(),
             inscripcion.getDeporte().getNombre()
         ));
+    }
+
+    private List<Inscripcion> filtrarAlcance(List<Inscripcion> inscripciones) {
+        return inscripciones.stream()
+                .filter(item -> accessService.institucionActual()
+                        .map(id -> id.equals(item.getEquipo().getInstitucion().getId())).orElse(true))
+                .toList();
     }
 }

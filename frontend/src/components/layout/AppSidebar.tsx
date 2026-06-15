@@ -8,8 +8,10 @@ import {
   BarChart3,
   Building2,
   CalendarDays,
+  CalendarRange,
   ChevronLeft,
   ClipboardCheck,
+  Flag,
   HelpCircle,
   History,
   LayoutDashboard,
@@ -29,15 +31,17 @@ const items = [
   { href: "/usuarios", label: "Usuarios", icon: Users, keys: ["/usuarios", "usuarios"] },
   { href: "/perfiles", label: "Perfiles", icon: ShieldCheck, keys: ["/roles", "/modulos", "roles", "modulos"] },
   { href: "/instituciones", label: "Instituciones", icon: Building2, keys: ["/instituciones", "instituciones"] },
+  { href: "/eventos", label: "Eventos y categorías", icon: CalendarRange, keys: ["/instituciones", "instituciones"] },
+  { href: "/paises", label: "Catálogo de países", icon: Flag, keys: ["/instituciones", "instituciones"] },
   { href: "/deportes", label: "Deportes", icon: Trophy, keys: ["/deportes", "deportes"] },
   { href: "/equipos", label: "Equipos", icon: UsersRound, keys: ["/equipos", "equipos"] },
   { href: "/participantes", label: "Participantes", icon: UserRound, keys: ["/participantes", "participantes"] },
   { href: "/inscripciones", label: "Inscripciones", icon: ClipboardCheck, keys: ["/inscripciones", "inscripciones"] },
   { href: "/sorteos", label: "Sorteos", icon: Shuffle, keys: ["/sorteos", "sorteos"] },
-  { href: "/programacion", label: "Programacion", icon: CalendarDays, keys: ["/programacion", "/programaciones", "programaciones"] },
+  { href: "/programacion", label: "Programación", icon: CalendarDays, keys: ["/programacion", "/programaciones", "programaciones"] },
   { href: "/resultados", label: "Resultados", icon: Medal, keys: ["/resultados", "resultados"] },
-  { href: "/estadisticas", label: "Estadisticas", icon: BarChart3, keys: ["/estadisticas", "estadisticas"] },
-  { href: "/auditoria", label: "Auditoria", icon: History, keys: ["/auditoria", "auditoria"] },
+  { href: "/estadisticas", label: "Estadísticas", icon: BarChart3, keys: ["/estadisticas", "estadisticas"] },
+  { href: "/auditoria", label: "Auditoría", icon: History, keys: ["/auditoria", "auditoria"] },
 ];
 
 function getInitials(name?: string) {
@@ -73,7 +77,7 @@ export function AppSidebar({
   });
 
   const handleLogout = async () => {
-    const result = await alerts.confirm("Cerrar sesion", "Se cerrara la sesion actual.");
+    const result = await alerts.confirm("Cerrar sesión", "Se cerrará la sesión actual.");
     if (result.isConfirmed) await logout();
   };
 
@@ -84,15 +88,15 @@ export function AppSidebar({
           <div className="op-brand-mark">OP</div>
           {!collapsed && (
             <div className="op-brand-copy">
-              <strong>Olimpiadas Peru</strong>
-              <span>Gestion deportiva</span>
+              <strong>Olimpiadas Perú</strong>
+              <span>Gestión deportiva</span>
             </div>
           )}
           <button
             className="op-collapse-button"
             type="button"
             onClick={onToggleCollapsed}
-            aria-label={collapsed ? "Expandir menu" : "Colapsar menu"}
+            aria-label={collapsed ? "Expandir menú" : "Colapsar menú"}
           >
             <ChevronLeft className={collapsed ? "rotate-180" : ""} size={18} />
           </button>
@@ -102,7 +106,7 @@ export function AppSidebar({
           <div className="op-profile-initials">{getInitials(user?.nombre)}</div>
           {!collapsed && (
             <div className="op-profile-copy">
-              <strong>{user?.nombre || "Sin sesion"}</strong>
+              <strong>{user?.nombre || "Sin sesión"}</strong>
               <span>{user?.rolNombre || "Invitado"}</span>
             </div>
           )}
@@ -135,9 +139,9 @@ export function AppSidebar({
           {!collapsed && <span>Ayuda</span>}
         </button>
 
-        <button className="op-sidebar-action danger" type="button" onClick={handleLogout} title="Cerrar sesion">
+        <button className="op-sidebar-action danger" type="button" onClick={handleLogout} title="Cerrar sesión">
           <LogOut size={19} />
-          {!collapsed && <span>Cerrar sesion</span>}
+          {!collapsed && <span>Cerrar sesión</span>}
         </button>
 
         <button className="op-theme-button" type="button" aria-label="Tema principal">

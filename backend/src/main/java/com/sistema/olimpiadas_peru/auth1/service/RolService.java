@@ -119,7 +119,7 @@ public class RolService {
         auditoriaService.registrar(
             SecurityUtils.getCurrentUserId(),
             "ASIGNAR_MODULOS_ROL",
-            String.format("Se actualizaron los modulos del rol '%s'", rol.getNombre())
+            String.format("Se actualizaron los módulos del rol '%s'", rol.getNombre())
         );
 
         return mapearARolModulosDTO(rolGuardado);
@@ -131,11 +131,11 @@ public class RolService {
             .orElseThrow(() -> new RuntimeException("Rol no encontrado"));
 
         Modulo modulo = moduloRepository.findById(moduloId)
-            .orElseThrow(() -> new RuntimeException("Modulo no encontrado"));
+            .orElseThrow(() -> new RuntimeException("Módulo no encontrado"));
 
         boolean yaAsignado = rol.getModulos().stream().anyMatch(item -> item.getId().equals(moduloId));
         if (yaAsignado) {
-            throw new RuntimeException("El modulo ya esta asignado a este rol");
+            throw new RuntimeException("El módulo ya está asignado a este rol");
         }
 
         rol.getModulos().add(modulo);
@@ -144,7 +144,7 @@ public class RolService {
         auditoriaService.registrar(
             SecurityUtils.getCurrentUserId(),
             "AGREGAR_MODULO_ROL",
-            String.format("Se agrego el modulo '%s' al rol '%s'", modulo.getNombre(), rol.getNombre())
+            String.format("Se agregó el módulo '%s' al rol '%s'", modulo.getNombre(), rol.getNombre())
         );
 
         return mapearARolModulosDTO(rolGuardado);
@@ -156,11 +156,11 @@ public class RolService {
             .orElseThrow(() -> new RuntimeException("Rol no encontrado"));
 
         Modulo modulo = moduloRepository.findById(moduloId)
-            .orElseThrow(() -> new RuntimeException("Modulo no encontrado"));
+            .orElseThrow(() -> new RuntimeException("Módulo no encontrado"));
 
         boolean removido = rol.getModulos().removeIf(item -> item.getId().equals(moduloId));
         if (!removido) {
-            throw new RuntimeException("El modulo no esta asignado a este rol");
+            throw new RuntimeException("El módulo no está asignado a este rol");
         }
 
         Rol rolGuardado = rolRepository.save(rol);
@@ -168,7 +168,7 @@ public class RolService {
         auditoriaService.registrar(
             SecurityUtils.getCurrentUserId(),
             "REMOVER_MODULO_ROL",
-            String.format("Se removio el modulo '%s' del rol '%s'", modulo.getNombre(), rol.getNombre())
+            String.format("Se removió el módulo '%s' del rol '%s'", modulo.getNombre(), rol.getNombre())
         );
 
         return mapearARolModulosDTO(rolGuardado);

@@ -62,7 +62,7 @@ export function ProgramacionClient() {
         setDeportes(deportesData);
         setEquipos(equiposData);
       })
-      .catch((error) => alerts.error("Error al cargar catalogos", getErrorMessage(error)));
+      .catch((error) => alerts.error("Error al cargar catálogos", getErrorMessage(error)));
   }, []);
 
   useEffect(() => {
@@ -183,7 +183,7 @@ export function ProgramacionClient() {
   return (
     <>
       <PageHeader
-        title="Programacion"
+        title="Programación"
         description="Organiza partidos por deporte, grupo, sede y fecha."
         action={<PrimaryActionButton onClick={startCreate}>Programar partido</PrimaryActionButton>}
       />

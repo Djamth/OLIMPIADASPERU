@@ -9,4 +9,8 @@ public interface GrupoRepository extends JpaRepository<Grupo, Long> {
     List<Grupo> findByDeporteIdOrderByNombreAsc(Long deporteId);
 
     void deleteByDeporteId(Long deporteId);
+
+    List<Grupo> findByEventoIdAndDeporteIdOrderByNombreAsc(Long eventoId, Long deporteId);
+
+    void deleteByEventoIdAndDeporteId(Long eventoId, Long deporteId);
 }

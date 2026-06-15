@@ -10,5 +10,11 @@ public record InscripcionResponse(
         Long deporteId,
         String deporteNombre,
         EstadoInscripcion estado,
-        LocalDate fechaInscripcion) {
+        LocalDate fechaInscripcion,
+        Long eventoId,
+        String eventoNombre,
+        Long categoriaEventoId,
+        String categoriaEventoNombre,
+        String paisNombre,
+        String bandera) {
 }

@@ -11,4 +11,6 @@ public interface GrupoEquipoRepository extends JpaRepository<GrupoEquipo, Long> 
     boolean existsByGrupoIdAndEquipoId(Long grupoId, Long equipoId);
 
     void deleteByGrupoDeporteId(Long deporteId);
+
+    void deleteByGrupoEventoIdAndGrupoDeporteId(Long eventoId, Long deporteId);
 }

@@ -86,7 +86,7 @@ class SorteoServiceTests {
 
         assertThatThrownBy(() -> sorteoService.generarGrupos(futbol.getId()))
                 .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("inscripcion confirmada");
+                .hasMessageContaining("inscripción confirmada");
     }
 
     private Equipo crearEquipo(String nombre, Institucion institucion) {

@@ -92,11 +92,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem("op_user", JSON.stringify(response));
       setUser(response);
       alerts.close();
-      await alerts.success("Bienvenido", "Inicio de sesion realizado correctamente.");
+      await alerts.success("Bienvenido", "Inicio de sesión realizado correctamente.");
       router.push(getLandingRoute(response));
     } catch (error: any) {
       alerts.close();
-      const message = error?.response?.data?.mensaje ?? "No se pudo iniciar sesion.";
+      const message = error?.response?.data?.mensaje ?? "No se pudo iniciar sesión.";
       await alerts.error("Acceso denegado", message);
       throw error;
     }
@@ -106,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await authService.logout();
     } catch {
-      // La sesion local se elimina incluso si el token ya expiro.
+      // La sesión local se elimina incluso si el token ya expiró.
     } finally {
       clearStoredSession();
       setUser(null);

@@ -1,19 +1,20 @@
+-- Datos idempotentes para desarrollo y demostración. No forman parte de las migraciones.
 INSERT INTO deportes (id, created_at, updated_at, nombre, descripcion, maximo_equipos_por_grupo, numero_jugadores)
 VALUES
-    (1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'FUTBOL', 'Torneo de futbol escolar', 4, 11),
-    (2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'VOLEY', 'Torneo de voley escolar', 4, 6),
-    (3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'BASQUET', 'Torneo de basquet escolar', 4, 5),
+    (1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'FUTBOL', 'Torneo de fútbol escolar', 4, 11),
+    (2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'VOLEY', 'Torneo de vóley escolar', 4, 6),
+    (3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'BASQUET', 'Torneo de básquet escolar', 4, 5),
     (4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'PING_PONG', 'Torneo de ping pong escolar', 4, 1),
     (5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'ATLETISMO', 'Pruebas de velocidad y resistencia', 4, 1),
     (6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'AJEDREZ', 'Competencia individual de ajedrez', 4, 1),
-    (7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'NATACION', 'Pruebas de piscina por categoria', 4, 1),
+    (7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'NATACION', 'Pruebas de piscina por categoría', 4, 1),
     (8, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'HANDBALL', 'Torneo escolar de handball', 4, 7),
     (9, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'FUTSAL', 'Torneo de futsal escolar', 4, 5),
     (10, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'TENIS', 'Competencia individual de tenis', 4, 1),
     (11, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'BADMINTON', 'Competencia individual de badminton', 4, 1),
     (12, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'RUGBY', 'Torneo escolar de rugby', 4, 7),
-    (13, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'KARATE', 'Competencia por categorias de karate', 4, 1),
-    (14, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'TAEKWONDO', 'Competencia por categorias de taekwondo', 4, 1),
+    (13, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'KARATE', 'Competencia por categorías de karate', 4, 1),
+    (14, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'TAEKWONDO', 'Competencia por categorías de taekwondo', 4, 1),
     (15, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'GIMNASIA', 'Competencia de gimnasia escolar', 4, 1),
     (16, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'CICLISMO', 'Prueba individual de ciclismo', 4, 1),
     (17, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'ESCALADA', 'Competencia individual de escalada', 4, 1),
@@ -57,6 +58,40 @@ VALUES
     (3, 9), (3, 10), (3, 11), (3, 12)
 ON CONFLICT DO NOTHING;
 
+INSERT INTO paises (id, created_at, updated_at, nombre, codigo, bandera, color_primario, color_secundario, dato_cultural, activo)
+VALUES
+    (1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Brasil', 'BRA', 'BR', '#FFDF00', '#009C3B', 'Reconocido por su diversidad cultural y tradición futbolística.', true),
+    (2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Japón', 'JPN', 'JP', '#FFFFFF', '#BC002D', 'Destaca por su disciplina, tecnología y respeto.', true),
+    (3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Italia', 'ITA', 'IT', '#008C45', '#FFFFFF', 'Cuna de una amplia tradición artística y deportiva.', true),
+    (4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'México', 'MEX', 'MX', '#006847', '#CE1126', 'País de gran riqueza histórica y cultural.', true),
+    (5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Francia', 'FRA', 'FR', '#0055A4', '#EF4135', 'Referente mundial en arte, ciencia y deporte.', true),
+    (6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Argentina', 'ARG', 'AR', '#74ACDF', '#FFFFFF', 'Reconocida por su identidad deportiva y cultural.', true),
+    (7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Uruguay', 'URY', 'UY', '#5CBFEB', '#FFFFFF', 'País con una histórica tradición futbolística.', true),
+    (8, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Colombia', 'COL', 'CO', '#FCD116', '#003893', 'Destaca por su biodiversidad y alegria cultural.', true),
+    (9, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Chile', 'CHL', 'CL', '#D52B1E', '#0039A6', 'País de geografía diversa y cultura deportiva.', true),
+    (10, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Perú', 'PER', 'PE', '#D91023', '#FFFFFF', 'Posee una de las herencias culturales más ricas de América.', true),
+    (11, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Bolivia', 'BOL', 'BO', '#D52B1E', '#007934', 'País multicultural ubicado en el corazón de Sudamérica.', true),
+    (12, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Ecuador', 'ECU', 'EC', '#FFD100', '#EF3340', 'Reconocido por su diversidad natural y cultural.', true),
+    (13, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Paraguay', 'PRY', 'PY', '#D52B1E', '#0038A8', 'País bilingüe con una fuerte identidad comunitaria.', true),
+    (14, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Venezuela', 'VEN', 'VE', '#FCE300', '#CF142B', 'Destaca por sus paisajes y riqueza cultural.', true),
+    (15, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Canadá', 'CAN', 'CA', '#D80621', '#FFFFFF', 'País reconocido por su diversidad y calidad de vida.', true),
+    (16, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Alemania', 'DEU', 'DE', '#000000', '#DD0000', 'Referente en innovación, educación y organización deportiva.', true),
+    (17, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'España', 'ESP', 'ES', '#AA151B', '#F1BF00', 'Cuenta con una amplia herencia cultural y deportiva.', true),
+    (18, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Portugal', 'PRT', 'PT', '#046A38', '#DA291C', 'País de tradición marítima y deportiva.', true),
+    (19, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Corea del Sur', 'KOR', 'KR', '#FFFFFF', '#CD2E3A', 'Destaca por su tecnología, educación y cultura contemporánea.', true),
+    (20, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Australia', 'AUS', 'AU', '#00008B', '#FFCD00', 'País reconocido por su vida al aire libre y excelencia deportiva.', true),
+    (21, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Estados Unidos', 'USA', 'US', '#3C3B6E', '#B22234', 'País diverso con una gran cultura competitiva.', true),
+    (22, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Países Bajos', 'NLD', 'NL', '#AE1C28', '#21468B', 'Reconocido por su innovación y cultura ciclista.', true),
+    (23, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Suiza', 'CHE', 'CH', '#D52B1E', '#FFFFFF', 'Destaca por su precisión, diversidad y paisajes alpinos.', true),
+    (24, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Grecia', 'GRC', 'GR', '#0D5EAF', '#FFFFFF', 'Cuna histórica de los Juegos Olímpicos.', true),
+    (25, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Reino Unido', 'GBR', 'GB', '#012169', '#C8102E', 'Posee una extensa tradición académica y deportiva.', true),
+    (26, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Costa Rica', 'CRI', 'CR', '#002B7F', '#CE1126', 'País reconocido por su biodiversidad y sostenibilidad.', true),
+    (27, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Panamá', 'PAN', 'PA', '#005293', '#D21034', 'Punto de encuentro cultural entre continentes.', true),
+    (28, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'República Dominicana', 'DOM', 'DO', '#002D62', '#CE1126', 'País caribeño de gran tradición deportiva.', true),
+    (29, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Nueva Zelanda', 'NZL', 'NZ', '#00247D', '#CC142B', 'Reconocida por su naturaleza y cultura deportiva.', true),
+    (30, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Marruecos', 'MAR', 'MA', '#C1272D', '#006233', 'País de encuentro entre culturas africanas y mediterráneas.', true)
+ON CONFLICT DO NOTHING;
+
 ALTER TABLE usuarios DROP COLUMN IF EXISTS enabled;
 
 INSERT INTO usuarios (id, nombre, email, password, rol_id, estado, eliminado)
@@ -69,7 +104,7 @@ ON CONFLICT (email) DO NOTHING;
 INSERT INTO instituciones (id, created_at, updated_at, nombre, codigo_modular, region, ciudad, direccion, telefono, email)
 VALUES
     (1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'IE Jose Maria Arguedas', 'IE-0001', 'Lima', 'Lima', 'Av. Los Proceres 123', '999111222', 'contacto@arguedas.edu.pe'),
-    (2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Colegio Peru Campeon', 'IE-0002', 'Arequipa', 'Arequipa', 'Calle Melgar 456', '999333444', 'info@perucampeon.edu.pe'),
+    (2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Colegio Perú Campeón', 'IE-0002', 'Arequipa', 'Arequipa', 'Calle Melgar 456', '999333444', 'info@perucampeon.edu.pe'),
     (3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Colegio San Martin', 'IE-0003', 'Lima', 'Miraflores', 'Av. Larco 120', '999000003', 'contacto@sanmartin.edu.pe'),
     (4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'IE Miguel Grau', 'IE-0004', 'Callao', 'Callao', 'Av. La Marina 450', '999000004', 'contacto@grau.edu.pe'),
     (5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Colegio Santa Rosa', 'IE-0005', 'Lima', 'San Miguel', 'Jr. Los Alamos 224', '999000005', 'contacto@santarosa.edu.pe'),
@@ -92,7 +127,18 @@ VALUES
     (22, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'IE Francisco Bolognesi', 'IE-0022', 'Tacna', 'Alto de la Alianza', 'Av. Industrial 990', '999000022', 'contacto@bolognesi.edu.pe'),
     (23, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Colegio Puno Grande', 'IE-0023', 'Puno', 'Puno', 'Jr. Lima 455', '999000023', 'contacto@punogrande.edu.pe'),
     (24, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'IE Jose Carlos Mariategui', 'IE-0024', 'Puno', 'Juliaca', 'Av. Circunvalacion 800', '999000024', 'contacto@mariategui.edu.pe'),
-    (25, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Colegio Bicentenario Peru', 'IE-0025', 'Lima', 'San Borja', 'Av. Canada 1500', '999000025', 'contacto@bicentenario.edu.pe')
+    (25, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Colegio Bicentenario Perú', 'IE-0025', 'Lima', 'San Borja', 'Av. Canadá 1500', '999000025', 'contacto@bicentenario.edu.pe')
+ON CONFLICT DO NOTHING;
+
+UPDATE usuarios
+SET institucion_id = 1
+WHERE email IN ('coordinador@olimpiadasperu.pe', 'consulta@olimpiadasperu.pe')
+  AND institucion_id IS NULL;
+
+INSERT INTO eventos (id, created_at, updated_at, nombre, anio, fecha_inicio, fecha_fin, estado, institucion_id)
+SELECT id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Olimpiadas Internas 2026', 2026,
+       DATE '2026-07-01', DATE '2026-07-31', 'INSCRIPCIONES', id
+FROM instituciones
 ON CONFLICT DO NOTHING;
 
 INSERT INTO equipos (id, created_at, updated_at, nombre, categoria, genero, entrenador, institucion_id)
@@ -105,12 +151,12 @@ VALUES
     (6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Uruguay 3C', 'SUB_17', 'MASCULINO', 'Marco Leon', 6),
     (7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Colombia 4D', 'SUB_17', 'MASCULINO', 'Hector Vega', 7),
     (8, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Chile 2A', 'SUB_17', 'MASCULINO', 'Pablo Soto', 8),
-    (9, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Peru Damas A', 'SUB_17', 'FEMENINO', 'Ana Torres', 9),
+    (9, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Perú Damas A', 'SUB_17', 'FEMENINO', 'Ana Torres', 9),
     (10, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Bolivia Damas B', 'SUB_17', 'FEMENINO', 'Rosa Campos', 10),
     (11, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Ecuador Damas C', 'SUB_17', 'FEMENINO', 'Patricia Diaz', 11),
     (12, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Paraguay Damas D', 'SUB_17', 'FEMENINO', 'Lucia Flores', 12),
     (13, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Venezuela Damas E', 'SUB_17', 'FEMENINO', 'Elena Rios', 13),
-    (14, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Mexico Damas F', 'SUB_17', 'FEMENINO', 'Claudia Pena', 14),
+    (14, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'México Damas F', 'SUB_17', 'FEMENINO', 'Claudia Peña', 14),
     (15, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Lima Basket', 'SUB_17', 'MASCULINO', 'Mario Chavez', 15),
     (16, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Callao Basket', 'SUB_17', 'MASCULINO', 'Raul Medina', 16),
     (17, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Cusco Basket', 'SUB_17', 'MASCULINO', 'Nestor Ortiz', 17),
@@ -123,6 +169,75 @@ VALUES
     (24, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Mixto Oeste Ping', 'LIBRE', 'MIXTO', 'Victor Luna', 24),
     (25, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Mixto Centro Ping', 'LIBRE', 'MIXTO', 'Gloria Paz', 25),
     (26, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Mixto Altura Ping', 'LIBRE', 'MIXTO', 'Hugo Molina', 1)
+ON CONFLICT DO NOTHING;
+
+INSERT INTO categorias_evento (id, created_at, updated_at, nombre, nivel, descripcion, evento_id, pais_id)
+SELECT equipo.id,
+       CURRENT_TIMESTAMP,
+       CURRENT_TIMESTAMP,
+       CASE
+           WHEN equipo.id = 1 THEN 'Primer año'
+           WHEN equipo.id = 26 THEN 'Docentes'
+           ELSE 'Categoría ' || equipo.id
+       END,
+       equipo.categoria,
+       'Categoría migrada desde la estructura inicial',
+       equipo.institucion_id,
+       CASE WHEN equipo.id = 26 THEN 2 ELSE ((equipo.id - 1) % 30) + 1 END
+FROM equipos equipo
+WHERE equipo.id < 100
+ON CONFLICT DO NOTHING;
+
+UPDATE equipos
+SET categoria_evento_id = id,
+    deporte_id = CASE
+        WHEN id IN (1, 3, 4, 5, 6, 7, 8) THEN 1
+        WHEN id IN (2, 9, 10, 11, 12, 13, 14) THEN 2
+        WHEN id IN (15, 16, 17, 18, 19, 20) THEN 3
+        ELSE 4
+    END
+WHERE categoria_evento_id IS NULL OR deporte_id IS NULL;
+
+INSERT INTO categorias_evento (id, created_at, updated_at, nombre, nivel, descripcion, evento_id, pais_id)
+VALUES
+    (100, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Primer año', 'SECUNDARIA', 'Categoría oficial del evento', 13, 1),
+    (101, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Segundo año', 'SECUNDARIA', 'Categoría oficial del evento', 13, 2),
+    (102, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Tercer año', 'SECUNDARIA', 'Categoría oficial del evento', 13, 3),
+    (103, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Cuarto año', 'SECUNDARIA', 'Categoría oficial del evento', 13, 4),
+    (104, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Quinto año', 'SECUNDARIA', 'Categoría oficial del evento', 13, 5)
+ON CONFLICT DO NOTHING;
+
+DELETE FROM categorias_evento categoria
+WHERE categoria.descripcion = 'Categoría migrada desde la estructura inicial'
+  AND categoria.id >= 100
+  AND NOT EXISTS (
+      SELECT 1
+      FROM equipos equipo
+      WHERE equipo.categoria_evento_id = categoria.id
+  );
+
+INSERT INTO equipos (id, created_at, updated_at, nombre, categoria, genero, entrenador, institucion_id, categoria_evento_id, deporte_id)
+VALUES
+    (100, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Brasil - Futbol Varones', 'SUB_17', 'MASCULINO', 'Carlos Alva', 13, 100, 1),
+    (101, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Brasil - Basquet Varones', 'SUB_17', 'MASCULINO', 'Mario Ruiz', 13, 100, 3),
+    (102, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Brasil - Voley Damas', 'SUB_17', 'FEMENINO', 'Patricia Leon', 13, 100, 2),
+    (103, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Brasil - Ping Pong Mixto', 'SUB_17', 'MIXTO', 'Elena Prado', 13, 100, 4),
+    (104, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Japón - Fútbol Varones', 'SUB_17', 'MASCULINO', 'Luis Rivas', 13, 101, 1),
+    (105, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Japón - Básquet Varones', 'SUB_17', 'MASCULINO', 'Raúl Campos', 13, 101, 3),
+    (106, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Japón - Vóley Damas', 'SUB_17', 'FEMENINO', 'Ana Paredes', 13, 101, 2),
+    (107, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Japón - Ping Pong Mixto', 'SUB_17', 'MIXTO', 'Teresa Luna', 13, 101, 4),
+    (108, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Italia - Futbol Varones', 'SUB_17', 'MASCULINO', 'Jorge Pena', 13, 102, 1),
+    (109, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Italia - Basquet Varones', 'SUB_17', 'MASCULINO', 'Ivan Soto', 13, 102, 3),
+    (110, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Italia - Voley Damas', 'SUB_17', 'FEMENINO', 'Rosa Vera', 13, 102, 2),
+    (111, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Italia - Ping Pong Mixto', 'SUB_17', 'MIXTO', 'Carmen Paz', 13, 102, 4),
+    (112, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'México - Fútbol Varones', 'SUB_17', 'MASCULINO', 'Héctor Salas', 13, 103, 1),
+    (113, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'México - Básquet Varones', 'SUB_17', 'MASCULINO', 'Óscar Díaz', 13, 103, 3),
+    (114, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'México - Vóley Damas', 'SUB_17', 'FEMENINO', 'Lucía Ríos', 13, 103, 2),
+    (115, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'México - Ping Pong Mixto', 'SUB_17', 'MIXTO', 'Gloria Arias', 13, 103, 4),
+    (116, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Francia - Futbol Varones', 'SUB_17', 'MASCULINO', 'Marco Flores', 13, 104, 1),
+    (117, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Francia - Basquet Varones', 'SUB_17', 'MASCULINO', 'Pablo Cruz', 13, 104, 3),
+    (118, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Francia - Voley Damas', 'SUB_17', 'FEMENINO', 'Claudia Reyes', 13, 104, 2),
+    (119, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Francia - Ping Pong Mixto', 'SUB_17', 'MIXTO', 'Diana Torres', 13, 104, 4)
 ON CONFLICT DO NOTHING;
 
 INSERT INTO participantes (id, created_at, updated_at, nombres, apellidos, numero_documento, genero, fecha_nacimiento, codigo_estudiante, equipo_id)
@@ -175,6 +290,53 @@ SET nombres = EXCLUDED.nombres,
     apellidos = EXCLUDED.apellidos,
     updated_at = CURRENT_TIMESTAMP;
 
+INSERT INTO participantes (
+    id, created_at, updated_at, nombres, apellidos, numero_documento, genero,
+    fecha_nacimiento, codigo_estudiante, equipo_id, rol_equipo, numero_camiseta)
+SELECT
+    equipo_id * 100 + jugador_nro,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP,
+    (ARRAY['Adrian', 'Bruno', 'Camila', 'Daniel', 'Elena', 'Fernando', 'Gabriela',
+           'Hugo', 'Isabella', 'Joaquin', 'Karina', 'Lucas', 'Mariana', 'Nicolas'])[((equipo_id + jugador_nro) % 14) + 1],
+    (ARRAY['Aguilar', 'Benavides', 'Castro', 'Delgado', 'Espinoza', 'Flores', 'Garcia',
+           'Herrera', 'Ibarra', 'Jimenez', 'Lopez', 'Mendoza', 'Navarro', 'Ortiz'])[((equipo_id * 2 + jugador_nro) % 14) + 1],
+    '8' || LPAD(equipo_id::text, 3, '0') || LPAD(jugador_nro::text, 2, '0'),
+    CASE
+        WHEN equipo_id IN (102, 106, 110, 114, 118) THEN 'FEMENINO'
+        WHEN equipo_id IN (103, 107, 111, 115, 119) AND jugador_nro % 2 = 0 THEN 'FEMENINO'
+        ELSE 'MASCULINO'
+    END,
+    DATE '2009-01-01' + jugador_nro,
+    'SJ-' || equipo_id || '-' || LPAD(jugador_nro::text, 2, '0'),
+    equipo_id,
+    CASE WHEN jugador_nro = 1 THEN 'CAPITAN' ELSE 'JUGADOR' END,
+    jugador_nro
+FROM (
+    SELECT equipo_id, generate_series(1,
+        CASE
+            WHEN equipo_id IN (100, 104, 108, 112, 116) THEN 11
+            WHEN equipo_id IN (102, 106, 110, 114, 118) THEN 6
+            WHEN equipo_id IN (101, 105, 109, 113, 117) THEN 5
+            ELSE 2
+        END
+    ) AS jugador_nro
+    FROM generate_series(100, 119) AS equipos(equipo_id)
+) plantilla
+ON CONFLICT DO NOTHING;
+
+INSERT INTO plantillas_equipo (
+    id, created_at, updated_at, participante_id, equipo_id, rol, numero_camiseta)
+SELECT participante.id,
+       CURRENT_TIMESTAMP,
+       CURRENT_TIMESTAMP,
+       participante.id,
+       participante.equipo_id,
+       COALESCE(participante.rol_equipo, 'JUGADOR'),
+       participante.numero_camiseta
+FROM participantes participante
+ON CONFLICT DO NOTHING;
+
 INSERT INTO inscripciones (id, created_at, updated_at, equipo_id, deporte_id, estado, fecha_inscripcion)
 VALUES
     (1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1, 'CONFIRMADA', CURRENT_DATE),
@@ -203,6 +365,28 @@ VALUES
     (24, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 24, 4, 'CONFIRMADA', CURRENT_DATE),
     (25, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 25, 4, 'CONFIRMADA', CURRENT_DATE),
     (26, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 26, 4, 'CONFIRMADA', CURRENT_DATE)
+ON CONFLICT DO NOTHING;
+
+UPDATE inscripciones inscripcion
+SET evento_id = categoria.evento_id
+FROM equipos equipo
+JOIN categorias_evento categoria ON categoria.id = equipo.categoria_evento_id
+WHERE inscripcion.equipo_id = equipo.id
+  AND inscripcion.evento_id IS NULL;
+
+INSERT INTO inscripciones (
+    id, created_at, updated_at, equipo_id, deporte_id, estado, fecha_inscripcion, evento_id)
+SELECT
+    equipo.id,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP,
+    equipo.id,
+    equipo.deporte_id,
+    'CONFIRMADA',
+    CURRENT_DATE,
+    13
+FROM equipos equipo
+WHERE equipo.id BETWEEN 100 AND 119
 ON CONFLICT DO NOTHING;
 
 INSERT INTO grupos (id, created_at, updated_at, nombre, deporte_id)
@@ -373,3 +557,7 @@ SELECT setval(pg_get_serial_sequence('grupo_equipos', 'id'), COALESCE((SELECT MA
 SELECT setval(pg_get_serial_sequence('partidos', 'id'), COALESCE((SELECT MAX(id) FROM partidos), 1), true);
 SELECT setval(pg_get_serial_sequence('resultados', 'id'), COALESCE((SELECT MAX(id) FROM resultados), 1), true);
 SELECT setval(pg_get_serial_sequence('resultado_anotaciones', 'id'), COALESCE((SELECT MAX(id) FROM resultado_anotaciones), 1), true);
+SELECT setval(pg_get_serial_sequence('paises', 'id'), COALESCE((SELECT MAX(id) FROM paises), 1), true);
+SELECT setval(pg_get_serial_sequence('eventos', 'id'), COALESCE((SELECT MAX(id) FROM eventos), 1), true);
+SELECT setval(pg_get_serial_sequence('categorias_evento', 'id'), COALESCE((SELECT MAX(id) FROM categorias_evento), 1), true);
+SELECT setval(pg_get_serial_sequence('plantillas_equipo', 'id'), COALESCE((SELECT MAX(id) FROM plantillas_equipo), 1), true);

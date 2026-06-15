@@ -88,7 +88,7 @@ export function DeportesClient() {
 
   const columns: DataTableColumn<Deporte>[] = [
     { key: "deporte", header: "Deporte", render: (item) => <span className="font-bold text-slate-950">{item.nombre}</span> },
-    { key: "descripcion", header: "Descripcion", render: (item) => <span className="text-slate-500">{item.descripcion || "Sin descripcion"}</span> },
+    { key: "descripcion", header: "Descripción", render: (item) => <span className="text-slate-500">{item.descripcion || "Sin descripción"}</span> },
     { key: "jugadores", header: "Jugadores", render: (item) => <Badge>{item.numeroJugadores}</Badge> },
     { key: "grupo", header: "Max. por grupo", render: (item) => item.maximoEquiposPorGrupo },
     { key: "acciones", header: "Acciones", align: "right", render: (item) => <RowActions onEdit={() => startEdit(item)} onDelete={() => remove(item)} /> },
@@ -113,7 +113,7 @@ export function DeportesClient() {
             onPageSizeChange={table.setPageSize}
             totalItems={table.totalItems}
             filteredItems={table.filteredItems}
-            placeholder="Buscar deporte o descripcion..."
+            placeholder="Buscar deporte o descripción..."
           />
           <DataTable columns={columns} items={table.pageItems} getRowKey={(item) => item.id} />
           <PaginationControls page={table.page} totalPages={table.totalPages} onPageChange={table.setPage} />
@@ -135,7 +135,7 @@ export function DeportesClient() {
             <input type="number" min={2} className={fieldClass} value={form.maximoEquiposPorGrupo} onChange={(e) => setForm({ ...form, maximoEquiposPorGrupo: Number(e.target.value) })} required />
           </div>
           <div className="md:col-span-12">
-            <label className={labelClass}>Descripcion</label>
+            <label className={labelClass}>Descripción</label>
             <textarea className={textareaClass} rows={3} value={form.descripcion ?? ""} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} />
           </div>
         </div>

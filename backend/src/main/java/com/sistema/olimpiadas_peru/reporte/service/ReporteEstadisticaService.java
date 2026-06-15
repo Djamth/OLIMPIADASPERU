@@ -470,7 +470,7 @@ public class ReporteEstadisticaService {
                 canvas.setColorFill(SLATE);
                 canvas.showTextAligned(
                     Element.ALIGN_LEFT,
-                    "Olimpiadas Peru | " + deporte,
+                    "Olimpiadas Perú | " + deporte,
                     document.leftMargin(),
                     y,
                     0

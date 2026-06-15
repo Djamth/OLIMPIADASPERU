@@ -7,6 +7,8 @@ import com.sistema.olimpiadas_peru.resultado.entity.ResultadoAnotacion;
 import com.sistema.olimpiadas_peru.resultado.repository.ResultadoAnotacionRepository;
 import com.sistema.olimpiadas_peru.resultado.entity.Resultado;
 import com.sistema.olimpiadas_peru.resultado.repository.ResultadoRepository;
+import com.sistema.olimpiadas_peru.auth1.security.InstitucionAccessService;
+import com.sistema.olimpiadas_peru.evento.service.EventoService;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -24,10 +26,21 @@ public class EstadisticaService {
 
     private final ResultadoRepository resultadoRepository;
     private final ResultadoAnotacionRepository resultadoAnotacionRepository;
+    private final InstitucionAccessService accessService;
+    private final EventoService eventoService;
 
     public List<GoleadorResponse> obtenerGoleadores(Long deporteId) {
+        return obtenerGoleadores(null, deporteId);
+    }
+
+    public List<GoleadorResponse> obtenerGoleadores(Long eventoId, Long deporteId) {
+        validarEvento(eventoId);
         Map<Long, AnotadorBuilder> acumulado = new HashMap<>();
-        for (Resultado resultado : resultadoRepository.findByPartidoDeporteId(deporteId)) {
+        List<Resultado> resultados = filtrarAlcance(eventoId == null
+                ? resultadoRepository.findByPartidoDeporteId(deporteId)
+                : resultadoRepository.findByPartidoEquipoLocalCategoriaEventoEventoIdAndPartidoDeporteId(
+                        eventoId, deporteId));
+        for (Resultado resultado : resultados) {
             String deporte = resultado.getPartido().getDeporte().getNombre();
             String indicador = obtenerIndicadorIndividual(deporte);
             for (ResultadoAnotacion anotacion : resultadoAnotacionRepository.findByResultadoId(resultado.getId())) {
@@ -45,14 +58,26 @@ public class EstadisticaService {
     }
 
     public List<RankingEquipoResponse> obtenerRanking(Long deporteId) {
-        Map<String, RankingBuilder> tabla = new HashMap<>();
+        return obtenerRanking(null, deporteId);
+    }
 
-        for (Resultado resultado : resultadoRepository.findByPartidoDeporteId(deporteId)) {
+    public List<RankingEquipoResponse> obtenerRanking(Long eventoId, Long deporteId) {
+        validarEvento(eventoId);
+        Map<Long, RankingBuilder> tabla = new HashMap<>();
+
+        List<Resultado> resultados = filtrarAlcance(eventoId == null
+                ? resultadoRepository.findByPartidoDeporteId(deporteId)
+                : resultadoRepository.findByPartidoEquipoLocalCategoriaEventoEventoIdAndPartidoDeporteId(
+                        eventoId, deporteId));
+        for (Resultado resultado : resultados) {
+            Long localId = resultado.getPartido().getEquipoLocal().getId();
+            Long visitanteId = resultado.getPartido().getEquipoVisitante().getId();
             String local = resultado.getPartido().getEquipoLocal().getNombre();
             String visitante = resultado.getPartido().getEquipoVisitante().getNombre();
+            String deporte = resultado.getPartido().getDeporte().getNombre();
 
-            RankingBuilder localStats = tabla.computeIfAbsent(local, key -> new RankingBuilder(local));
-            RankingBuilder visitaStats = tabla.computeIfAbsent(visitante, key -> new RankingBuilder(visitante));
+            RankingBuilder localStats = tabla.computeIfAbsent(localId, key -> new RankingBuilder(local));
+            RankingBuilder visitaStats = tabla.computeIfAbsent(visitanteId, key -> new RankingBuilder(visitante));
 
             localStats.partidosJugados++;
             visitaStats.partidosJugados++;
@@ -63,11 +88,13 @@ public class EstadisticaService {
 
             if (resultado.getPuntajeLocal() > resultado.getPuntajeVisitante()) {
                 localStats.victorias++;
-                localStats.puntos += 3;
+                localStats.puntos += puntosVictoria(deporte);
+                visitaStats.puntos += puntosDerrota(deporte);
                 visitaStats.derrotas++;
             } else if (resultado.getPuntajeLocal() < resultado.getPuntajeVisitante()) {
                 visitaStats.victorias++;
-                visitaStats.puntos += 3;
+                visitaStats.puntos += puntosVictoria(deporte);
+                localStats.puntos += puntosDerrota(deporte);
                 localStats.derrotas++;
             } else {
                 localStats.empates++;
@@ -84,6 +111,31 @@ public class EstadisticaService {
                         .reversed())
                 .forEach(item -> ranking.add(item.toResponse()));
         return ranking;
+    }
+
+    private void validarEvento(Long eventoId) {
+        if (eventoId != null) {
+            eventoService.getEntity(eventoId);
+        }
+    }
+
+    private List<Resultado> filtrarAlcance(List<Resultado> resultados) {
+        return accessService.institucionActual()
+                .map(institucionId -> resultados.stream()
+                        .filter(resultado -> institucionId.equals(resultado.getPartido()
+                                .getEquipoLocal().getInstitucion().getId()))
+                        .toList())
+                .orElse(resultados);
+    }
+
+    private int puntosVictoria(String deporte) {
+        String nombre = deporte == null ? "" : deporte.trim().toUpperCase(Locale.ROOT);
+        return nombre.contains("BASQUET") || nombre.contains("PING") ? 2 : 3;
+    }
+
+    private int puntosDerrota(String deporte) {
+        String nombre = deporte == null ? "" : deporte.trim().toUpperCase(Locale.ROOT);
+        return nombre.contains("BASQUET") || nombre.contains("PING") ? 1 : 0;
     }
 
     private static class RankingBuilder {

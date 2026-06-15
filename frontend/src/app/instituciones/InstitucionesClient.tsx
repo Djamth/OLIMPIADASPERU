@@ -19,11 +19,16 @@ import { useCallback, useState } from "react";
 const emptyForm: InstitucionRequest = {
   nombre: "",
   codigoModular: "",
+  ruc: "",
+  tipo: "COLEGIO",
+  nivelEducativo: "",
   region: "",
   ciudad: "",
   direccion: "",
   telefono: "",
   email: "",
+  administradorNombre: "",
+  administradorEmail: "",
 };
 
 export function InstitucionesClient() {
@@ -34,7 +39,7 @@ export function InstitucionesClient() {
   const [form, setForm] = useState<InstitucionRequest>(emptyForm);
   const [submitting, setSubmitting] = useState(false);
   const table = useTableControls(data, (item, query) =>
-    [item.nombre, item.codigoModular, item.region, item.ciudad, item.email ?? "", item.telefono ?? ""]
+    [item.nombre, item.codigoModular, item.ruc ?? "", item.region, item.ciudad, item.email ?? "", item.telefono ?? ""]
       .some((value) => value.toLowerCase().includes(query)),
   );
 
@@ -49,11 +54,16 @@ export function InstitucionesClient() {
     setForm({
       nombre: item.nombre,
       codigoModular: item.codigoModular,
+      ruc: item.ruc ?? "",
+      tipo: item.tipo ?? "COLEGIO",
+      nivelEducativo: item.nivelEducativo ?? "",
       region: item.region,
       ciudad: item.ciudad,
       direccion: item.direccion ?? "",
       telefono: item.telefono ?? "",
       email: item.email ?? "",
+      administradorNombre: item.administradorNombre ?? "",
+      administradorEmail: item.administradorEmail ?? "",
     });
     setOpen(true);
   };
@@ -62,10 +72,10 @@ export function InstitucionesClient() {
     event.preventDefault();
     setSubmitting(true);
     try {
-      let message = "Institucion creada";
+      let message = "Institución creada";
       if (editing) {
         await institucionService.update(editing.id, form);
-        message = "Institucion actualizada";
+        message = "Institución actualizada";
       } else {
         await institucionService.create(form);
       }
@@ -80,11 +90,11 @@ export function InstitucionesClient() {
   };
 
   const remove = async (item: Institucion) => {
-    const result = await alerts.confirm("Eliminar institucion", `Se eliminara ${item.nombre}.`);
+    const result = await alerts.confirm("Eliminar institución", `Se eliminará ${item.nombre}.`);
     if (!result.isConfirmed) return;
     try {
       await institucionService.remove(item.id);
-      await alerts.success("Institucion eliminada");
+      await alerts.success("Institución eliminada");
       await reload();
     } catch (error) {
       await alerts.error("No se pudo eliminar", getErrorMessage(error));
@@ -99,8 +109,8 @@ export function InstitucionesClient() {
     },
     {
       key: "codigo",
-      header: "Codigo",
-      render: (item) => item.codigoModular,
+      header: "Identificacion",
+      render: (item) => <div>{item.codigoModular}<p className="text-xs text-slate-500">{item.ruc || "Sin RUC"}</p></div>,
     },
     {
       key: "region",
@@ -125,11 +135,11 @@ export function InstitucionesClient() {
       <PageHeader
         title="Instituciones"
         description="Administra colegios o instituciones participantes."
-        action={<PrimaryActionButton onClick={startCreate}>Nueva institucion</PrimaryActionButton>}
+        action={<PrimaryActionButton onClick={startCreate}>Nueva institución</PrimaryActionButton>}
       />
 
       {loading ? <LoadingState /> : data.length === 0 ? (
-        <EmptyState title="Sin instituciones" description="Registra la primera institucion para empezar a crear equipos." />
+        <EmptyState title="Sin instituciones" description="Registra la primera institución para empezar a crear equipos." />
       ) : (
         <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
           <TableToolbar
@@ -139,14 +149,14 @@ export function InstitucionesClient() {
             onPageSizeChange={table.setPageSize}
             totalItems={table.totalItems}
             filteredItems={table.filteredItems}
-            placeholder="Buscar institucion, codigo, region..."
+            placeholder="Buscar institución, código, región..."
           />
           <DataTable columns={columns} items={table.pageItems} getRowKey={(item) => item.id} />
           <PaginationControls page={table.page} totalPages={table.totalPages} onPageChange={table.setPage} />
         </div>
       )}
 
-      <FormModal open={open} title={editing ? "Editar institucion" : "Nueva institucion"} onClose={() => setOpen(false)} onSubmit={handleSubmit} submitting={submitting}>
+      <FormModal open={open} title={editing ? "Editar institución" : "Nueva institución"} onClose={() => setOpen(false)} onSubmit={handleSubmit} submitting={submitting}>
         <div className="grid gap-4 md:grid-cols-12">
           <div className="md:col-span-8">
             <label className={labelClass}>Nombre</label>
@@ -155,6 +165,23 @@ export function InstitucionesClient() {
           <div className="md:col-span-4">
             <label className={labelClass}>Codigo modular</label>
             <input className={fieldClass} value={form.codigoModular} onChange={(e) => setForm({ ...form, codigoModular: e.target.value })} required />
+          </div>
+          <div className="md:col-span-4">
+            <label className={labelClass}>RUC</label>
+            <input className={fieldClass} value={form.ruc ?? ""} onChange={(e) => setForm({ ...form, ruc: e.target.value })} />
+          </div>
+          <div className="md:col-span-4">
+            <label className={labelClass}>Tipo</label>
+            <select className={fieldClass} value={form.tipo ?? "COLEGIO"} onChange={(e) => setForm({ ...form, tipo: e.target.value as InstitucionRequest["tipo"] })}>
+              <option value="COLEGIO">Colegio</option>
+              <option value="UNIVERSIDAD">Universidad</option>
+              <option value="EMPRESA">Empresa</option>
+              <option value="OTRA">Otra</option>
+            </select>
+          </div>
+          <div className="md:col-span-4">
+            <label className={labelClass}>Nivel educativo</label>
+            <input className={fieldClass} value={form.nivelEducativo ?? ""} onChange={(e) => setForm({ ...form, nivelEducativo: e.target.value })} />
           </div>
           <div className="md:col-span-6">
             <label className={labelClass}>Region</label>
@@ -175,6 +202,14 @@ export function InstitucionesClient() {
           <div className="md:col-span-6">
             <label className={labelClass}>Email</label>
             <input type="email" className={fieldClass} value={form.email ?? ""} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+          </div>
+          <div className="md:col-span-6">
+            <label className={labelClass}>Administrador del evento</label>
+            <input className={fieldClass} value={form.administradorNombre ?? ""} onChange={(e) => setForm({ ...form, administradorNombre: e.target.value })} />
+          </div>
+          <div className="md:col-span-6">
+            <label className={labelClass}>Email del administrador</label>
+            <input type="email" className={fieldClass} value={form.administradorEmail ?? ""} onChange={(e) => setForm({ ...form, administradorEmail: e.target.value })} />
           </div>
         </div>
       </FormModal>

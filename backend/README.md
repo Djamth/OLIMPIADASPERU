@@ -36,6 +36,7 @@ http://localhost:8080/olimpiadas/swagger-ui/index.html
 - Spring Boot 3.3.5
 - Spring Security + JWT
 - Spring Data JPA
+- Flyway
 - PostgreSQL
 - H2 para pruebas
 - Springdoc OpenAPI
@@ -57,13 +58,19 @@ Variables soportadas:
 DB_URL=jdbc:postgresql://localhost:5432/olimpiadas_peru
 DB_USERNAME=postgres
 DB_PASSWORD=admin
+DB_DRIVER=org.postgresql.Driver
+JPA_DDL_AUTO=update
+FLYWAY_ENABLED=true
+DEMO_DATA_ENABLED=true
 JWT_SECRET=clave-secreta-de-al-menos-32-caracteres
 JWT_EXPIRATION=900000
 JWT_REFRESH_EXPIRATION=604800000
-CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:5500
+APP_CORS_ALLOWED_ORIGINS=http://localhost:3000
 ```
 
-Tambien existen valores por defecto configurados en `src/main/resources/application.properties`.
+Flyway ejecuta las migraciones ubicadas en `src/main/resources/db/migration`. Cuando
+`DEMO_DATA_ENABLED=true`, la aplicacion carga al final la semilla idempotente
+`src/main/resources/demo-data.sql`. En produccion se recomienda desactivar esa semilla.
 
 ## Ejecucion local
 
@@ -81,16 +88,12 @@ mvn test
 
 ## Seguridad
 
-- la API usa `Bearer Token`
-- login y refresh token son publicos
+- la API usa JWT almacenado en cookies `HttpOnly`
+- login, renovacion y recuperacion de contrasena son publicos
 - el resto de endpoints requiere JWT
 - las contrasenas se almacenan con `BCrypt`
 
-Header esperado:
-
-```http
-Authorization: Bearer TU_ACCESS_TOKEN
-```
+El navegador debe enviar las credenciales con `credentials: "include"`.
 
 ## Flujo de autenticacion
 
@@ -125,10 +128,8 @@ Respuesta esperada:
       "icono": "users"
     }
   ],
-  "accessToken": "eyJhbGciOiJIUzI1NiJ9...",
-  "refreshToken": "eyJhbGciOiJIUzI1NiJ9...",
   "expiresIn": 900000,
-  "tokenType": "Bearer"
+  "tokenType": "Cookie"
 }
 ```
 
@@ -385,4 +386,3 @@ Se ejecutan con H2 en memoria para no depender de PostgreSQL durante testing.
 ## Pendiente :
 - Implementacion de websocket para notificaciones en tiempo real
 - Implementacion de notificaciones por email para eventos importantes
-

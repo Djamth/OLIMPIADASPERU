@@ -1,11 +1,18 @@
 package com.sistema.olimpiadas_peru.equipo.service;
 
+import com.sistema.olimpiadas_peru.categoria.entity.CategoriaEvento;
+import com.sistema.olimpiadas_peru.categoria.service.CategoriaEventoService;
+import com.sistema.olimpiadas_peru.common.exception.BusinessException;
 import com.sistema.olimpiadas_peru.common.exception.ResourceNotFoundException;
+import com.sistema.olimpiadas_peru.deporte.entity.Deporte;
+import com.sistema.olimpiadas_peru.deporte.service.DeporteService;
 import com.sistema.olimpiadas_peru.equipo.dto.EquipoRequest;
 import com.sistema.olimpiadas_peru.equipo.dto.EquipoResponse;
 import com.sistema.olimpiadas_peru.equipo.entity.Equipo;
 import com.sistema.olimpiadas_peru.equipo.repository.EquipoRepository;
 import com.sistema.olimpiadas_peru.institucion.service.InstitucionService;
+import com.sistema.olimpiadas_peru.evento.service.EventoReglaService;
+import com.sistema.olimpiadas_peru.auth1.security.InstitucionAccessService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,9 +25,16 @@ public class EquipoService {
 
     private final EquipoRepository equipoRepository;
     private final InstitucionService institucionService;
+    private final CategoriaEventoService categoriaEventoService;
+    private final DeporteService deporteService;
+    private final EventoReglaService eventoReglaService;
+    private final InstitucionAccessService accessService;
 
     public List<EquipoResponse> findAll() {
-        return equipoRepository.findAll().stream().map(this::toResponse).toList();
+        List<Equipo> equipos = accessService.institucionActual()
+                .map(equipoRepository::findByInstitucionId)
+                .orElseGet(equipoRepository::findAll);
+        return equipos.stream().map(this::toResponse).toList();
     }
 
     public EquipoResponse findById(Long id) {
@@ -47,8 +61,10 @@ public class EquipoService {
     }
 
     public Equipo getEntity(Long id) {
-        return equipoRepository.findById(id)
+        Equipo equipo = equipoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Equipo no encontrado con id " + id));
+        accessService.validar(equipo.getInstitucion().getId());
+        return equipo;
     }
 
     private void applyChanges(Equipo equipo, EquipoRequest request) {
@@ -56,10 +72,32 @@ public class EquipoService {
         equipo.setCategoria(request.categoria());
         equipo.setGenero(request.genero());
         equipo.setEntrenador(request.entrenador());
-        equipo.setInstitucion(institucionService.getEntity(request.institucionId()));
+        if (request.categoriaEventoId() == null || request.deporteId() == null) {
+            equipo.setInstitucion(institucionService.getEntity(request.institucionId()));
+            return;
+        }
+
+        CategoriaEvento categoriaEvento = categoriaEventoService.getEntity(request.categoriaEventoId());
+        eventoReglaService.validarInscripciones(categoriaEvento.getEvento());
+        Deporte deporte = deporteService.getEntity(request.deporteId());
+        if (!categoriaEvento.getEvento().getInstitucion().getId().equals(request.institucionId())) {
+            throw new BusinessException("La categoria no pertenece a la institucion seleccionada");
+        }
+        boolean duplicado = equipo.getId() == null
+                ? equipoRepository.existsByCategoriaEventoIdAndDeporteId(categoriaEvento.getId(), deporte.getId())
+                : equipoRepository.existsByCategoriaEventoIdAndDeporteIdAndIdNot(
+                        categoriaEvento.getId(), deporte.getId(), equipo.getId());
+        if (duplicado) {
+            throw new BusinessException("La categoria ya tiene un equipo inscrito para este deporte");
+        }
+        equipo.setInstitucion(categoriaEvento.getEvento().getInstitucion());
+        equipo.setCategoriaEvento(categoriaEvento);
+        equipo.setDeporte(deporte);
     }
 
     private EquipoResponse toResponse(Equipo equipo) {
+        CategoriaEvento categoriaEvento = equipo.getCategoriaEvento();
+        Deporte deporte = equipo.getDeporte();
         return new EquipoResponse(
                 equipo.getId(),
                 equipo.getNombre(),
@@ -67,6 +105,17 @@ public class EquipoService {
                 equipo.getGenero(),
                 equipo.getEntrenador(),
                 equipo.getInstitucion().getId(),
-                equipo.getInstitucion().getNombre());
+                equipo.getInstitucion().getNombre(),
+                categoriaEvento == null ? null : categoriaEvento.getId(),
+                categoriaEvento == null ? null : categoriaEvento.getNombre(),
+                categoriaEvento == null ? null : categoriaEvento.getEvento().getId(),
+                categoriaEvento == null ? null : categoriaEvento.getEvento().getNombre(),
+                categoriaEvento == null ? null : categoriaEvento.getPais().getId(),
+                categoriaEvento == null ? null : categoriaEvento.getPais().getNombre(),
+                categoriaEvento == null ? null : categoriaEvento.getPais().getBandera(),
+                categoriaEvento == null ? null : categoriaEvento.getPais().getColorPrimario(),
+                categoriaEvento == null ? null : categoriaEvento.getPais().getColorSecundario(),
+                deporte == null ? null : deporte.getId(),
+                deporte == null ? null : deporte.getNombre());
     }
 }

@@ -28,11 +28,10 @@ public class InscripcionController {
     private final InscripcionService inscripcionService;
 
     @GetMapping
-    public ResponseEntity<List<InscripcionResponse>> findAll(@RequestParam(required = false) Long deporteId) {
-        if (deporteId != null) {
-            return ResponseEntity.ok(inscripcionService.findByDeporte(deporteId));
-        }
-        return ResponseEntity.ok(inscripcionService.findAll());
+    public ResponseEntity<List<InscripcionResponse>> findAll(
+            @RequestParam(required = false) Long deporteId,
+            @RequestParam(required = false) Long eventoId) {
+        return ResponseEntity.ok(inscripcionService.findAll(eventoId, deporteId));
     }
 
     @GetMapping("/{id}")

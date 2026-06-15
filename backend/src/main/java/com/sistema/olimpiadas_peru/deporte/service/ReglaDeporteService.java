@@ -5,6 +5,10 @@ import com.sistema.olimpiadas_peru.common.exception.BusinessException;
 import com.sistema.olimpiadas_peru.deporte.entity.Deporte;
 import com.sistema.olimpiadas_peru.equipo.entity.Equipo;
 import java.util.Locale;
+import java.util.List;
+import com.sistema.olimpiadas_peru.resultado.dto.ResultadoAnotacionRequest;
+import com.sistema.olimpiadas_peru.participante.service.ParticipanteService;
+import com.sistema.olimpiadas_peru.participante.service.PlantillaEquipoService;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -44,6 +48,39 @@ public class ReglaDeporteService {
             throw new BusinessException("El equipo no cumple el minimo de participantes para "
                     + normalizar(deporte.getNombre()) + ": requiere "
                     + deporte.getNumeroJugadores() + " y solo tiene " + participantesRegistrados);
+        }
+    }
+
+    public void validarResultado(Deporte deporte, Equipo local, Equipo visitante,
+                                 int puntajeLocal, int puntajeVisitante,
+                                 List<ResultadoAnotacionRequest> anotaciones,
+                                 ParticipanteService participanteService,
+                                 PlantillaEquipoService plantillaEquipoService) {
+        String nombre = normalizar(deporte.getNombre());
+        if (("BASQUET".equals(nombre) || "VOLEY".equals(nombre) || "PING_PONG".equals(nombre))
+                && puntajeLocal == puntajeVisitante) {
+            throw new BusinessException("El deporte " + nombre + " no permite resultados empatados");
+        }
+        if ("VOLEY".equals(nombre) && Math.max(puntajeLocal, puntajeVisitante) < 2) {
+            throw new BusinessException("En voley el ganador debe alcanzar al menos 2 sets");
+        }
+        if ("PING_PONG".equals(nombre) && Math.max(puntajeLocal, puntajeVisitante) < 2) {
+            throw new BusinessException("En ping pong el ganador debe alcanzar al menos 2 sets");
+        }
+        if (!anotaciones.isEmpty() && ("FUTBOL".equals(nombre) || "BASQUET".equals(nombre))) {
+            int anotadoLocal = 0;
+            int anotadoVisitante = 0;
+            for (ResultadoAnotacionRequest anotacion : anotaciones) {
+                participanteService.getEntity(anotacion.participanteId());
+                if (plantillaEquipoService.pertenece(anotacion.participanteId(), local.getId())) {
+                    anotadoLocal += anotacion.cantidad();
+                } else if (plantillaEquipoService.pertenece(anotacion.participanteId(), visitante.getId())) {
+                    anotadoVisitante += anotacion.cantidad();
+                }
+            }
+            if (anotadoLocal != puntajeLocal || anotadoVisitante != puntajeVisitante) {
+                throw new BusinessException("Las anotaciones individuales deben coincidir con el marcador");
+            }
         }
     }
 

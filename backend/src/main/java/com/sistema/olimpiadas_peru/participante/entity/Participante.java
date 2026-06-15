@@ -2,6 +2,7 @@ package com.sistema.olimpiadas_peru.participante.entity;
 
 import com.sistema.olimpiadas_peru.common.entity.BaseEntity;
 import com.sistema.olimpiadas_peru.common.enums.Genero;
+import com.sistema.olimpiadas_peru.common.enums.RolParticipante;
 import com.sistema.olimpiadas_peru.equipo.entity.Equipo;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -39,6 +40,15 @@ public class Participante extends BaseEntity {
 
     @Column(nullable = false, length = 20)
     private String codigoEstudiante;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private RolParticipante rolEquipo = RolParticipante.JUGADOR;
+
+    private Integer numeroCamiseta;
+
+    @Column(length = 500)
+    private String fotografiaUrl;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "equipo_id")

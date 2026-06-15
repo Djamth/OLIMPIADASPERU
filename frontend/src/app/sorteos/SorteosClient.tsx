@@ -6,14 +6,16 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { fieldClass, labelClass } from "@/components/common/formStyles";
 import { LoadingState } from "@/components/common/LoadingState";
 import { PageHeader } from "@/components/common/PageHeader";
-import { deporteService, inscripcionService, sorteoService } from "@/services/crudServices";
-import type { Deporte, Grupo, Inscripcion } from "@/types/catalogs";
+import { deporteService, eventoService, inscripcionService, sorteoService } from "@/services/crudServices";
+import type { Deporte, Evento, Grupo, Inscripcion } from "@/types/catalogs";
 import { alerts, getErrorMessage } from "@/utils/alerts";
 import { useEffect, useState } from "react";
 
 export function SorteosClient() {
   const [deportes, setDeportes] = useState<Deporte[]>([]);
   const [deporteId, setDeporteId] = useState<number>(0);
+  const [eventos, setEventos] = useState<Evento[]>([]);
+  const [eventoId, setEventoId] = useState<number>(0);
   const [grupos, setGrupos] = useState<Grupo[]>([]);
   const [inscripciones, setInscripciones] = useState<Inscripcion[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,20 +25,22 @@ export function SorteosClient() {
   const puedeGenerar = Boolean(deporteId) && confirmadas >= 2;
 
   useEffect(() => {
-    deporteService.list()
-      .then((items) => {
-        setDeportes(items);
-        setDeporteId(items[0]?.id ?? 0);
+    Promise.all([deporteService.list(), eventoService.list()])
+      .then(([deporteItems, eventoItems]) => {
+        setDeportes(deporteItems);
+        setDeporteId(deporteItems[0]?.id ?? 0);
+        setEventos(eventoItems);
+        setEventoId(eventoItems[0]?.id ?? 0);
       })
       .catch((error) => alerts.error("Error al cargar deportes", getErrorMessage(error)))
       .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
-    if (!deporteId) return;
+    if (!deporteId || !eventoId) return;
     Promise.all([
-      sorteoService.listarGrupos(deporteId).catch(() => []),
-      inscripcionService.list({ deporteId }),
+      sorteoService.listarGruposEvento(eventoId, deporteId).catch(() => []),
+      inscripcionService.list({ deporteId, eventoId }),
     ])
       .then(([gruposData, inscripcionesData]) => {
         setGrupos(gruposData);
@@ -47,7 +51,7 @@ export function SorteosClient() {
         setInscripciones([]);
         alerts.error("Error al cargar datos del sorteo", getErrorMessage(error));
       });
-  }, [deporteId]);
+  }, [deporteId, eventoId]);
 
   const generar = async () => {
     if (!puedeGenerar) {
@@ -58,7 +62,7 @@ export function SorteosClient() {
     if (!result.isConfirmed || !deporteId) return;
     alerts.loading("Generando grupos");
     try {
-      const data = await sorteoService.generarGrupos(deporteId);
+      const data = await sorteoService.generarGruposEvento(eventoId, deporteId);
       alerts.close();
       setGrupos(data);
       await alerts.success("Sorteo generado");
@@ -77,14 +81,20 @@ export function SorteosClient() {
       />
 
       <div className="mb-4 rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_260px_260px] lg:items-end">
+          <div>
+            <label className={labelClass}>Evento</label>
+            <select className={fieldClass} value={eventoId} onChange={(e) => setEventoId(Number(e.target.value))}>
+              {eventos.map((item) => <option value={item.id} key={item.id}>{item.nombre} - {item.institucionNombre}</option>)}
+            </select>
+          </div>
           <div>
             <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-700">Equipos inscritos</p>
             <h3 className="mt-1 text-xl font-black text-slate-950">
               {confirmadas} confirmados de {inscripciones.length} inscritos
             </h3>
             <p className="mt-1 text-sm font-semibold text-slate-500">
-              El sorteo usa solo equipos con inscripcion confirmada y plantilla valida.
+              El sorteo usa solo equipos con inscripción confirmada y plantilla válida.
             </p>
           </div>
           <div>

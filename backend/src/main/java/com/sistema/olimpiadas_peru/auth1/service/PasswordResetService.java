@@ -55,22 +55,22 @@ public class PasswordResetService {
         String contenido = """
             Hola %s,
 
-            Recibimos una solicitud para restablecer tu contrasena en Olimpiadas Peru.
+            Recibimos una solicitud para restablecer tu contraseña en Olimpiadas Perú.
 
-            Usa este codigo de 6 digitos para continuar con el cambio de tu contrasena:
+            Usa este código de 6 dígitos para continuar con el cambio de tu contraseña:
             %s
 
-            El codigo expira en %d minutos.
+            El código expira en %d minutos.
 
             Si no solicitaste este cambio, puedes ignorar este correo.
             """.formatted(usuario.getNombre(), token, expirationMinutes);
 
-        emailService.enviarCorreo(usuario.getEmail(), "Recuperacion de contrasena - Olimpiadas Peru", contenido);
+        emailService.enviarCorreo(usuario.getEmail(), "Recuperación de contraseña - Olimpiadas Perú", contenido);
 
         auditoriaService.registrar(
             usuario.getId(),
             "SOLICITAR_RECUPERACION_PASSWORD",
-            "Se solicito recuperacion de contrasena"
+            "Se solicitó recuperación de contraseña"
         );
     }
 
@@ -78,7 +78,7 @@ public class PasswordResetService {
     public void resetearPassword(String email, String codigo, String nuevaPassword) {
         PasswordResetToken resetToken = obtenerTokenValido(email, codigo);
         if (resetToken == null) {
-            throw new RuntimeException("El codigo de recuperacion es invalido o ha expirado");
+            throw new RuntimeException("El código de recuperación es inválido o ha expirado");
         }
 
         Usuario usuario = resetToken.getUsuario();
@@ -92,7 +92,7 @@ public class PasswordResetService {
         auditoriaService.registrar(
             usuario.getId(),
             "RESET_PASSWORD",
-            "El usuario actualizo su contrasena mediante recuperacion"
+            "El usuario actualizó su contraseña mediante recuperación"
         );
     }
 

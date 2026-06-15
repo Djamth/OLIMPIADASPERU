@@ -28,7 +28,7 @@ class InscripcionNotificationListenerTests {
 
         verify(emailService).enviarCorreo(
             eq("coordinacion@colegio.pe"),
-            eq("Inscripcion confirmada - Olimpiadas Peru"),
+            eq("Inscripción confirmada - Olimpiadas Perú"),
             contains("Brasil 1A")
         );
     }
@@ -38,7 +38,7 @@ class InscripcionNotificationListenerTests {
         EmailService emailService = mock(EmailService.class);
         doThrow(new RuntimeException("SMTP no disponible"))
             .when(emailService)
-            .enviarCorreo(eq("coordinacion@colegio.pe"), eq("Inscripcion confirmada - Olimpiadas Peru"), contains("Brasil 1A"));
+            .enviarCorreo(eq("coordinacion@colegio.pe"), eq("Inscripción confirmada - Olimpiadas Perú"), contains("Brasil 1A"));
 
         InscripcionNotificationListener listener = new InscripcionNotificationListener(emailService);
 

@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/common/Badge";
 import { PrimaryActionButton, RowActions } from "@/components/common/Buttons";
+import { CountryFlag } from "@/components/common/CountryFlag";
 import { DataTable, type DataTableColumn } from "@/components/common/DataTable";
 import { EmptyState } from "@/components/common/EmptyState";
 import { FormModal } from "@/components/common/FormModal";
@@ -12,12 +13,11 @@ import { PageHeader } from "@/components/common/PageHeader";
 import { TableToolbar } from "@/components/common/TableToolbar";
 import { useAsyncList } from "@/hooks/useAsyncList";
 import { useTableControls } from "@/hooks/useTableControls";
-import { equipoService, institucionService } from "@/services/crudServices";
-import type { CategoriaEquipo, Equipo, EquipoRequest, Genero, Institucion } from "@/types/catalogs";
+import { categoriaEventoService, deporteService, equipoService } from "@/services/crudServices";
+import type { CategoriaEvento, Deporte, Equipo, EquipoRequest, Genero } from "@/types/catalogs";
 import { alerts, getErrorMessage } from "@/utils/alerts";
 import { useCallback, useEffect, useState } from "react";
 
-const categorias: CategoriaEquipo[] = ["SUB_12", "SUB_15", "SUB_17", "LIBRE"];
 const generos: Genero[] = ["MASCULINO", "FEMENINO", "MIXTO"];
 
 const emptyForm: EquipoRequest = {
@@ -26,28 +26,43 @@ const emptyForm: EquipoRequest = {
   genero: "MASCULINO",
   entrenador: "",
   institucionId: 0,
+  categoriaEventoId: 0,
+  deporteId: 0,
 };
 
 export function EquiposClient() {
   const loader = useCallback(() => equipoService.list(), []);
   const { data, loading, reload } = useAsyncList<Equipo>(loader);
-  const [instituciones, setInstituciones] = useState<Institucion[]>([]);
+  const [categorias, setCategorias] = useState<CategoriaEvento[]>([]);
+  const [deportes, setDeportes] = useState<Deporte[]>([]);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Equipo | null>(null);
   const [form, setForm] = useState<EquipoRequest>(emptyForm);
   const [submitting, setSubmitting] = useState(false);
   const table = useTableControls(data, (item, query) =>
-    [item.nombre, item.institucionNombre, item.categoria, item.genero, item.entrenador]
+    [item.nombre, item.institucionNombre, item.categoriaEventoNombre ?? item.categoria,
+      item.paisNombre ?? "", item.deporteNombre ?? "", item.genero, item.entrenador]
       .some((value) => value.toLowerCase().includes(query)),
   );
 
   useEffect(() => {
-    institucionService.list().then(setInstituciones).catch((error) => alerts.error("Error al cargar instituciones", getErrorMessage(error)));
+    Promise.all([categoriaEventoService.list(), deporteService.list()])
+      .then(([categoriasData, deportesData]) => {
+        setCategorias(categoriasData);
+        setDeportes(deportesData);
+      })
+      .catch((error) => alerts.error("Error al cargar catálogos", getErrorMessage(error)));
   }, []);
 
   const startCreate = () => {
     setEditing(null);
-    setForm({ ...emptyForm, institucionId: instituciones[0]?.id ?? 0 });
+    const categoria = categorias[0];
+    setForm({
+      ...emptyForm,
+      institucionId: categoria?.institucionId ?? 0,
+      categoriaEventoId: categoria?.id ?? 0,
+      deporteId: deportes[0]?.id ?? 0,
+    });
     setOpen(true);
   };
 
@@ -59,6 +74,8 @@ export function EquiposClient() {
       genero: item.genero,
       entrenador: item.entrenador,
       institucionId: item.institucionId,
+      categoriaEventoId: item.categoriaEventoId ?? 0,
+      deporteId: item.deporteId ?? 0,
     });
     setOpen(true);
   };
@@ -98,8 +115,13 @@ export function EquiposClient() {
 
   const columns: DataTableColumn<Equipo>[] = [
     { key: "equipo", header: "Equipo", render: (item) => <span className="font-bold text-slate-950">{item.nombre}</span> },
-    { key: "institucion", header: "Institucion", render: (item) => item.institucionNombre },
-    { key: "categoria", header: "Categoria", render: (item) => <Badge>{item.categoria}</Badge> },
+    { key: "identidad", header: "Categoría / País", render: (item) => (
+      <div>
+        <span className="flex items-center gap-2 font-bold"><CountryFlag code={item.bandera} countryName={item.paisNombre} /> {item.paisNombre ?? "Sin país"}</span>
+        <p className="text-xs text-slate-500">{item.categoriaEventoNombre ?? item.categoria}</p>
+      </div>
+    ) },
+    { key: "deporte", header: "Deporte", render: (item) => <Badge>{item.deporteNombre ?? "Sin asignar"}</Badge> },
     { key: "genero", header: "Genero", render: (item) => item.genero },
     { key: "entrenador", header: "Entrenador", render: (item) => <span className="text-slate-500">{item.entrenador}</span> },
     { key: "acciones", header: "Acciones", align: "right", render: (item) => <RowActions onEdit={() => startEdit(item)} onDelete={() => remove(item)} /> },
@@ -109,7 +131,7 @@ export function EquiposClient() {
     <>
       <PageHeader
         title="Equipos"
-        description="Gestiona equipos por institucion, categoria, genero y entrenador."
+        description="Gestiona equipos deportivos dentro de cada categoría y país del evento."
         action={<PrimaryActionButton onClick={startCreate}>Nuevo equipo</PrimaryActionButton>}
       />
 
@@ -124,7 +146,7 @@ export function EquiposClient() {
             onPageSizeChange={table.setPageSize}
             totalItems={table.totalItems}
             filteredItems={table.filteredItems}
-            placeholder="Buscar equipo, institucion, entrenador..."
+            placeholder="Buscar equipo, institución, entrenador..."
           />
           <DataTable columns={columns} items={table.pageItems} getRowKey={(item) => item.id} />
           <PaginationControls page={table.page} totalPages={table.totalPages} onPageChange={table.setPage} />
@@ -141,20 +163,24 @@ export function EquiposClient() {
             <label className={labelClass}>Entrenador</label>
             <input className={fieldClass} value={form.entrenador} onChange={(e) => setForm({ ...form, entrenador: e.target.value })} required />
           </div>
-          <div className="md:col-span-6">
-            <label className={labelClass}>Institucion</label>
-            <select className={fieldClass} value={form.institucionId} onChange={(e) => setForm({ ...form, institucionId: Number(e.target.value) })} required>
+          <div className="md:col-span-8">
+            <label className={labelClass}>Categoría del evento</label>
+            <select className={fieldClass} value={form.categoriaEventoId} onChange={(e) => {
+              const categoria = categorias.find((item) => item.id === Number(e.target.value));
+              setForm({ ...form, categoriaEventoId: Number(e.target.value), institucionId: categoria?.institucionId ?? 0 });
+            }} required>
               <option value={0} disabled>Seleccionar</option>
-              {instituciones.map((item) => <option value={item.id} key={item.id}>{item.nombre}</option>)}
+              {categorias.map((item) => <option value={item.id} key={item.id}>{item.bandera?.toUpperCase()} - {item.paisNombre} - {item.nombre} ({item.eventoNombre})</option>)}
             </select>
           </div>
-          <div className="md:col-span-3">
-            <label className={labelClass}>Categoria</label>
-            <select className={fieldClass} value={form.categoria} onChange={(e) => setForm({ ...form, categoria: e.target.value as CategoriaEquipo })}>
-              {categorias.map((item) => <option value={item} key={item}>{item}</option>)}
+          <div className="md:col-span-4">
+            <label className={labelClass}>Deporte</label>
+            <select className={fieldClass} value={form.deporteId} onChange={(e) => setForm({ ...form, deporteId: Number(e.target.value) })} required>
+              <option value={0} disabled>Seleccionar</option>
+              {deportes.map((item) => <option value={item.id} key={item.id}>{item.nombre}</option>)}
             </select>
           </div>
-          <div className="md:col-span-3">
+          <div className="md:col-span-4">
             <label className={labelClass}>Genero</label>
             <select className={fieldClass} value={form.genero} onChange={(e) => setForm({ ...form, genero: e.target.value as Genero })}>
               {generos.map((item) => <option value={item} key={item}>{item}</option>)}

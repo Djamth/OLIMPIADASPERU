@@ -10,6 +10,9 @@ import com.sistema.olimpiadas_peru.equipo.entity.Equipo;
 import com.sistema.olimpiadas_peru.equipo.service.EquipoService;
 import com.sistema.olimpiadas_peru.inscripcion.repository.InscripcionRepository;
 import com.sistema.olimpiadas_peru.participante.repository.ParticipanteRepository;
+import com.sistema.olimpiadas_peru.participante.service.PlantillaEquipoService;
+import com.sistema.olimpiadas_peru.evento.service.EventoReglaService;
+import com.sistema.olimpiadas_peru.auth1.security.InstitucionAccessService;
 import com.sistema.olimpiadas_peru.programacion.dto.PartidoRequest;
 import com.sistema.olimpiadas_peru.programacion.dto.PartidoResponse;
 import com.sistema.olimpiadas_peru.programacion.entity.Partido;
@@ -35,12 +38,18 @@ public class ProgramacionService {
     private final ParticipanteRepository participanteRepository;
     private final ReglaDeporteService reglaDeporteService;
     private final GrupoEquipoRepository grupoEquipoRepository;
+    private final PlantillaEquipoService plantillaEquipoService;
+    private final EventoReglaService eventoReglaService;
+    private final InstitucionAccessService accessService;
 
     public List<PartidoResponse> findAll(Long deporteId) {
         List<Partido> partidos = deporteId == null
                 ? partidoRepository.findAll()
                 : partidoRepository.findByDeporteIdOrderByFechaHoraAsc(deporteId);
-        return partidos.stream().map(this::toResponse).toList();
+        return partidos.stream()
+                .filter(item -> accessService.institucionActual()
+                        .map(id -> id.equals(item.getEquipoLocal().getInstitucion().getId())).orElse(true))
+                .map(this::toResponse).toList();
     }
 
     public PartidoResponse findById(Long id) {
@@ -49,7 +58,7 @@ public class ProgramacionService {
 
     @Transactional
     public PartidoResponse create(PartidoRequest request) {
-        validarEquipos(request);
+        validarEquipos(request, null);
         Partido partido = new Partido();
         applyChanges(partido, request);
         return toResponse(partidoRepository.save(partido));
@@ -57,7 +66,7 @@ public class ProgramacionService {
 
     @Transactional
     public PartidoResponse update(Long id, PartidoRequest request) {
-        validarEquipos(request);
+        validarEquipos(request, id);
         Partido partido = getEntity(id);
         applyChanges(partido, request);
         return toResponse(partidoRepository.save(partido));
@@ -69,11 +78,13 @@ public class ProgramacionService {
     }
 
     public Partido getEntity(Long id) {
-        return partidoRepository.findById(id)
+        Partido partido = partidoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Partido no encontrado con id " + id));
+        accessService.validar(partido.getEquipoLocal().getInstitucion().getId());
+        return partido;
     }
 
-    private void validarEquipos(PartidoRequest request) {
+    private void validarEquipos(PartidoRequest request, Long partidoId) {
         if (request.equipoLocalId().equals(request.equipoVisitanteId())) {
             throw new BusinessException("Un equipo no puede jugar contra si mismo");
         }
@@ -81,6 +92,26 @@ public class ProgramacionService {
         Deporte deporte = deporteService.getEntity(request.deporteId());
         Equipo equipoLocal = equipoService.getEntity(request.equipoLocalId());
         Equipo equipoVisitante = equipoService.getEntity(request.equipoVisitanteId());
+
+        if (equipoLocal.getCategoriaEvento() != null && equipoVisitante.getCategoriaEvento() != null
+                && !equipoLocal.getCategoriaEvento().getEvento().getId()
+                .equals(equipoVisitante.getCategoriaEvento().getEvento().getId())) {
+            throw new BusinessException("Los equipos deben pertenecer al mismo evento");
+        }
+        if (equipoLocal.getCategoriaEvento() != null) {
+            eventoReglaService.validarCompetencia(equipoLocal.getCategoriaEvento().getEvento());
+        }
+        if (partidoRepository.existeEquipoEnHorario(
+                request.fechaHora(), List.of(equipoLocal.getId(), equipoVisitante.getId()), partidoId)) {
+            throw new BusinessException("Uno de los equipos ya tiene un partido programado en ese horario");
+        }
+        boolean sedeOcupada = partidoId == null
+                ? partidoRepository.existsByFechaHoraAndSedeIgnoreCase(request.fechaHora(), request.sede())
+                : partidoRepository.existsByFechaHoraAndSedeIgnoreCaseAndIdNot(
+                        request.fechaHora(), request.sede(), partidoId);
+        if (sedeOcupada) {
+            throw new BusinessException("La sede ya esta ocupada en ese horario");
+        }
 
         validarEquipoHabilitadoParaProgramacion(deporte, equipoLocal);
         validarEquipoHabilitadoParaProgramacion(deporte, equipoVisitante);
@@ -91,6 +122,11 @@ public class ProgramacionService {
 
             if (!grupo.getDeporte().getId().equals(request.deporteId())) {
                 throw new BusinessException("El grupo no pertenece al deporte seleccionado");
+            }
+            if (grupo.getEvento() != null && equipoLocal.getCategoriaEvento() != null
+                    && !grupo.getEvento().getId().equals(
+                    equipoLocal.getCategoriaEvento().getEvento().getId())) {
+                throw new BusinessException("El grupo y los equipos pertenecen a eventos diferentes");
             }
 
             if (!grupoEquipoRepository.existsByGrupoIdAndEquipoId(grupo.getId(), equipoLocal.getId())
@@ -117,7 +153,9 @@ public class ProgramacionService {
                 .orElseThrow(() -> new BusinessException(
                         "El equipo " + equipo.getNombre() + " no tiene una inscripcion confirmada para " + deporte.getNombre()));
 
-        reglaDeporteService.validarEquipoCompleto(deporte, participanteRepository.countByEquipoId(equipo.getId()));
+        long count = plantillaEquipoService.countByEquipo(equipo.getId());
+        reglaDeporteService.validarEquipoCompleto(deporte,
+                count < 0 ? participanteRepository.countByEquipoId(equipo.getId()) : count);
     }
 
     private PartidoResponse toResponse(Partido partido) {

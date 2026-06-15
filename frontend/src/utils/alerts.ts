@@ -28,6 +28,19 @@ export const alerts = {
       cancelButtonText: "Cancelar",
     });
   },
+  choose(title: string, text: string, confirmText: string, denyText: string) {
+    return Swal.fire({
+      ...baseOptions,
+      icon: "question",
+      title,
+      text,
+      showCancelButton: true,
+      showDenyButton: true,
+      confirmButtonText: confirmText,
+      denyButtonText: denyText,
+      cancelButtonText: "Cancelar",
+    });
+  },
   loading(title = "Procesando...") {
     return Swal.fire({
       title,
@@ -48,10 +61,10 @@ export function getErrorMessage(error: unknown) {
   if (axiosError.response?.status === 403) {
     return axiosError.response?.data?.mensaje
       ?? axiosError.response?.data?.message
-      ?? "Tu perfil no tiene permisos para realizar esta operacion.";
+      ?? "Tu perfil no tiene permisos para realizar esta operación.";
   }
 
   return axiosError.response?.data?.mensaje
     ?? axiosError.response?.data?.message
-    ?? "No se pudo completar la operacion.";
+    ?? "No se pudo completar la operación.";
 }

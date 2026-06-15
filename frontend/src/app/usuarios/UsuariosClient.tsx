@@ -13,7 +13,9 @@ import { TableToolbar } from "@/components/common/TableToolbar";
 import { useAuth } from "@/context/AuthContext";
 import { useTableControls } from "@/hooks/useTableControls";
 import { rolService, usuarioService } from "@/services/adminServices";
+import { institucionService } from "@/services/crudServices";
 import type { Rol, Usuario, UsuarioCreateRequest, UsuarioUpdateRequest } from "@/types/admin";
+import type { Institucion } from "@/types/catalogs";
 import { alerts, getErrorMessage } from "@/utils/alerts";
 import { useEffect, useState } from "react";
 
@@ -25,12 +27,14 @@ const emptyForm: UsuarioForm = {
   password: "",
   rolId: 0,
   estado: "ACTIVO",
+  institucionId: null,
 };
 
 export function UsuariosClient() {
   const { user } = useAuth();
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [roles, setRoles] = useState<Rol[]>([]);
+  const [instituciones, setInstituciones] = useState<Institucion[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Usuario | null>(null);
@@ -46,9 +50,12 @@ export function UsuariosClient() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [usuariosData, rolesData] = await Promise.all([usuarioService.list(), rolService.list()]);
+      const [usuariosData, rolesData, institucionesData] = await Promise.all([
+        usuarioService.list(), rolService.list(), institucionService.list(),
+      ]);
       setUsuarios(usuariosData);
       setRoles(rolesData);
+      setInstituciones(institucionesData);
     } catch (error) {
       await alerts.error("No se pudieron cargar usuarios", getErrorMessage(error));
     } finally {
@@ -74,6 +81,7 @@ export function UsuariosClient() {
       password: "",
       rolId: item.rolId,
       estado: item.estado,
+      institucionId: item.institucionId ?? null,
     });
     setOpen(true);
   };
@@ -88,6 +96,7 @@ export function UsuariosClient() {
           email: form.email,
           rolId: Number(form.rolId),
           estado: form.estado,
+          institucionId: form.institucionId ?? null,
         };
         await usuarioService.update(editing.id, payload);
         await alerts.success("Usuario actualizado");
@@ -143,6 +152,7 @@ export function UsuariosClient() {
         email: item.email,
         rolId: item.rolId,
         estado: nuevoEstado,
+        institucionId: item.institucionId ?? null,
       });
       setUsuarios((prev) =>
         prev.map((usuario) => (usuario.id === item.id ? { ...usuario, estado: nuevoEstado } : usuario)),
@@ -170,6 +180,11 @@ export function UsuariosClient() {
       key: "rol",
       header: "Perfil",
       render: (item) => <Badge tone="blue">{roles.find((rol) => rol.id === item.rolId)?.nombre ?? "Sin rol"}</Badge>,
+    },
+    {
+      key: "institucion",
+      header: "Institución",
+      render: (item) => <span className="font-semibold text-slate-600">{item.institucionNombre ?? "Acceso global"}</span>,
     },
     {
       key: "estado",
@@ -243,12 +258,19 @@ export function UsuariosClient() {
             <input className={fieldClass} value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} required />
           </div>
           <div className="md:col-span-6">
+            <label className={labelClass}>Alcance institucional</label>
+            <select className={fieldClass} value={form.institucionId ?? ""} onChange={(e) => setForm({ ...form, institucionId: e.target.value ? Number(e.target.value) : null })}>
+              <option value="">Acceso global</option>
+              {instituciones.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}
+            </select>
+          </div>
+          <div className="md:col-span-6">
             <label className={labelClass}>Correo</label>
             <input type="email" className={fieldClass} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
           </div>
           {!editing && (
             <div className="md:col-span-6">
-              <label className={labelClass}>Contrasena</label>
+              <label className={labelClass}>Contraseña</label>
               <input type="password" className={fieldClass} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required minLength={6} />
             </div>
           )}

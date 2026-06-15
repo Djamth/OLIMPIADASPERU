@@ -1,8 +1,10 @@
 package com.sistema.olimpiadas_peru.equipo.entity;
 
+import com.sistema.olimpiadas_peru.categoria.entity.CategoriaEvento;
 import com.sistema.olimpiadas_peru.common.entity.BaseEntity;
 import com.sistema.olimpiadas_peru.common.enums.CategoriaEquipo;
 import com.sistema.olimpiadas_peru.common.enums.Genero;
+import com.sistema.olimpiadas_peru.deporte.entity.Deporte;
 import com.sistema.olimpiadas_peru.institucion.entity.Institucion;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -12,13 +14,17 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "equipos")
+@Table(name = "equipos", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_equipo_categoria_deporte",
+                columnNames = {"categoria_evento_id", "deporte_id"})
+})
 public class Equipo extends BaseEntity {
 
     @Column(nullable = false)
@@ -38,4 +44,12 @@ public class Equipo extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "institucion_id")
     private Institucion institucion;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "categoria_evento_id")
+    private CategoriaEvento categoriaEvento;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "deporte_id")
+    private Deporte deporte;
 }

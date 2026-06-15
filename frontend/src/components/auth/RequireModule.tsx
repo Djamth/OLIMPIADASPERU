@@ -23,7 +23,7 @@ export function RequireModule({ keys, children }: { keys: string[]; children: Re
     return (
       <EmptyState
         title="Acceso restringido"
-        description="Tu perfil no tiene permisos para ver este modulo. Solicita acceso al administrador."
+        description="Tu perfil no tiene permisos para ver este módulo. Solicita acceso al administrador."
       />
     );
   }

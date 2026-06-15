@@ -14,6 +14,7 @@ import com.sistema.olimpiadas_peru.auth1.repository.UsuarioRepository;
 import com.sistema.olimpiadas_peru.auth1.security.JwtTokenProvider;
 import com.sistema.olimpiadas_peru.auth1.security.SecurityUtils;
 import com.sistema.olimpiadas_peru.auth1.security.TokenBlacklistService;
+import com.sistema.olimpiadas_peru.institucion.service.InstitucionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -38,6 +39,7 @@ public class UsuarioService {
     private final JwtTokenProvider jwtTokenProvider;
     private final TokenBlacklistService tokenBlacklistService;
     private final AuditoriaService auditoriaService;
+    private final InstitucionService institucionService;
 
     @Transactional
     public UsuarioDTO crearUsuario(UsuarioCreateDTO usuarioCreateDTO) {
@@ -53,6 +55,8 @@ public class UsuarioService {
             .email(usuarioCreateDTO.getEmail())
             .password(passwordEncoder.encode(usuarioCreateDTO.getPassword()))
             .rol(rol)
+            .institucion(usuarioCreateDTO.getInstitucionId() == null
+                ? null : institucionService.getEntity(usuarioCreateDTO.getInstitucionId()))
             .estado(Usuario.Estado.ACTIVO)
             .eliminado(false)
             .build();
@@ -97,6 +101,8 @@ public class UsuarioService {
             .email(usuario.getEmail())
             .rolId(usuario.getRol() != null ? usuario.getRol().getId() : null)
             .rolNombre(usuario.getRol() != null ? usuario.getRol().getNombre() : null)
+            .institucionId(usuario.getInstitucion() != null ? usuario.getInstitucion().getId() : null)
+            .institucionNombre(usuario.getInstitucion() != null ? usuario.getInstitucion().getNombre() : null)
             .estado(usuario.getEstado().toString())
             .modulos(usuario.getRol() != null
                 ? usuario.getRol().getModulos().stream()
@@ -170,6 +176,10 @@ public class UsuarioService {
                 validarUltimoAdministrador(usuario);
             }
             usuario.setEstado(nuevoEstado);
+        }
+        if (SecurityUtils.isAdmin()) {
+            usuario.setInstitucion(usuarioDTO.getInstitucionId() == null
+                ? null : institucionService.getEntity(usuarioDTO.getInstitucionId()));
         }
 
         return mapearADTO(usuarioRepository.save(usuario));
@@ -252,6 +262,8 @@ public class UsuarioService {
             .nombre(usuario.getNombre())
             .email(usuario.getEmail())
             .rolId(usuario.getRol() != null ? usuario.getRol().getId() : null)
+            .institucionId(usuario.getInstitucion() != null ? usuario.getInstitucion().getId() : null)
+            .institucionNombre(usuario.getInstitucion() != null ? usuario.getInstitucion().getNombre() : null)
             .estado(usuario.getEstado().toString())
             .build();
     }

@@ -24,17 +24,17 @@ function ResetPasswordForm() {
     event.preventDefault();
 
     if (form.nuevaPassword.length < 6) {
-      await alerts.warning("Contrasena muy corta", "La nueva contrasena debe tener al menos 6 caracteres.");
+      await alerts.warning("Contraseña muy corta", "La nueva contraseña debe tener al menos 6 caracteres.");
       return;
     }
 
     if (form.nuevaPassword !== form.confirmarPassword) {
-      await alerts.warning("No coinciden", "Confirma la misma contrasena antes de continuar.");
+      await alerts.warning("No coinciden", "Confirma la misma contraseña antes de continuar.");
       return;
     }
 
     setSubmitting(true);
-    alerts.loading("Actualizando contrasena");
+    alerts.loading("Actualizando contraseña");
 
     try {
       const response = await authService.resetPassword({
@@ -43,7 +43,7 @@ function ResetPasswordForm() {
         nuevaPassword: form.nuevaPassword,
       });
       alerts.close();
-      await alerts.success("Contrasena actualizada", response.mensaje);
+      await alerts.success("Contraseña actualizada", response.mensaje);
       router.push("/login");
     } catch (error) {
       alerts.close();
@@ -66,9 +66,9 @@ function ResetPasswordForm() {
             <div className="mb-6 grid h-16 w-16 place-items-center rounded-2xl border border-white/20 bg-white/10 backdrop-blur">
               <KeyRound className="text-amber-200" size={34} />
             </div>
-            <h1 className="text-4xl font-black tracking-normal">Nueva contrasena</h1>
+            <h1 className="text-4xl font-black tracking-normal">Nueva contraseña</h1>
             <p className="mt-4 max-w-md text-sm font-semibold leading-6 text-sky-50/85">
-              Usa el codigo enviado a tu correo. Al confirmar, el codigo quedara marcado como utilizado.
+              Usa el código enviado a tu correo. Al confirmar, el código quedará marcado como utilizado.
             </p>
           </div>
         </div>
@@ -77,17 +77,17 @@ function ResetPasswordForm() {
           <section className="w-full max-w-md">
             <Link className="mb-8 inline-flex items-center gap-2 text-sm font-black text-slate-500 transition hover:text-blue-700" href="/login">
               <ArrowLeft size={18} />
-              Volver al inicio de sesion
+              Volver al inicio de sesión
             </Link>
 
             <div className="mb-8">
               <div className="mb-5 grid h-16 w-16 place-items-center rounded-2xl bg-blue-50 text-blue-700 ring-1 ring-blue-100">
                 <ShieldCheck size={31} />
               </div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-700">Validacion final</p>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-700">Validación final</p>
               <h2 className="mt-2 text-4xl font-black tracking-normal text-slate-950">Restablecer acceso</h2>
               <p className="mt-3 text-sm font-semibold leading-6 text-slate-500">
-                Ingresa el codigo de 6 digitos y define una nueva contrasena para tu cuenta.
+                Ingresa el código de 6 dígitos y define una nueva contraseña para tu cuenta.
               </p>
             </div>
 
@@ -110,7 +110,7 @@ function ResetPasswordForm() {
               </label>
 
               <label className="grid gap-2">
-                <span className="text-sm font-black text-slate-800">Codigo</span>
+                <span className="text-sm font-black text-slate-800">Código</span>
                 <span className="flex">
                   <span className="grid h-14 w-14 place-items-center rounded-l-xl border border-slate-200 bg-white text-slate-500">
                     <KeyRound size={21} />
@@ -128,7 +128,7 @@ function ResetPasswordForm() {
               </label>
 
               <label className="grid gap-2">
-                <span className="text-sm font-black text-slate-800">Nueva contrasena</span>
+                <span className="text-sm font-black text-slate-800">Nueva contraseña</span>
                 <span className="flex">
                   <span className="grid h-14 w-14 place-items-center rounded-l-xl border border-slate-200 bg-white text-slate-500">
                     <LockKeyhole size={21} />
@@ -139,7 +139,7 @@ function ResetPasswordForm() {
                       type={showPassword ? "text" : "password"}
                       value={form.nuevaPassword}
                       onChange={(event) => setForm((prev) => ({ ...prev, nuevaPassword: event.target.value }))}
-                      placeholder="Minimo 6 caracteres"
+                      placeholder="Mínimo 6 caracteres"
                       required
                       minLength={6}
                     />
@@ -147,7 +147,7 @@ function ResetPasswordForm() {
                       className="absolute right-3 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-slate-400 transition hover:bg-slate-50 hover:text-blue-600"
                       type="button"
                       onClick={() => setShowPassword((value) => !value)}
-                      aria-label={showPassword ? "Ocultar contrasena" : "Mostrar contrasena"}
+                      aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                     >
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
@@ -156,7 +156,7 @@ function ResetPasswordForm() {
               </label>
 
               <label className="grid gap-2">
-                <span className="text-sm font-black text-slate-800">Confirmar contrasena</span>
+                <span className="text-sm font-black text-slate-800">Confirmar contraseña</span>
                 <span className="flex">
                   <span className="grid h-14 w-14 place-items-center rounded-l-xl border border-slate-200 bg-white text-slate-500">
                     <LockKeyhole size={21} />
@@ -166,7 +166,7 @@ function ResetPasswordForm() {
                     type={showPassword ? "text" : "password"}
                     value={form.confirmarPassword}
                     onChange={(event) => setForm((prev) => ({ ...prev, confirmarPassword: event.target.value }))}
-                    placeholder="Repite la nueva contrasena"
+                    placeholder="Repite la nueva contraseña"
                     required
                     minLength={6}
                   />
@@ -179,7 +179,7 @@ function ResetPasswordForm() {
                 disabled={submitting}
               >
                 {submitting ? <Loader2 className="animate-spin" size={21} /> : <ShieldCheck size={21} />}
-                Actualizar contrasena
+                Actualizar contraseña
               </button>
             </form>
           </section>
@@ -191,7 +191,7 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<main className="grid min-h-screen place-items-center bg-slate-100 text-sm font-black text-slate-500">Cargando recuperacion...</main>}>
+    <Suspense fallback={<main className="grid min-h-screen place-items-center bg-slate-100 text-sm font-black text-slate-500">Cargando recuperación...</main>}>
       <ResetPasswordForm />
     </Suspense>
   );

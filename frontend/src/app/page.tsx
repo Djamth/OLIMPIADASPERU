@@ -57,7 +57,7 @@ export default function PublicHomePage() {
               <Trophy size={24} />
             </div>
             <div className="hidden sm:block">
-              <p className="text-sm font-black uppercase tracking-[0.18em] text-blue-700">Olimpiadas Peru</p>
+              <p className="text-sm font-black uppercase tracking-[0.18em] text-blue-700">Olimpiadas Perú</p>
               <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">Portal deportivo</p>
             </div>
           </div>
@@ -66,8 +66,8 @@ export default function PublicHomePage() {
             <a className="transition hover:text-blue-700" href="#inicio">Inicio</a>
             <a className="transition hover:text-blue-700" href="#encuentros">Evento</a>
             <a className="transition hover:text-blue-700" href="#resultados">Resultados</a>
-            <a className="transition hover:text-blue-700" href="#clasificacion">Clasificacion</a>
-            <a className="transition hover:text-blue-700" href="#estadisticas">Estadisticas</a>
+            <a className="transition hover:text-blue-700" href="#clasificacion">Clasificación</a>
+            <a className="transition hover:text-blue-700" href="#estadisticas">Estadísticas</a>
           </nav>
 
           <a
@@ -84,7 +84,7 @@ export default function PublicHomePage() {
             className="inline-flex h-12 items-center justify-center rounded-none bg-blue-700 px-8 text-xs font-black uppercase tracking-[0.16em] text-white shadow-[0_18px_40px_rgba(21,101,192,0.35)] transition hover:-translate-y-0.5 hover:bg-blue-800"
             href="#clasificacion"
           >
-            Clasificacion
+            Clasificación
           </a>
         </div>
       </section>
@@ -94,11 +94,11 @@ export default function PublicHomePage() {
         <div className="relative mx-auto max-w-7xl">
           <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-700">Clasificacion general</p>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-700">Clasificación general</p>
               <h2 className="mt-2 text-3xl font-black tracking-normal text-slate-950">Resumen de competencia</h2>
             </div>
             <p className="max-w-xl text-sm font-semibold leading-6 text-slate-500">
-              Informacion publica actualizada desde los resultados y programaciones registradas por la organizacion.
+              Información pública actualizada desde los resultados y programaciones registradas por la organización.
             </p>
           </div>
 
@@ -127,7 +127,7 @@ export default function PublicHomePage() {
             </div>
           ) : (
             <div className="rounded-[8px] border border-amber-200 bg-amber-50 p-5 text-sm font-bold text-amber-700">
-              No se pudo cargar el resumen publico.
+              No se pudo cargar el resumen público.
             </div>
           )}
         </div>
@@ -199,10 +199,10 @@ export default function PublicHomePage() {
       <section id="estadisticas" className="bg-slate-950 px-5 py-16 text-white lg:px-8">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-300">Estadisticas</p>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-300">Estadísticas</p>
             <h2 className="mt-2 text-4xl font-black tracking-normal">Ranking, puntos y rendimiento deportivo</h2>
             <p className="mt-4 text-sm font-semibold leading-7 text-slate-300">
-              El portal publico presenta los datos deportivos mas relevantes sin exponer el panel administrativo.
+              El portal público presenta los datos deportivos más relevantes sin exponer el panel administrativo.
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">

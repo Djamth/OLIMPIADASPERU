@@ -10,5 +10,16 @@ public record EquipoResponse(
         Genero genero,
         String entrenador,
         Long institucionId,
-        String institucionNombre) {
+        String institucionNombre,
+        Long categoriaEventoId,
+        String categoriaEventoNombre,
+        Long eventoId,
+        String eventoNombre,
+        Long paisId,
+        String paisNombre,
+        String bandera,
+        String colorPrimario,
+        String colorSecundario,
+        Long deporteId,
+        String deporteNombre) {
 }

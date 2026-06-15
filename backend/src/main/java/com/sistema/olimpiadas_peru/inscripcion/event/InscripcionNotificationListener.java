@@ -25,13 +25,13 @@ public class InscripcionNotificationListener {
 
             La inscripcion del equipo %s en el deporte %s fue confirmada correctamente.
 
-            Las fechas, sedes y proximos encuentros se publicaran en el portal de Olimpiadas Peru.
+            Las fechas, sedes y próximos encuentros se publicarán en el portal de Olimpiadas Perú.
             """.formatted(event.institucion(), event.equipo(), event.deporte());
 
         try {
             emailService.enviarCorreo(
                 event.destinatario(),
-                "Inscripcion confirmada - Olimpiadas Peru",
+                "Inscripción confirmada - Olimpiadas Perú",
                 contenido
             );
         } catch (RuntimeException exception) {

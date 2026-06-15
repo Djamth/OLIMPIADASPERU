@@ -5,6 +5,8 @@ export interface Usuario {
   nombre: string;
   email: string;
   rolId: number;
+  institucionId?: number | null;
+  institucionNombre?: string | null;
   estado: "ACTIVO" | "INACTIVO" | string;
 }
 
@@ -13,12 +15,14 @@ export interface UsuarioCreateRequest {
   email: string;
   password: string;
   rolId: number;
+  institucionId?: number | null;
 }
 
 export interface UsuarioUpdateRequest {
   nombre: string;
   email: string;
   rolId: number;
+  institucionId?: number | null;
   estado: "ACTIVO" | "INACTIVO" | string;
 }
 

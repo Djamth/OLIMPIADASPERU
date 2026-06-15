@@ -20,7 +20,7 @@ public class PublicDashboardController {
 
     @GetMapping("/resumen")
     public ResponseEntity<PublicDashboardResumenResponse> obtenerResumenPublico() {
-        DashboardResumenResponse resumen = dashboardService.obtenerResumen();
+        DashboardResumenResponse resumen = dashboardService.obtenerResumenPublico();
         return ResponseEntity.ok(new PublicDashboardResumenResponse(
                 resumen.metricas(),
                 resumen.proximasContiendas(),

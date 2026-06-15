@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/common/Badge";
 import { PrimaryActionButton, RowActions } from "@/components/common/Buttons";
+import { CountryFlag } from "@/components/common/CountryFlag";
 import { DataTable, type DataTableColumn } from "@/components/common/DataTable";
 import { EmptyState } from "@/components/common/EmptyState";
 import { FormModal } from "@/components/common/FormModal";
@@ -12,8 +13,8 @@ import { PageHeader } from "@/components/common/PageHeader";
 import { TableToolbar } from "@/components/common/TableToolbar";
 import { useAsyncList } from "@/hooks/useAsyncList";
 import { useTableControls } from "@/hooks/useTableControls";
-import { deporteService, equipoService, inscripcionService } from "@/services/crudServices";
-import type { Deporte, Equipo, EstadoInscripcion, Inscripcion, InscripcionRequest } from "@/types/catalogs";
+import { deporteService, equipoService, eventoService, inscripcionService } from "@/services/crudServices";
+import type { Deporte, Equipo, EstadoInscripcion, Evento, Inscripcion, InscripcionRequest } from "@/types/catalogs";
 import { alerts, getErrorMessage } from "@/utils/alerts";
 import { useCallback, useEffect, useState } from "react";
 
@@ -29,13 +30,18 @@ const emptyForm: InscripcionRequest = {
 
 export function InscripcionesClient() {
   const [deporteFiltroId, setDeporteFiltroId] = useState<number>(0);
+  const [eventoFiltroId, setEventoFiltroId] = useState<number>(0);
   const loader = useCallback(
-    () => inscripcionService.list(deporteFiltroId ? { deporteId: deporteFiltroId } : undefined),
-    [deporteFiltroId],
+    () => inscripcionService.list({
+      deporteId: deporteFiltroId || undefined,
+      eventoId: eventoFiltroId || undefined,
+    }),
+    [deporteFiltroId, eventoFiltroId],
   );
   const { data, loading, reload } = useAsyncList<Inscripcion>(loader);
   const [equipos, setEquipos] = useState<Equipo[]>([]);
   const [deportes, setDeportes] = useState<Deporte[]>([]);
+  const [eventos, setEventos] = useState<Evento[]>([]);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Inscripcion | null>(null);
   const [form, setForm] = useState<InscripcionRequest>(emptyForm);
@@ -47,17 +53,23 @@ export function InscripcionesClient() {
   );
 
   useEffect(() => {
-    Promise.all([equipoService.list(), deporteService.list()])
-      .then(([equiposData, deportesData]) => {
+    Promise.all([equipoService.list(), deporteService.list(), eventoService.list()])
+      .then(([equiposData, deportesData, eventosData]) => {
         setEquipos(equiposData);
         setDeportes(deportesData);
+        setEventos(eventosData);
       })
-      .catch((error) => alerts.error("Error al cargar catalogos", getErrorMessage(error)));
+      .catch((error) => alerts.error("Error al cargar catálogos", getErrorMessage(error)));
   }, []);
 
   const startCreate = () => {
+    const equipo = equipos.find((item) => !eventoFiltroId || item.eventoId === eventoFiltroId) ?? equipos[0];
     setEditing(null);
-    setForm({ ...emptyForm, equipoId: equipos[0]?.id ?? 0, deporteId: deporteFiltroId || deportes[0]?.id || 0 });
+    setForm({
+      ...emptyForm,
+      equipoId: equipo?.id ?? 0,
+      deporteId: equipo?.deporteId ?? (deporteFiltroId || deportes[0]?.id || 0),
+    });
     setOpen(true);
   };
 
@@ -76,10 +88,10 @@ export function InscripcionesClient() {
     event.preventDefault();
     setSubmitting(true);
     try {
-      let message = "Inscripcion creada";
+      let message = "Inscripción creada";
       if (editing) {
         await inscripcionService.update(editing.id, form);
-        message = "Inscripcion actualizada";
+        message = "Inscripción actualizada";
       } else {
         await inscripcionService.create(form);
         setDeporteFiltroId(form.deporteId);
@@ -95,11 +107,11 @@ export function InscripcionesClient() {
   };
 
   const remove = async (item: Inscripcion) => {
-    const result = await alerts.confirm("Eliminar inscripcion", `${item.equipoNombre} sera retirado de ${item.deporteNombre}.`);
+    const result = await alerts.confirm("Eliminar inscripción", `${item.equipoNombre} será retirado de ${item.deporteNombre}.`);
     if (!result.isConfirmed) return;
     try {
       await inscripcionService.remove(item.id);
-      await alerts.success("Inscripcion eliminada");
+      await alerts.success("Inscripción eliminada");
       await reload();
     } catch (error) {
       await alerts.error("No se pudo eliminar", getErrorMessage(error));
@@ -107,7 +119,8 @@ export function InscripcionesClient() {
   };
 
   const columns: DataTableColumn<Inscripcion>[] = [
-    { key: "equipo", header: "Equipo", render: (item) => <span className="font-bold text-slate-950">{item.equipoNombre}</span> },
+    { key: "equipo", header: "Equipo", render: (item) => <div><span className="flex items-center gap-2 font-bold text-slate-950"><CountryFlag code={item.bandera} /> {item.equipoNombre}</span><p className="text-xs text-slate-500">{item.categoriaEventoNombre}</p></div> },
+    { key: "evento", header: "Evento", render: (item) => item.eventoNombre ?? "Sin evento" },
     { key: "deporte", header: "Deporte", render: (item) => item.deporteNombre },
     {
       key: "estado",
@@ -127,13 +140,20 @@ export function InscripcionesClient() {
       <PageHeader
         title="Inscripciones"
         description="Controla equipos inscritos por deporte y estado de confirmacion."
-        action={<PrimaryActionButton onClick={startCreate}>Nueva inscripcion</PrimaryActionButton>}
+        action={<PrimaryActionButton onClick={startCreate}>Nueva inscripción</PrimaryActionButton>}
       />
 
       {loading ? <LoadingState /> : data.length === 0 ? (
         <div className="grid gap-5">
           <section className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
-            <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
+            <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_260px_260px] lg:items-end">
+              <div>
+                <label className={labelClass}>Evento</label>
+                <select className={fieldClass} value={eventoFiltroId} onChange={(e) => setEventoFiltroId(Number(e.target.value))}>
+                  <option value={0}>Todos los eventos</option>
+                  {eventos.map((item) => <option value={item.id} key={item.id}>{item.nombre}</option>)}
+                </select>
+              </div>
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-700">Filtro por deporte</p>
                 <h3 className="mt-1 text-xl font-black text-slate-950">{selectedDeporte?.nombre ?? "Todos los deportes"}</h3>
@@ -153,7 +173,14 @@ export function InscripcionesClient() {
       ) : (
         <div className="grid gap-5">
           <section className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
-            <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
+            <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_260px_260px] lg:items-end">
+              <div>
+                <label className={labelClass}>Evento</label>
+                <select className={fieldClass} value={eventoFiltroId} onChange={(e) => setEventoFiltroId(Number(e.target.value))}>
+                  <option value={0}>Todos los eventos</option>
+                  {eventos.map((item) => <option value={item.id} key={item.id}>{item.nombre}</option>)}
+                </select>
+              </div>
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-700">Filtro por deporte</p>
                 <h3 className="mt-1 text-xl font-black text-slate-950">{selectedDeporte?.nombre ?? "Todos los deportes"}</h3>
@@ -189,18 +216,23 @@ export function InscripcionesClient() {
         </div>
       )}
 
-      <FormModal open={open} title={editing ? "Editar inscripcion" : "Nueva inscripcion"} onClose={() => setOpen(false)} onSubmit={handleSubmit} submitting={submitting}>
+      <FormModal open={open} title={editing ? "Editar inscripción" : "Nueva inscripción"} onClose={() => setOpen(false)} onSubmit={handleSubmit} submitting={submitting}>
         <div className="grid gap-4 md:grid-cols-12">
           <div className="md:col-span-6">
             <label className={labelClass}>Equipo</label>
-            <select className={fieldClass} value={form.equipoId} onChange={(e) => setForm({ ...form, equipoId: Number(e.target.value) })} required>
+            <select className={fieldClass} value={form.equipoId} onChange={(e) => {
+              const equipo = equipos.find((item) => item.id === Number(e.target.value));
+              setForm({ ...form, equipoId: Number(e.target.value), deporteId: equipo?.deporteId ?? form.deporteId });
+            }} required>
               <option value={0} disabled>Seleccionar</option>
-              {equipos.map((item) => <option value={item.id} key={item.id}>{item.nombre}</option>)}
+              {equipos
+                .filter((item) => !eventoFiltroId || item.eventoId === eventoFiltroId)
+                .map((item) => <option value={item.id} key={item.id}>{item.paisNombre} - {item.deporteNombre} - {item.nombre}</option>)}
             </select>
           </div>
           <div className="md:col-span-6">
             <label className={labelClass}>Deporte</label>
-            <select className={fieldClass} value={form.deporteId} onChange={(e) => setForm({ ...form, deporteId: Number(e.target.value) })} required>
+            <select className={fieldClass} value={form.deporteId} onChange={(e) => setForm({ ...form, deporteId: Number(e.target.value) })} required disabled={Boolean(equipos.find((item) => item.id === form.equipoId)?.deporteId)}>
               <option value={0} disabled>Seleccionar</option>
               {deportes.map((item) => <option value={item.id} key={item.id}>{item.nombre}</option>)}
             </select>

@@ -11,7 +11,7 @@ export function ProtectedPage({ children }: { children: React.ReactNode }) {
       <div className="grid min-h-screen place-items-center p-4">
         <div className="surface-card grid justify-items-center gap-3 p-6 text-center">
           <Loader2 className="animate-spin text-blue-600" size={28} />
-          <p className="text-sm font-bold text-slate-500">Cargando sesion...</p>
+          <p className="text-sm font-bold text-slate-500">Cargando sesión...</p>
         </div>
       </div>
     );

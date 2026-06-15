@@ -40,7 +40,7 @@ function getSportLabels(deporte?: string) {
   if (normalized.includes("PING")) {
     return { plural: "puntos/sets", singular: "punto/set", title: "Puntos/Sets individuales", helper: "Registra puntos o sets ganados por participante." };
   }
-  return { plural: "anotaciones", singular: "anotacion", title: "Estadisticas individuales", helper: "Registra el aporte individual por participante." };
+  return { plural: "anotaciones", singular: "anotación", title: "Estadísticas individuales", helper: "Registra el aporte individual por participante." };
 }
 
 export function ResultadosClient() {
@@ -183,7 +183,7 @@ export function ResultadosClient() {
     { key: "marcador", header: "Marcador", render: (item) => <Badge tone="slate">{item.puntajeLocal} - {item.puntajeVisitante}</Badge> },
     {
       key: "anotaciones",
-      header: "Estadisticas individuales",
+      header: "Estadísticas individuales",
       render: (item) => {
         const labels = getSportLabels(item.deporte);
         if (!item.anotaciones?.length) {
@@ -219,7 +219,7 @@ export function ResultadosClient() {
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-700">Filtro por deporte</p>
                 <h3 className="mt-1 text-xl font-black text-slate-950">{selectedDeporte?.nombre ?? "Todos los deportes"}</h3>
-                <p className="mt-1 text-sm font-semibold text-slate-500">Revisa marcadores y estadisticas individuales por disciplina.</p>
+                <p className="mt-1 text-sm font-semibold text-slate-500">Revisa marcadores y estadísticas individuales por disciplina.</p>
               </div>
               <div>
                 <label className={labelClass}>Deporte</label>
@@ -349,7 +349,7 @@ export function ResultadosClient() {
                       />
                     </div>
                     <div className="flex justify-end md:col-span-1">
-                      <IconActionButton label="Quitar anotacion" tone="danger" onClick={() => removeAnotacion(index)}>
+                      <IconActionButton label="Quitar anotación" tone="danger" onClick={() => removeAnotacion(index)}>
                         <X size={16} />
                       </IconActionButton>
                     </div>

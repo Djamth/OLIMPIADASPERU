@@ -12,7 +12,7 @@ export function PageHeader({
       <div className="relative flex flex-col gap-4 p-5 lg:flex-row lg:items-center lg:justify-between">
         <div className="relative">
           <span className="mb-1 inline-flex rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-black uppercase tracking-normal text-blue-700 ring-1 ring-blue-100">
-            Modulo operativo
+            Módulo operativo
           </span>
           <h2 className="mb-1 text-2xl font-black tracking-normal text-slate-950">{title}</h2>
           <p className="m-0 max-w-2xl text-sm font-medium text-slate-500">{description}</p>

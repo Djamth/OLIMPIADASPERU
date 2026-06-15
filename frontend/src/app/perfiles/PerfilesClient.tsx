@@ -149,7 +149,7 @@ export function PerfilesClient() {
           </div>
           <div>
             <div className="font-black text-slate-950">{item.nombre}</div>
-            <div className="text-xs font-semibold text-slate-400">{(modulosPorRol[item.id] ?? []).length} modulos asignados</div>
+            <div className="text-xs font-semibold text-slate-400">{(modulosPorRol[item.id] ?? []).length} módulos asignados</div>
           </div>
         </div>
       ),
@@ -165,7 +165,7 @@ export function PerfilesClient() {
       align: "right",
       render: (item) => (
         <div className="flex justify-end gap-2">
-          <IconActionButton label="Gestionar modulos" tone="neutral" onClick={() => startAccess(item)}>
+          <IconActionButton label="Gestionar módulos" tone="neutral" onClick={() => startAccess(item)}>
             <LockKeyhole size={16} />
           </IconActionButton>
           <RowActions onEdit={() => startEdit(item)} onDelete={() => remove(item)} />
@@ -178,7 +178,7 @@ export function PerfilesClient() {
     <>
       <PageHeader
         title="Perfiles"
-        description="Administra roles y define que modulos puede usar cada perfil."
+        description="Administra roles y define qué módulos puede usar cada perfil."
         action={<PrimaryActionButton onClick={startCreate}>Nuevo perfil</PrimaryActionButton>}
       />
 
@@ -220,7 +220,7 @@ export function PerfilesClient() {
 
       <FormModal
         open={accessOpen}
-        title={`Modulos permitidos${accessRole ? ` - ${accessRole.nombre}` : ""}`}
+        title={`Módulos permitidos${accessRole ? ` - ${accessRole.nombre}` : ""}`}
         onClose={() => setAccessOpen(false)}
         onSubmit={handleAccessSubmit}
         submitLabel="Guardar accesos"
@@ -228,7 +228,7 @@ export function PerfilesClient() {
       >
         <div className="grid gap-3">
           <p className="m-0 text-sm font-semibold text-slate-500">
-            Selecciona los modulos que este rol podra visualizar y usar en el sistema.
+            Selecciona los módulos que este rol podrá visualizar y usar en el sistema.
           </p>
           <div className="grid gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 md:grid-cols-2">
             {modulos.map((modulo) => (

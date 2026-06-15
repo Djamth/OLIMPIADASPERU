@@ -30,6 +30,8 @@ export interface LoginResponse {
   email: string;
   rolId: number;
   rolNombre: string;
+  institucionId?: number | null;
+  institucionNombre?: string | null;
   estado: string;
   modulos: Modulo[];
   accessToken?: string;

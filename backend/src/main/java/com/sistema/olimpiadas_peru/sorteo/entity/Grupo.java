@@ -2,6 +2,7 @@ package com.sistema.olimpiadas_peru.sorteo.entity;
 
 import com.sistema.olimpiadas_peru.common.entity.BaseEntity;
 import com.sistema.olimpiadas_peru.deporte.entity.Deporte;
+import com.sistema.olimpiadas_peru.evento.entity.Evento;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -23,4 +24,8 @@ public class Grupo extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "deporte_id")
     private Deporte deporte;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "evento_id")
+    private Evento evento;
 }

@@ -13,10 +13,10 @@ public class OpenApiConfig {
     @Bean
     public OpenAPI customOpenApi() {
         return new OpenAPI().info(new Info()
-                .title("Olimpiadas Peru API")
+                .title("Olimpiadas Perú API")
                 .description("Backend SOA para la gestion de olimpiadas deportivas escolares")
                 .version("1.0.0")
-                .contact(new Contact().name("Equipo Olimpiadas Peru").email("soporte@olimpiadasperu.pe"))
+                .contact(new Contact().name("Equipo Olimpiadas Perú").email("soporte@olimpiadasperu.pe"))
                 .license(new License().name("MIT")));
     }
 }

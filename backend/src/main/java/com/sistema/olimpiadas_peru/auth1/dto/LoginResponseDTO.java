@@ -19,6 +19,8 @@ public class LoginResponseDTO {
     private String email;
     private Integer rolId;
     private String rolNombre;
+    private Long institucionId;
+    private String institucionNombre;
     private String estado;
     private List<ModuloDTO> modulos;
     private String accessToken;

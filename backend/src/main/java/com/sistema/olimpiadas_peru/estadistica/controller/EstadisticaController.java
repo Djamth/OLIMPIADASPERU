@@ -29,4 +29,16 @@ public class EstadisticaController {
     public ResponseEntity<List<RankingEquipoResponse>> obtenerRanking(@PathVariable Long deporteId) {
         return ResponseEntity.ok(estadisticaService.obtenerRanking(deporteId));
     }
+
+    @GetMapping("/evento/{eventoId}/deporte/{deporteId}/goleadores")
+    public ResponseEntity<List<GoleadorResponse>> obtenerGoleadoresEvento(
+            @PathVariable Long eventoId, @PathVariable Long deporteId) {
+        return ResponseEntity.ok(estadisticaService.obtenerGoleadores(eventoId, deporteId));
+    }
+
+    @GetMapping("/evento/{eventoId}/deporte/{deporteId}/ranking")
+    public ResponseEntity<List<RankingEquipoResponse>> obtenerRankingEvento(
+            @PathVariable Long eventoId, @PathVariable Long deporteId) {
+        return ResponseEntity.ok(estadisticaService.obtenerRanking(eventoId, deporteId));
+    }
 }

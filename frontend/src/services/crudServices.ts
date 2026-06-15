@@ -17,6 +17,14 @@ import type {
   RankingEquipo,
   Resultado,
   ResultadoRequest,
+  Pais,
+  PaisRequest,
+  Evento,
+  EventoRequest,
+  CategoriaEvento,
+  CategoriaEventoRequest,
+  PlantillaEquipo,
+  PlantillaEquipoRequest,
 } from "@/types/catalogs";
 
 function crudService<T, R>(path: string) {
@@ -46,6 +54,16 @@ export const participanteService = crudService<Participante, ParticipanteRequest
 export const inscripcionService = crudService<Inscripcion, InscripcionRequest>("/api/inscripciones");
 export const programacionService = crudService<Partido, PartidoRequest>("/api/programaciones");
 export const resultadoService = crudService<Resultado, ResultadoRequest>("/api/resultados");
+export const paisService = crudService<Pais, PaisRequest>("/api/paises");
+export const eventoService = crudService<Evento, EventoRequest>("/api/eventos");
+export const eventoHistoryService = {
+  async createNextEdition(id: number, conservarPaises: boolean) {
+    const { data } = await api.post<Evento>(`/api/eventos/${id}/siguiente-edicion`, { conservarPaises });
+    return data;
+  },
+};
+export const categoriaEventoService = crudService<CategoriaEvento, CategoriaEventoRequest>("/api/categorias-evento");
+export const plantillaService = crudService<PlantillaEquipo, PlantillaEquipoRequest>("/api/plantillas");
 
 export const sorteoService = {
   async generarGrupos(deporteId: number) {
@@ -54,6 +72,14 @@ export const sorteoService = {
   },
   async listarGrupos(deporteId: number) {
     const { data } = await api.get<Grupo[]>(`/api/sorteos/deporte/${deporteId}/grupos`);
+    return data;
+  },
+  async generarGruposEvento(eventoId: number, deporteId: number) {
+    const { data } = await api.post<Grupo[]>(`/api/sorteos/evento/${eventoId}/deporte/${deporteId}/grupos`);
+    return data;
+  },
+  async listarGruposEvento(eventoId: number, deporteId: number) {
+    const { data } = await api.get<Grupo[]>(`/api/sorteos/evento/${eventoId}/deporte/${deporteId}/grupos`);
     return data;
   },
 };

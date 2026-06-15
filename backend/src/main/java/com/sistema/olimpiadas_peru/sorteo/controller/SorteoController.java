@@ -29,4 +29,16 @@ public class SorteoController {
     public ResponseEntity<List<GrupoResponse>> listarGrupos(@PathVariable Long deporteId) {
         return ResponseEntity.ok(sorteoService.listarPorDeporte(deporteId));
     }
+
+    @PostMapping("/evento/{eventoId}/deporte/{deporteId}/grupos")
+    public ResponseEntity<List<GrupoResponse>> generarGruposEvento(
+            @PathVariable Long eventoId, @PathVariable Long deporteId) {
+        return ResponseEntity.ok(sorteoService.generarGrupos(eventoId, deporteId));
+    }
+
+    @GetMapping("/evento/{eventoId}/deporte/{deporteId}/grupos")
+    public ResponseEntity<List<GrupoResponse>> listarGruposEvento(
+            @PathVariable Long eventoId, @PathVariable Long deporteId) {
+        return ResponseEntity.ok(sorteoService.listar(eventoId, deporteId));
+    }
 }

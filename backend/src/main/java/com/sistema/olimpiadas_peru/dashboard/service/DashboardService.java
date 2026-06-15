@@ -4,6 +4,7 @@ import com.sistema.olimpiadas_peru.common.enums.EstadoInscripcion;
 import com.sistema.olimpiadas_peru.common.enums.EstadoPartido;
 import com.sistema.olimpiadas_peru.auth1.model.Auditoria;
 import com.sistema.olimpiadas_peru.auth1.repository.AuditoriaRepository;
+import com.sistema.olimpiadas_peru.auth1.security.InstitucionAccessService;
 import com.sistema.olimpiadas_peru.dashboard.dto.DashboardActivityResponse;
 import com.sistema.olimpiadas_peru.dashboard.dto.DashboardMetricResponse;
 import com.sistema.olimpiadas_peru.dashboard.dto.DashboardProgressResponse;
@@ -17,7 +18,9 @@ import com.sistema.olimpiadas_peru.programacion.entity.Partido;
 import com.sistema.olimpiadas_peru.programacion.repository.PartidoRepository;
 import com.sistema.olimpiadas_peru.resultado.entity.Resultado;
 import com.sistema.olimpiadas_peru.resultado.repository.ResultadoRepository;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,15 +35,44 @@ public class DashboardService {
     private final ResultadoRepository resultadoRepository;
     private final InscripcionRepository inscripcionRepository;
     private final AuditoriaRepository auditoriaRepository;
+    private final InstitucionAccessService accessService;
 
     @Transactional(readOnly = true)
     public DashboardResumenResponse obtenerResumen() {
-        long equipos = equipoRepository.count();
-        long participantes = participanteRepository.count();
-        long partidosProgramados = partidoRepository.countByEstado(EstadoPartido.PROGRAMADO);
-        long resultados = resultadoRepository.count();
-        long inscripciones = inscripcionRepository.count();
-        long inscripcionesConfirmadas = inscripcionRepository.findAll().stream()
+        return construirResumen(accessService.institucionActual());
+    }
+
+    @Transactional(readOnly = true)
+    public DashboardResumenResponse obtenerResumenPublico() {
+        return construirResumen(Optional.empty());
+    }
+
+    private DashboardResumenResponse construirResumen(Optional<Long> institucionId) {
+        var equiposAlcance = equipoRepository.findAll().stream()
+                .filter(item -> pertenece(item.getInstitucion().getId(), institucionId))
+                .toList();
+        var participantesAlcance = participanteRepository.findAll().stream()
+                .filter(item -> pertenece(item.getEquipo().getInstitucion().getId(), institucionId))
+                .toList();
+        var partidosAlcance = partidoRepository.findAll().stream()
+                .filter(item -> pertenece(item.getEquipoLocal().getInstitucion().getId(), institucionId))
+                .toList();
+        var resultadosAlcance = resultadoRepository.findAll().stream()
+                .filter(item -> pertenece(
+                        item.getPartido().getEquipoLocal().getInstitucion().getId(), institucionId))
+                .toList();
+        var inscripcionesAlcance = inscripcionRepository.findAll().stream()
+                .filter(item -> pertenece(item.getEquipo().getInstitucion().getId(), institucionId))
+                .toList();
+
+        long equipos = equiposAlcance.size();
+        long participantes = participantesAlcance.size();
+        long partidosProgramados = partidosAlcance.stream()
+                .filter(item -> item.getEstado() == EstadoPartido.PROGRAMADO)
+                .count();
+        long resultados = resultadosAlcance.size();
+        long inscripciones = inscripcionesAlcance.size();
+        long inscripcionesConfirmadas = inscripcionesAlcance.stream()
                 .filter(item -> item.getEstado() == EstadoInscripcion.CONFIRMADA)
                 .count();
 
@@ -52,7 +84,7 @@ public class DashboardService {
         );
 
         int avanceInscripciones = porcentaje(inscripcionesConfirmadas, inscripciones);
-        int avanceResultados = porcentaje(resultados, Math.max(partidoRepository.count(), 1));
+        int avanceResultados = porcentaje(resultados, Math.max(partidosAlcance.size(), 1));
 
         List<DashboardProgressResponse> avance = List.of(
                 new DashboardProgressResponse("Autenticacion y seguridad", 100),
@@ -61,26 +93,36 @@ public class DashboardService {
                 new DashboardProgressResponse("Resultados registrados", avanceResultados)
         );
 
-        List<DashboardUpcomingMatchResponse> proximas = partidoRepository
-                .findTop5ByEstadoNotOrderByFechaHoraAsc(EstadoPartido.FINALIZADO)
-                .stream()
+        List<DashboardUpcomingMatchResponse> proximas = partidosAlcance.stream()
+                .filter(item -> item.getEstado() != EstadoPartido.FINALIZADO)
+                .sorted(Comparator.comparing(Partido::getFechaHora))
+                .limit(5)
                 .map(this::toUpcoming)
                 .toList();
 
-        List<DashboardRecentResultResponse> ultimosResultados = resultadoRepository
-                .findTop5ByOrderByCreatedAtDesc()
-                .stream()
+        List<DashboardRecentResultResponse> ultimosResultados = resultadosAlcance.stream()
+                .sorted(Comparator.comparing(Resultado::getCreatedAt).reversed())
+                .limit(5)
                 .map(this::toRecentResult)
                 .toList();
 
         List<DashboardActivityResponse> actividad = auditoriaRepository
                 .findTop20ByOrderByFechaDesc()
                 .stream()
+                .filter(item -> item.getUsuario() == null
+                        ? institucionId.isEmpty()
+                        : pertenece(item.getUsuario().getInstitucion() == null
+                                ? null
+                                : item.getUsuario().getInstitucion().getId(), institucionId))
                 .limit(5)
                 .map(this::toActivity)
                 .toList();
 
         return new DashboardResumenResponse(metricas, avance, proximas, ultimosResultados, actividad);
+    }
+
+    private boolean pertenece(Long recursoInstitucionId, Optional<Long> institucionId) {
+        return institucionId.isEmpty() || institucionId.get().equals(recursoInstitucionId);
     }
 
     private int porcentaje(long parte, long total) {

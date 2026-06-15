@@ -37,14 +37,14 @@ public class ModuloService {
 
     public ModuloDTO obtenerPorId(Integer id) {
         Modulo modulo = moduloRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Modulo no encontrado"));
+            .orElseThrow(() -> new RuntimeException("Módulo no encontrado"));
         return mapearADTO(modulo);
     }
 
     @Transactional
     public ModuloDTO actualizarModulo(Integer id, ModuloDTO moduloDTO) {
         Modulo modulo = moduloRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Modulo no encontrado"));
+            .orElseThrow(() -> new RuntimeException("Módulo no encontrado"));
 
         modulo.setNombre(moduloDTO.getNombre());
         modulo.setRuta(moduloDTO.getRuta());
@@ -60,7 +60,7 @@ public class ModuloService {
 
     public Modulo obtenerModuloPorId(Integer id) {
         return moduloRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Modulo no encontrado"));
+            .orElseThrow(() -> new RuntimeException("Módulo no encontrado"));
     }
 
     private ModuloDTO mapearADTO(Modulo modulo) {

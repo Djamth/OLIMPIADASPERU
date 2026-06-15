@@ -15,16 +15,16 @@ export default function RecuperarPasswordPage() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitting(true);
-    alerts.loading("Enviando codigo");
+    alerts.loading("Enviando código");
 
     try {
       const response = await authService.forgotPassword({ email });
       alerts.close();
-      await alerts.success("Codigo enviado", response.mensaje);
+      await alerts.success("Código enviado", response.mensaje);
       router.push(`/reset-password?email=${encodeURIComponent(email)}`);
     } catch (error) {
       alerts.close();
-      await alerts.error("No se pudo enviar el codigo", getErrorMessage(error));
+      await alerts.error("No se pudo enviar el código", getErrorMessage(error));
     } finally {
       setSubmitting(false);
     }
@@ -40,9 +40,9 @@ export default function RecuperarPasswordPage() {
             <div className="mb-6 grid h-16 w-16 place-items-center rounded-2xl border border-white/20 bg-white/10 backdrop-blur">
               <ShieldCheck className="text-sky-200" size={34} />
             </div>
-            <h1 className="text-4xl font-black tracking-normal">Recuperacion segura</h1>
+            <h1 className="text-4xl font-black tracking-normal">Recuperación segura</h1>
             <p className="mt-4 max-w-md text-sm font-semibold leading-6 text-sky-50/85">
-              Enviaremos un codigo temporal de 6 digitos al correo registrado para validar el cambio de contraseña.
+              Enviaremos un código temporal de 6 dígitos al correo registrado para validar el cambio de contraseña.
             </p>
           </div>
         </div>
@@ -51,7 +51,7 @@ export default function RecuperarPasswordPage() {
           <section className="w-full max-w-md">
             <Link className="mb-8 inline-flex items-center gap-2 text-sm font-black text-slate-500 transition hover:text-blue-700" href="/login">
               <ArrowLeft size={18} />
-              Volver al inicio de sesion
+              Volver al inicio de sesión
             </Link>
 
             <div className="mb-8">
@@ -61,7 +61,7 @@ export default function RecuperarPasswordPage() {
               <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-700">Seguridad de cuenta</p>
               <h2 className="mt-2 text-4xl font-black tracking-normal text-slate-950">Recuperar contraseña</h2>
               <p className="mt-3 text-sm font-semibold leading-6 text-slate-500">
-                Ingresa tu correo institucional. Si existe una cuenta activa, recibiras un codigo para continuar.
+                Ingresa tu correo institucional. Si existe una cuenta activa, recibirás un código para continuar.
               </p>
             </div>
 
@@ -89,7 +89,7 @@ export default function RecuperarPasswordPage() {
                 disabled={submitting}
               >
                 {submitting ? <Loader2 className="animate-spin" size={21} /> : <Mail size={21} />}
-                Enviar codigo
+                Enviar código
               </button>
             </form>
           </section>

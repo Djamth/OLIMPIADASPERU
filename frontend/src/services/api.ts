@@ -55,7 +55,7 @@ api.interceptors.response.use(
     if (error?.response?.status === 403) {
       error.response.data = {
         ...(error.response.data ?? {}),
-        mensaje: error.response.data?.mensaje ?? "Tu perfil no tiene permisos para realizar esta operacion.",
+        mensaje: error.response.data?.mensaje ?? "Tu perfil no tiene permisos para realizar esta operación.",
       };
 
     }

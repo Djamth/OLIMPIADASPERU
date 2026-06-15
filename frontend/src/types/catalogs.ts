@@ -2,6 +2,9 @@ export type Genero = "MASCULINO" | "FEMENINO" | "MIXTO";
 export type CategoriaEquipo = "SUB_12" | "SUB_15" | "SUB_17" | "LIBRE";
 export type EstadoInscripcion = "PENDIENTE" | "CONFIRMADA" | "CANCELADA";
 export type EstadoPartido = "PROGRAMADO" | "EN_JUEGO" | "FINALIZADO" | "REPROGRAMADO";
+export type TipoInstitucion = "COLEGIO" | "UNIVERSIDAD" | "EMPRESA" | "OTRA";
+export type EstadoEvento = "BORRADOR" | "INSCRIPCIONES" | "EN_CURSO" | "FINALIZADO";
+export type RolParticipante = "JUGADOR" | "CAPITAN" | "SUPLENTE";
 
 export interface Deporte {
   id: number;
@@ -17,11 +20,16 @@ export interface Institucion {
   id: number;
   nombre: string;
   codigoModular: string;
+  ruc?: string | null;
+  tipo?: TipoInstitucion | null;
+  nivelEducativo?: string | null;
   region: string;
   ciudad: string;
   direccion?: string | null;
   telefono?: string | null;
   email?: string | null;
+  administradorNombre?: string | null;
+  administradorEmail?: string | null;
 }
 
 export type InstitucionRequest = Omit<Institucion, "id">;
@@ -34,6 +42,17 @@ export interface Equipo {
   entrenador: string;
   institucionId: number;
   institucionNombre: string;
+  categoriaEventoId?: number | null;
+  categoriaEventoNombre?: string | null;
+  eventoId?: number | null;
+  eventoNombre?: string | null;
+  paisId?: number | null;
+  paisNombre?: string | null;
+  bandera?: string | null;
+  colorPrimario?: string | null;
+  colorSecundario?: string | null;
+  deporteId?: number | null;
+  deporteNombre?: string | null;
 }
 
 export interface EquipoRequest {
@@ -42,6 +61,8 @@ export interface EquipoRequest {
   genero: Genero;
   entrenador: string;
   institucionId: number;
+  categoriaEventoId: number;
+  deporteId: number;
 }
 
 export interface Participante {
@@ -56,6 +77,15 @@ export interface Participante {
   equipoNombre: string;
   institucionId: number;
   institucionNombre: string;
+  rolEquipo?: RolParticipante | null;
+  numeroCamiseta?: number | null;
+  fotografiaUrl?: string | null;
+  categoriaEventoId?: number | null;
+  categoriaEventoNombre?: string | null;
+  paisNombre?: string | null;
+  bandera?: string | null;
+  deporteId?: number | null;
+  deporteNombre?: string | null;
 }
 
 export interface ParticipanteRequest {
@@ -66,6 +96,31 @@ export interface ParticipanteRequest {
   fechaNacimiento: string;
   codigoEstudiante: string;
   equipoId: number;
+  rolEquipo?: RolParticipante;
+  numeroCamiseta?: number | null;
+  fotografiaUrl?: string | null;
+}
+
+export interface PlantillaEquipo {
+  id: number;
+  participanteId: number;
+  participanteNombre: string;
+  equipoId: number;
+  equipoNombre: string;
+  deporteId?: number | null;
+  deporteNombre?: string | null;
+  categoriaEventoId?: number | null;
+  categoriaEventoNombre?: string | null;
+  paisNombre?: string | null;
+  rol: RolParticipante;
+  numeroCamiseta?: number | null;
+}
+
+export interface PlantillaEquipoRequest {
+  participanteId: number;
+  equipoId: number;
+  rol: RolParticipante;
+  numeroCamiseta?: number | null;
 }
 
 export interface Inscripcion {
@@ -76,6 +131,12 @@ export interface Inscripcion {
   deporteNombre: string;
   estado: EstadoInscripcion;
   fechaInscripcion: string;
+  eventoId?: number | null;
+  eventoNombre?: string | null;
+  categoriaEventoId?: number | null;
+  categoriaEventoNombre?: string | null;
+  paisNombre?: string | null;
+  bandera?: string | null;
 }
 
 export interface InscripcionRequest {
@@ -94,9 +155,62 @@ export interface GrupoEquipo {
 export interface Grupo {
   id: number;
   nombre: string;
+  eventoId?: number | null;
+  eventoNombre?: string | null;
   deporteId: number;
   deporteNombre: string;
   equipos: GrupoEquipo[];
+}
+
+export interface Pais {
+  id: number;
+  nombre: string;
+  codigo: string;
+  bandera: string;
+  colorPrimario: string;
+  colorSecundario: string;
+  datoCultural?: string | null;
+  activo: boolean;
+}
+
+export type PaisRequest = Omit<Pais, "id">;
+
+export interface Evento {
+  id: number;
+  nombre: string;
+  anio: number;
+  fechaInicio: string;
+  fechaFin: string;
+  estado: EstadoEvento;
+  institucionId: number;
+  institucionNombre: string;
+}
+
+export type EventoRequest = Omit<Evento, "id" | "institucionNombre">;
+
+export interface CategoriaEvento {
+  id: number;
+  nombre: string;
+  nivel?: string | null;
+  descripcion?: string | null;
+  eventoId: number;
+  eventoNombre: string;
+  institucionId: number;
+  institucionNombre: string;
+  paisId: number;
+  paisNombre: string;
+  paisCodigo: string;
+  bandera: string;
+  colorPrimario: string;
+  colorSecundario: string;
+}
+
+export interface CategoriaEventoRequest {
+  nombre: string;
+  nivel?: string | null;
+  descripcion?: string | null;
+  eventoId: number;
+  paisId?: number | null;
 }
 
 export interface Partido {
