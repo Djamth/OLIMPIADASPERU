@@ -2,14 +2,38 @@
 
 import { Badge } from "@/components/common/Badge";
 import { PrimaryActionButton } from "@/components/common/Buttons";
+import { CountryFlag } from "@/components/common/CountryFlag";
 import { EmptyState } from "@/components/common/EmptyState";
 import { fieldClass, labelClass } from "@/components/common/formStyles";
 import { LoadingState } from "@/components/common/LoadingState";
 import { PageHeader } from "@/components/common/PageHeader";
 import { deporteService, eventoService, inscripcionService, sorteoService } from "@/services/crudServices";
-import type { Deporte, Evento, Grupo, Inscripcion } from "@/types/catalogs";
+import type { Deporte, Evento, Grupo, GrupoEquipo, Inscripcion } from "@/types/catalogs";
 import { alerts, getErrorMessage } from "@/utils/alerts";
+import { Shuffle, Trophy } from "lucide-react";
 import { useEffect, useState } from "react";
+
+function pairTeams(equipos: GrupoEquipo[]) {
+  const pairs: Array<[GrupoEquipo, GrupoEquipo | null]> = [];
+  for (let index = 0; index < equipos.length; index += 2) {
+    pairs.push([equipos[index], equipos[index + 1] ?? null]);
+  }
+  return pairs;
+}
+
+function TeamSlot({ equipo }: { equipo: GrupoEquipo }) {
+  return (
+    <div className="flex min-w-0 flex-1 items-center gap-3 rounded-xl border border-slate-100 bg-white px-3 py-2 shadow-sm">
+      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-slate-50 ring-1 ring-slate-200">
+        <CountryFlag code={equipo.bandera} countryName={equipo.paisNombre} className="text-xl" />
+      </div>
+      <div className="min-w-0">
+        <p className="truncate text-sm font-black text-slate-950">{equipo.equipoNombre}</p>
+        <p className="truncate text-xs font-semibold text-slate-500">{equipo.paisNombre ?? "Sin país asignado"}</p>
+      </div>
+    </div>
+  );
+}
 
 export function SorteosClient() {
   const [deportes, setDeportes] = useState<Deporte[]>([]);
@@ -58,7 +82,7 @@ export function SorteosClient() {
       await alerts.warning("Sorteo no disponible", "Se requieren al menos dos equipos confirmados para generar grupos.");
       return;
     }
-    const result = await alerts.confirm("Generar sorteo", "Se reemplazaran los grupos existentes del deporte seleccionado.");
+    const result = await alerts.confirm("Generar sorteo", "Se reemplazarán los grupos existentes del deporte seleccionado.");
     if (!result.isConfirmed || !deporteId) return;
     alerts.loading("Generando grupos");
     try {
@@ -77,7 +101,7 @@ export function SorteosClient() {
       <PageHeader
         title="Sorteos"
         description="Genera series aleatorias por deporte con equipos confirmados."
-        action={<PrimaryActionButton onClick={generar} disabled={!puedeGenerar}>Generar sorteo</PrimaryActionButton>}
+        action={<PrimaryActionButton onClick={generar} disabled={!puedeGenerar}><Shuffle size={16} /> Generar sorteo</PrimaryActionButton>}
       />
 
       <div className="mb-4 rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
@@ -120,7 +144,7 @@ export function SorteosClient() {
         </div>
         {!puedeGenerar && (
           <div className="mt-4 rounded-lg border border-amber-100 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-700">
-            El boton de sorteo se habilita cuando existan al menos dos equipos confirmados.
+            El botón de sorteo se habilita cuando existan al menos dos equipos confirmados.
           </div>
         )}
       </div>
@@ -135,7 +159,7 @@ export function SorteosClient() {
         </div>
         {inscripciones.length === 0 ? (
           <div className="rounded-lg border border-amber-100 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-700">
-            Aun no hay equipos inscritos para este deporte.
+            Aún no hay equipos inscritos para este deporte.
           </div>
         ) : (
           <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
@@ -157,21 +181,50 @@ export function SorteosClient() {
       {loading ? <LoadingState /> : grupos.length === 0 ? (
         <EmptyState title="Sin grupos generados" description="Genera el sorteo cuando tengas al menos dos equipos confirmados." />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-4 lg:grid-cols-2">
           {grupos.map((grupo) => (
             <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl" key={grupo.id}>
-                <div className="mb-3 flex items-center justify-between gap-3">
-                  <h3 className="m-0 text-lg font-extrabold text-slate-950">{grupo.nombre}</h3>
-                  <Badge>{grupo.deporteNombre}</Badge>
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="m-0 text-lg font-black text-slate-950">{grupo.nombre}</h3>
+                  <p className="text-sm font-semibold text-slate-500">Cruces sugeridos por posición de sorteo</p>
                 </div>
-                <ol className="space-y-2">
-                  {grupo.equipos.map((equipo) => (
-                    <li className="flex items-center justify-between rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700" key={equipo.equipoId}>
-                      <span>{equipo.equipoNombre}</span>
-                      <Badge tone="slate">Pos. {equipo.posicion}</Badge>
-                    </li>
-                  ))}
-                </ol>
+                <Badge>{grupo.deporteNombre}</Badge>
+              </div>
+
+              <div className="mb-4 grid gap-3">
+                {pairTeams(grupo.equipos).map(([local, visitante], index) => (
+                  <div className="rounded-2xl border border-slate-100 bg-slate-50 p-3" key={`${local.equipoId}-${visitante?.equipoId ?? "libre"}`}>
+                    <div className="mb-2 flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-slate-400">
+                      <Trophy size={14} />
+                      Cruce {index + 1}
+                    </div>
+                    <div className="grid items-center gap-3 md:grid-cols-[minmax(0,1fr)_44px_minmax(0,1fr)]">
+                      <TeamSlot equipo={local} />
+                      <span className="grid h-11 place-items-center rounded-full bg-blue-600 text-xs font-black text-white">VS</span>
+                      {visitante ? (
+                        <TeamSlot equipo={visitante} />
+                      ) : (
+                        <div className="rounded-xl border border-dashed border-slate-200 bg-white px-3 py-3 text-center text-sm font-bold text-slate-400">
+                          Libre
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <ol className="space-y-2">
+                {grupo.equipos.map((equipo) => (
+                  <li className="flex items-center justify-between rounded-lg border border-slate-100 bg-white px-3 py-2 text-sm font-semibold text-slate-700" key={equipo.equipoId}>
+                    <span className="flex min-w-0 items-center gap-2">
+                      <CountryFlag code={equipo.bandera} countryName={equipo.paisNombre} />
+                      <span className="truncate">{equipo.equipoNombre}</span>
+                    </span>
+                    <Badge tone="slate">Pos. {equipo.posicion}</Badge>
+                  </li>
+                ))}
+              </ol>
             </div>
           ))}
         </div>

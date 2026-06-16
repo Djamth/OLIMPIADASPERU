@@ -65,7 +65,7 @@ public class InscripcionService {
     public InscripcionResponse create(InscripcionRequest request) {
         inscripcionRepository.findByEquipoIdAndDeporteId(request.equipoId(), request.deporteId())
                 .ifPresent(existing -> {
-                    throw new BusinessException("El equipo ya esta inscrito en este deporte");
+                    throw new BusinessException("El equipo ya está inscrito en este deporte");
                 });
 
         Inscripcion inscripcion = new Inscripcion();
@@ -92,7 +92,7 @@ public class InscripcionService {
 
     public Inscripcion getEntity(Long id) {
         Inscripcion inscripcion = inscripcionRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Inscripcion no encontrada con id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Inscripción no encontrada con id " + id));
         accessService.validar(inscripcion.getEquipo().getInstitucion().getId());
         return inscripcion;
     }

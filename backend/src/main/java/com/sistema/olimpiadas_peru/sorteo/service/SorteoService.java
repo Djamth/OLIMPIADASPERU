@@ -123,7 +123,18 @@ public class SorteoService {
 
     private GrupoResponse toResponse(Grupo grupo) {
         List<GrupoEquipoResponse> equipos = grupoEquipoRepository.findByGrupoId(grupo.getId()).stream()
-                .map(ge -> new GrupoEquipoResponse(ge.getEquipo().getId(), ge.getEquipo().getNombre(), ge.getPosicion()))
+                .map(ge -> {
+                    var categoria = ge.getEquipo().getCategoriaEvento();
+                    var pais = categoria == null ? null : categoria.getPais();
+                    return new GrupoEquipoResponse(
+                            ge.getEquipo().getId(),
+                            ge.getEquipo().getNombre(),
+                            ge.getPosicion(),
+                            pais == null ? null : pais.getNombre(),
+                            pais == null ? null : pais.getBandera(),
+                            pais == null ? null : pais.getColorPrimario(),
+                            pais == null ? null : pais.getColorSecundario());
+                })
                 .toList();
 
         return new GrupoResponse(

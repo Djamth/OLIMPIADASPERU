@@ -150,6 +150,10 @@ export interface GrupoEquipo {
   equipoId: number;
   equipoNombre: string;
   posicion: number;
+  paisNombre?: string | null;
+  bandera?: string | null;
+  colorPrimario?: string | null;
+  colorSecundario?: string | null;
 }
 
 export interface Grupo {
@@ -290,4 +294,51 @@ export interface RankingEquipo {
   puntos: number;
   tantosFavor: number;
   tantosContra: number;
+}
+
+export interface ReporteEjecutivo {
+  rankingPaises: RankingPais[];
+  medallero: MedalleroPais[];
+  participantesPorInstitucion: ParticipantesInstitucion[];
+  fixture: FixtureReporte[];
+}
+
+export interface RankingPais {
+  paisId: number;
+  pais: string;
+  bandera: string;
+  puntos: number;
+  victorias: number;
+  empates: number;
+  derrotas: number;
+  tantosFavor: number;
+  tantosContra: number;
+}
+
+export interface MedalleroPais {
+  paisId: number;
+  pais: string;
+  bandera: string;
+  oro: number;
+  plata: number;
+  bronce: number;
+  total: number;
+}
+
+export interface ParticipantesInstitucion {
+  institucionId: number;
+  institucion: string;
+  participantes: number;
+  equipos: number;
+}
+
+export interface FixtureReporte {
+  partidoId: number;
+  deporte: string;
+  grupo: string;
+  equipoLocal: string;
+  equipoVisitante: string;
+  fechaHora: string;
+  sede: string;
+  estado: string;
 }

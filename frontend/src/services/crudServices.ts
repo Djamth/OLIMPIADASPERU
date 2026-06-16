@@ -15,6 +15,7 @@ import type {
   Partido,
   PartidoRequest,
   RankingEquipo,
+  ReporteEjecutivo,
   Resultado,
   ResultadoRequest,
   Pais,
@@ -109,5 +110,12 @@ export const estadisticaService = {
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
+  },
+};
+
+export const reporteEjecutivoService = {
+  async obtener(eventoId: number) {
+    const { data } = await api.get<ReporteEjecutivo>(`/api/reportes/eventos/${eventoId}/ejecutivo`);
+    return data;
   },
 };

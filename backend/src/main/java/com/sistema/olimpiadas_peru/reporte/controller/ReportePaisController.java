@@ -1,6 +1,7 @@
 package com.sistema.olimpiadas_peru.reporte.controller;
 
 import com.sistema.olimpiadas_peru.reporte.dto.ReportePaisResponse;
+import com.sistema.olimpiadas_peru.reporte.dto.ReporteEjecutivoResponse;
 import com.sistema.olimpiadas_peru.reporte.service.ReportePaisService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -21,5 +22,10 @@ public class ReportePaisController {
     @GetMapping("/{eventoId}/paises")
     public List<ReportePaisResponse> porPaises(@PathVariable Long eventoId) {
         return service.generar(eventoId);
+    }
+
+    @GetMapping("/{eventoId}/ejecutivo")
+    public ReporteEjecutivoResponse ejecutivo(@PathVariable Long eventoId) {
+        return service.generarEjecutivo(eventoId);
     }
 }

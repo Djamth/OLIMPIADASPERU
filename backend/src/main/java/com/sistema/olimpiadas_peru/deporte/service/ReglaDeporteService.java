@@ -4,11 +4,11 @@ import com.sistema.olimpiadas_peru.common.enums.Genero;
 import com.sistema.olimpiadas_peru.common.exception.BusinessException;
 import com.sistema.olimpiadas_peru.deporte.entity.Deporte;
 import com.sistema.olimpiadas_peru.equipo.entity.Equipo;
-import java.util.Locale;
-import java.util.List;
-import com.sistema.olimpiadas_peru.resultado.dto.ResultadoAnotacionRequest;
 import com.sistema.olimpiadas_peru.participante.service.ParticipanteService;
 import com.sistema.olimpiadas_peru.participante.service.PlantillaEquipoService;
+import com.sistema.olimpiadas_peru.resultado.dto.ResultadoAnotacionRequest;
+import java.util.List;
+import java.util.Locale;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -25,7 +25,8 @@ public class ReglaDeporteService {
         };
 
         if (numeroEsperado != null && !numeroEsperado.equals(numeroJugadores)) {
-            throw new BusinessException("El deporte " + nombreNormalizado + " debe registrarse con " + numeroEsperado + " jugadores");
+            throw new BusinessException("El deporte " + etiquetaDeporte(nombreNormalizado)
+                    + " debe registrarse con " + numeroEsperado + " jugadores");
         }
     }
 
@@ -39,14 +40,15 @@ public class ReglaDeporteService {
         };
 
         if (generoRequerido != null && equipo.getGenero() != generoRequerido) {
-            throw new BusinessException("El deporte " + nombreDeporte + " solo permite equipos con genero " + generoRequerido);
+            throw new BusinessException("Regla de " + etiquetaDeporte(nombreDeporte) + ": "
+                    + descripcionGenero(nombreDeporte) + ". El equipo seleccionado es " + equipo.getGenero());
         }
     }
 
     public void validarEquipoCompleto(Deporte deporte, long participantesRegistrados) {
         if (participantesRegistrados < deporte.getNumeroJugadores()) {
-            throw new BusinessException("El equipo no cumple el minimo de participantes para "
-                    + normalizar(deporte.getNombre()) + ": requiere "
+            throw new BusinessException("El equipo no cumple el mínimo de participantes para "
+                    + etiquetaDeporte(normalizar(deporte.getNombre())) + ": requiere "
                     + deporte.getNumeroJugadores() + " y solo tiene " + participantesRegistrados);
         }
     }
@@ -59,10 +61,10 @@ public class ReglaDeporteService {
         String nombre = normalizar(deporte.getNombre());
         if (("BASQUET".equals(nombre) || "VOLEY".equals(nombre) || "PING_PONG".equals(nombre))
                 && puntajeLocal == puntajeVisitante) {
-            throw new BusinessException("El deporte " + nombre + " no permite resultados empatados");
+            throw new BusinessException("El deporte " + etiquetaDeporte(nombre) + " no permite resultados empatados");
         }
         if ("VOLEY".equals(nombre) && Math.max(puntajeLocal, puntajeVisitante) < 2) {
-            throw new BusinessException("En voley el ganador debe alcanzar al menos 2 sets");
+            throw new BusinessException("En vóley el ganador debe alcanzar al menos 2 sets");
         }
         if ("PING_PONG".equals(nombre) && Math.max(puntajeLocal, puntajeVisitante) < 2) {
             throw new BusinessException("En ping pong el ganador debe alcanzar al menos 2 sets");
@@ -86,5 +88,25 @@ public class ReglaDeporteService {
 
     private String normalizar(String nombreDeporte) {
         return nombreDeporte == null ? "" : nombreDeporte.trim().toUpperCase(Locale.ROOT);
+    }
+
+    private String etiquetaDeporte(String nombreNormalizado) {
+        return switch (nombreNormalizado) {
+            case "FUTBOL" -> "Fútbol varones";
+            case "BASQUET" -> "Básquet varones";
+            case "VOLEY" -> "Vóley damas";
+            case "PING_PONG" -> "Ping pong mixto";
+            default -> nombreNormalizado;
+        };
+    }
+
+    private String descripcionGenero(String nombreNormalizado) {
+        return switch (nombreNormalizado) {
+            case "FUTBOL" -> "solo permite equipos masculinos";
+            case "BASQUET" -> "solo permite equipos masculinos";
+            case "VOLEY" -> "solo permite equipos femeninos";
+            case "PING_PONG" -> "solo permite equipos mixtos";
+            default -> "el género del equipo debe coincidir con la regla del deporte";
+        };
     }
 }

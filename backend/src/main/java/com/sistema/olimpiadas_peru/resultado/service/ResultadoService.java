@@ -16,6 +16,7 @@ import com.sistema.olimpiadas_peru.resultado.dto.ResultadoAnotacionRequest;
 import com.sistema.olimpiadas_peru.resultado.dto.ResultadoAnotacionResponse;
 import com.sistema.olimpiadas_peru.resultado.dto.ResultadoRequest;
 import com.sistema.olimpiadas_peru.resultado.dto.ResultadoResponse;
+import com.sistema.olimpiadas_peru.resultado.event.ResultadoRegistradoEvent;
 import com.sistema.olimpiadas_peru.resultado.entity.Resultado;
 import com.sistema.olimpiadas_peru.resultado.entity.ResultadoAnotacion;
 import com.sistema.olimpiadas_peru.resultado.repository.ResultadoAnotacionRepository;
@@ -25,6 +26,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +41,7 @@ public class ResultadoService {
     private final PlantillaEquipoService plantillaEquipoService;
     private final EventoReglaService eventoReglaService;
     private final InstitucionAccessService accessService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public List<ResultadoResponse> findAll(Long deporteId) {
         List<Resultado> resultados = deporteId == null
@@ -77,7 +80,9 @@ public class ResultadoService {
 
         Resultado resultado = new Resultado();
         applyChanges(resultado, request);
-        return toResponse(resultadoRepository.save(resultado));
+        Resultado guardado = resultadoRepository.save(resultado);
+        publicarResultado(guardado);
+        return toResponse(guardado);
     }
 
     @Transactional
@@ -87,9 +92,11 @@ public class ResultadoService {
                 .filter(existing -> !existing.getId().equals(id))
                 .ifPresent(existing -> {
                     throw new BusinessException("El partido ya tiene un resultado registrado");
-                });
+        });
         applyChanges(resultado, request);
-        return toResponse(resultadoRepository.save(resultado));
+        Resultado guardado = resultadoRepository.save(resultado);
+        publicarResultado(guardado);
+        return toResponse(guardado);
     }
 
     @Transactional
@@ -186,5 +193,17 @@ public class ResultadoService {
         return accessService.institucionActual()
                 .map(id -> id.equals(resultado.getPartido().getEquipoLocal().getInstitucion().getId()))
                 .orElse(true);
+    }
+
+    private void publicarResultado(Resultado resultado) {
+        Partido partido = resultado.getPartido();
+        eventPublisher.publishEvent(new ResultadoRegistradoEvent(
+                partido.getEquipoLocal().getInstitucion().getEmail(),
+                partido.getEquipoVisitante().getInstitucion().getEmail(),
+                partido.getDeporte().getNombre(),
+                partido.getEquipoLocal().getNombre(),
+                partido.getEquipoVisitante().getNombre(),
+                resultado.getPuntajeLocal(),
+                resultado.getPuntajeVisitante()));
     }
 }

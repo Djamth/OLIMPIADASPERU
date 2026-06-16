@@ -19,8 +19,7 @@ import type {
   Pais,
 } from "@/types/catalogs";
 import { alerts, getErrorMessage } from "@/utils/alerts";
-import { Flag, Sparkles } from "lucide-react";
-import { CopyPlus } from "lucide-react";
+import { CopyPlus, Flag, Sparkles } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 const currentYear = new Date().getFullYear();
@@ -92,6 +91,14 @@ export function EventosClient() {
     return result;
   }, [categorias]);
 
+  const selectedPais = paises.find((item) => item.id === categoryForm.paisId);
+  const duplicateCountry = selectedPais
+    ? categorias.find((item) =>
+      item.eventoId === categoryForm.eventoId
+      && item.id !== editingCategory?.id
+      && item.paisId === selectedPais.id)
+    : null;
+
   const openEvent = (item?: Evento) => {
     setEditingEvent(item ?? null);
     setEventForm(item ? {
@@ -128,6 +135,10 @@ export function EventosClient() {
 
   const saveCategory = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (duplicateCountry) {
+      await alerts.warning("País repetido", `${selectedPais?.nombre} ya está asignado a ${duplicateCountry.nombre} en este evento.`);
+      return;
+    }
     setSubmitting(true);
     try {
       if (editingCategory) await categoriaEventoService.update(editingCategory.id, categoryForm);
@@ -230,9 +241,14 @@ export function EventosClient() {
                 <div className="h-2" style={{ background: `linear-gradient(90deg, ${item.colorPrimario}, ${item.colorSecundario})` }} />
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-4">
-                      <div><p className="flex items-center gap-2 text-lg font-black text-slate-950"><CountryFlag code={item.bandera} countryName={item.paisNombre} className="text-xl" /> {item.paisNombre}</p>
+                    <div>
+                      <p className="flex items-center gap-2 text-lg font-black text-slate-950">
+                        <CountryFlag code={item.bandera} countryName={item.paisNombre} className="text-xl" />
+                        {item.paisNombre}
+                      </p>
                       <p className="mt-1 text-sm font-bold text-slate-600">{item.nombre}</p>
-                      <p className="text-xs text-slate-400">{item.eventoNombre}</p></div>
+                      <p className="text-xs text-slate-400">{item.eventoNombre}</p>
+                    </div>
                     <RowActions onEdit={() => openCategory(item)} onDelete={() => removeCategory(item)} />
                   </div>
                 </div>
@@ -259,6 +275,36 @@ export function EventosClient() {
           <div><label className={labelClass}>Categoría</label><input className={fieldClass} placeholder="Ej. Primer año" value={categoryForm.nombre} onChange={(e) => setCategoryForm({ ...categoryForm, nombre: e.target.value })} required /></div>
           <div><label className={labelClass}>Nivel</label><input className={fieldClass} placeholder="Ej. Secundaria" value={categoryForm.nivel ?? ""} onChange={(e) => setCategoryForm({ ...categoryForm, nivel: e.target.value })} /></div>
           <div><label className={labelClass}>País</label><select className={fieldClass} value={categoryForm.paisId ?? ""} onChange={(e) => setCategoryForm({ ...categoryForm, paisId: e.target.value ? Number(e.target.value) : null })}><option value="">Asignar automáticamente</option>{paises.map((item) => <option key={item.id} value={item.id}>{item.bandera.toUpperCase()} - {item.nombre}</option>)}</select></div>
+
+          <div className="md:col-span-2">
+            {selectedPais ? (
+              <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                <div className="h-2" style={{ background: `linear-gradient(90deg, ${selectedPais.colorPrimario}, ${selectedPais.colorSecundario})` }} />
+                <div className="flex flex-wrap items-center justify-between gap-3 p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="grid h-12 w-12 place-items-center rounded-xl bg-slate-50 ring-1 ring-slate-200">
+                      <CountryFlag code={selectedPais.bandera} countryName={selectedPais.nombre} className="text-2xl" />
+                    </div>
+                    <div>
+                      <p className="text-base font-black text-slate-950">{selectedPais.nombre}</p>
+                      <p className="text-sm font-semibold text-slate-500">{selectedPais.codigo} · {selectedPais.datoCultural}</p>
+                    </div>
+                  </div>
+                  <Badge tone={duplicateCountry ? "red" : "green"}>{duplicateCountry ? "País repetido" : "Disponible"}</Badge>
+                </div>
+                {duplicateCountry && (
+                  <div className="border-t border-red-100 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                    {selectedPais.nombre} ya está asignado a la categoría {duplicateCountry.nombre}. El backend también bloqueará esta repetición.
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700">
+                Si dejas el país vacío, el sistema asignará automáticamente uno disponible para este evento.
+              </div>
+            )}
+          </div>
+
           <div className="md:col-span-2"><label className={labelClass}>Descripción</label><textarea className={fieldClass} value={categoryForm.descripcion ?? ""} onChange={(e) => setCategoryForm({ ...categoryForm, descripcion: e.target.value })} /></div>
         </div>
       </FormModal>

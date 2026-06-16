@@ -13,6 +13,7 @@ import com.sistema.olimpiadas_peru.participante.repository.ParticipanteRepositor
 import com.sistema.olimpiadas_peru.participante.service.PlantillaEquipoService;
 import com.sistema.olimpiadas_peru.evento.service.EventoReglaService;
 import com.sistema.olimpiadas_peru.auth1.security.InstitucionAccessService;
+import com.sistema.olimpiadas_peru.programacion.event.PartidoProgramadoEvent;
 import com.sistema.olimpiadas_peru.programacion.dto.PartidoRequest;
 import com.sistema.olimpiadas_peru.programacion.dto.PartidoResponse;
 import com.sistema.olimpiadas_peru.programacion.entity.Partido;
@@ -24,6 +25,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +43,7 @@ public class ProgramacionService {
     private final PlantillaEquipoService plantillaEquipoService;
     private final EventoReglaService eventoReglaService;
     private final InstitucionAccessService accessService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public List<PartidoResponse> findAll(Long deporteId) {
         List<Partido> partidos = deporteId == null
@@ -61,7 +64,9 @@ public class ProgramacionService {
         validarEquipos(request, null);
         Partido partido = new Partido();
         applyChanges(partido, request);
-        return toResponse(partidoRepository.save(partido));
+        Partido guardado = partidoRepository.save(partido);
+        publicarProgramacion(guardado, false);
+        return toResponse(guardado);
     }
 
     @Transactional
@@ -69,7 +74,9 @@ public class ProgramacionService {
         validarEquipos(request, id);
         Partido partido = getEntity(id);
         applyChanges(partido, request);
-        return toResponse(partidoRepository.save(partido));
+        Partido guardado = partidoRepository.save(partido);
+        publicarProgramacion(guardado, true);
+        return toResponse(guardado);
     }
 
     @Transactional
@@ -86,7 +93,7 @@ public class ProgramacionService {
 
     private void validarEquipos(PartidoRequest request, Long partidoId) {
         if (request.equipoLocalId().equals(request.equipoVisitanteId())) {
-            throw new BusinessException("Un equipo no puede jugar contra si mismo");
+            throw new BusinessException("Un equipo no puede jugar contra sí mismo");
         }
 
         Deporte deporte = deporteService.getEntity(request.deporteId());
@@ -110,7 +117,7 @@ public class ProgramacionService {
                 : partidoRepository.existsByFechaHoraAndSedeIgnoreCaseAndIdNot(
                         request.fechaHora(), request.sede(), partidoId);
         if (sedeOcupada) {
-            throw new BusinessException("La sede ya esta ocupada en ese horario");
+            throw new BusinessException("La sede ya está ocupada en ese horario");
         }
 
         validarEquipoHabilitadoParaProgramacion(deporte, equipoLocal);
@@ -151,7 +158,7 @@ public class ProgramacionService {
     private void validarEquipoHabilitadoParaProgramacion(Deporte deporte, Equipo equipo) {
         inscripcionRepository.findByEquipoIdAndDeporteIdAndEstado(equipo.getId(), deporte.getId(), EstadoInscripcion.CONFIRMADA)
                 .orElseThrow(() -> new BusinessException(
-                        "El equipo " + equipo.getNombre() + " no tiene una inscripcion confirmada para " + deporte.getNombre()));
+                        "El equipo " + equipo.getNombre() + " no tiene una inscripción confirmada para " + deporte.getNombre()));
 
         long count = plantillaEquipoService.countByEquipo(equipo.getId());
         reglaDeporteService.validarEquipoCompleto(deporte,
@@ -172,5 +179,17 @@ public class ProgramacionService {
                 partido.getFechaHora(),
                 partido.getSede(),
                 partido.getEstado());
+    }
+
+    private void publicarProgramacion(Partido partido, boolean reprogramado) {
+        eventPublisher.publishEvent(new PartidoProgramadoEvent(
+                partido.getEquipoLocal().getInstitucion().getEmail(),
+                partido.getEquipoVisitante().getInstitucion().getEmail(),
+                partido.getDeporte().getNombre(),
+                partido.getEquipoLocal().getNombre(),
+                partido.getEquipoVisitante().getNombre(),
+                partido.getFechaHora(),
+                partido.getSede(),
+                reprogramado));
     }
 }

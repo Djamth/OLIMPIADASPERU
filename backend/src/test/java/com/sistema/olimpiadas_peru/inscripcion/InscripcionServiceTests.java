@@ -98,7 +98,7 @@ class InscripcionServiceTests {
                 EstadoInscripcion.CONFIRMADA,
                 LocalDate.now())))
                 .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("minimo de participantes");
+                .hasMessageContaining("mínimo de participantes");
     }
 
     private Equipo crearEquipo(String nombre, Genero genero, Institucion institucion) {

@@ -23,24 +23,22 @@ public class InscripcionNotificationListener {
         String contenido = """
             Hola %s,
 
-            La inscripcion del equipo %s en el deporte %s fue confirmada correctamente.
+            La inscripción del equipo %s en el deporte %s fue confirmada correctamente.
 
             Las fechas, sedes y próximos encuentros se publicarán en el portal de Olimpiadas Perú.
             """.formatted(event.institucion(), event.equipo(), event.deporte());
 
         try {
             emailService.enviarCorreo(
-                event.destinatario(),
-                "Inscripción confirmada - Olimpiadas Perú",
-                contenido
-            );
+                    event.destinatario(),
+                    "Inscripción confirmada - Olimpiadas Perú",
+                    contenido);
         } catch (RuntimeException exception) {
             log.error(
-                "No se pudo enviar la confirmacion de inscripcion del equipo {} a {}",
-                event.equipo(),
-                event.destinatario(),
-                exception
-            );
+                    "No se pudo enviar la confirmación de inscripción del equipo {} a {}",
+                    event.equipo(),
+                    event.destinatario(),
+                    exception);
         }
     }
 }

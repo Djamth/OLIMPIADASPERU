@@ -6,6 +6,7 @@ import com.sistema.olimpiadas_peru.common.exception.BusinessException;
 import com.sistema.olimpiadas_peru.common.exception.ResourceNotFoundException;
 import com.sistema.olimpiadas_peru.deporte.entity.Deporte;
 import com.sistema.olimpiadas_peru.deporte.service.DeporteService;
+import com.sistema.olimpiadas_peru.deporte.service.ReglaDeporteService;
 import com.sistema.olimpiadas_peru.equipo.dto.EquipoRequest;
 import com.sistema.olimpiadas_peru.equipo.dto.EquipoResponse;
 import com.sistema.olimpiadas_peru.equipo.entity.Equipo;
@@ -27,6 +28,7 @@ public class EquipoService {
     private final InstitucionService institucionService;
     private final CategoriaEventoService categoriaEventoService;
     private final DeporteService deporteService;
+    private final ReglaDeporteService reglaDeporteService;
     private final EventoReglaService eventoReglaService;
     private final InstitucionAccessService accessService;
 
@@ -81,14 +83,15 @@ public class EquipoService {
         eventoReglaService.validarInscripciones(categoriaEvento.getEvento());
         Deporte deporte = deporteService.getEntity(request.deporteId());
         if (!categoriaEvento.getEvento().getInstitucion().getId().equals(request.institucionId())) {
-            throw new BusinessException("La categoria no pertenece a la institucion seleccionada");
+            throw new BusinessException("La categoría no pertenece a la institución seleccionada");
         }
+        reglaDeporteService.validarInscripcion(deporte, equipo);
         boolean duplicado = equipo.getId() == null
                 ? equipoRepository.existsByCategoriaEventoIdAndDeporteId(categoriaEvento.getId(), deporte.getId())
                 : equipoRepository.existsByCategoriaEventoIdAndDeporteIdAndIdNot(
                         categoriaEvento.getId(), deporte.getId(), equipo.getId());
         if (duplicado) {
-            throw new BusinessException("La categoria ya tiene un equipo inscrito para este deporte");
+            throw new BusinessException("La categoría ya tiene un equipo inscrito para este deporte");
         }
         equipo.setInstitucion(categoriaEvento.getEvento().getInstitucion());
         equipo.setCategoriaEvento(categoriaEvento);
