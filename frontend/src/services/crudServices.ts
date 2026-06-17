@@ -48,6 +48,21 @@ function crudService<T, R>(path: string) {
   };
 }
 
+async function downloadBlob(path: string, fallbackName: string) {
+  const response = await api.get<Blob>(path, { responseType: "blob" });
+  const disposition = String(response.headers["content-disposition"] ?? "");
+  const match = disposition.match(/filename="?([^";]+)"?/i);
+  const fileName = match?.[1] ?? fallbackName;
+  const url = URL.createObjectURL(response.data);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
 export const deporteService = crudService<Deporte, DeporteRequest>("/api/deportes");
 export const institucionService = crudService<Institucion, InstitucionRequest>("/api/instituciones");
 export const equipoService = crudService<Equipo, EquipoRequest>("/api/equipos");
@@ -95,21 +110,8 @@ export const estadisticaService = {
     return data;
   },
   async descargarReporte(deporteId: number, formato: "pdf" | "excel") {
-    const response = await api.get<Blob>(`/api/reportes/estadisticas/${deporteId}/${formato}`, {
-      responseType: "blob",
-    });
-    const disposition = String(response.headers["content-disposition"] ?? "");
-    const match = disposition.match(/filename="?([^";]+)"?/i);
     const extension = formato === "excel" ? "xlsx" : "pdf";
-    const fileName = match?.[1] ?? `estadisticas-${deporteId}.${extension}`;
-    const url = URL.createObjectURL(response.data);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
+    await downloadBlob(`/api/reportes/estadisticas/${deporteId}/${formato}`, `estadisticas-${deporteId}.${extension}`);
   },
 };
 
@@ -117,5 +119,9 @@ export const reporteEjecutivoService = {
   async obtener(eventoId: number) {
     const { data } = await api.get<ReporteEjecutivo>(`/api/reportes/eventos/${eventoId}/ejecutivo`);
     return data;
+  },
+  async descargar(eventoId: number, formato: "pdf" | "excel") {
+    const extension = formato === "excel" ? "xlsx" : "pdf";
+    await downloadBlob(`/api/reportes/eventos/${eventoId}/ejecutivo/${formato}`, `reporte-ejecutivo-${eventoId}.${extension}`);
   },
 };

@@ -50,11 +50,11 @@ export default function LoginPage() {
     "h-14 w-full rounded-r-xl border border-l-0 border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10";
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_8%_10%,rgba(21,101,192,0.12),transparent_26%),linear-gradient(135deg,#f8fbff,#eef4fb)] p-4 text-slate-950 md:p-7">
-      <section className="mx-auto grid min-h-[calc(100vh-3.5rem)] max-w-7xl overflow-hidden rounded-[28px] border border-white/80 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.16)] lg:grid-cols-[1.38fr_1fr]">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_8%_10%,rgba(21,101,192,0.12),transparent_26%),linear-gradient(135deg,#f8fbff,#eef4fb)] text-slate-950">
+      <section className="grid min-h-screen overflow-hidden bg-white shadow-[0_30px_90px_rgba(15,23,42,0.16)] lg:grid-cols-[1.38fr_1fr]">
         <div className="relative hidden overflow-hidden bg-slate-950 lg:block">
           <div className="absolute inset-0 bg-[url('/images/fondo.png')] bg-cover bg-center" />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,20,52,0.22),rgba(4,20,52,0.58)),radial-gradient(circle_at_50%_24%,rgba(21,101,192,0.18),transparent_28%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,20,52,0.22),rgba(4,20,52,0.99)),radial-gradient(circle_at_50%_24%,rgba(21,101,192,0.18),transparent_28%)]" />
           <div className="absolute left-8 top-8 h-40 w-40 rounded-full border border-sky-300/10 bg-[radial-gradient(circle,rgba(56,189,248,0.22)_1px,transparent_1px)] bg-[length:16px_16px] opacity-70" />
           <div className="absolute bottom-8 right-8 h-32 w-52 rounded-full border border-sky-300/10 bg-[radial-gradient(circle,rgba(255,255,255,0.22)_1px,transparent_1px)] bg-[length:14px_14px] opacity-60" />
 
@@ -83,7 +83,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <div className="flex items-center justify-center bg-white px-5 py-10 md:px-10">
+        <div className="flex min-h-screen items-center justify-center bg-white px-5 py-10 md:px-10">
           <section className="w-full max-w-md">
             <div className="mb-9 text-center">
               <div className="mx-auto mb-5 grid h-20 w-20 place-items-center rounded-full border border-slate-200 bg-slate-50 text-blue-600 shadow-[0_16px_34px_rgba(15,23,42,0.08)]">
@@ -171,15 +171,6 @@ export default function LoginPage() {
                 )}
               </button>
             </form>
-
-            <div className="my-8 flex items-center gap-4">
-              <div className="h-px flex-1 bg-slate-200" />
-              <span className="text-sm font-black text-slate-400">o</span>
-              <div className="h-px flex-1 bg-slate-200" />
-            </div>
-
-
-           
           </section>
         </div>
       </section>

@@ -80,7 +80,7 @@ public class ReporteEstadisticaService {
             document.add(spacer(14));
             document.add(buildSectionHeader(
                 "Rendimiento individual",
-                "Participantes destacados segun las anotaciones cargadas en cada encuentro."
+                "Participantes destacados según las anotaciones cargadas en cada encuentro."
             ));
             document.add(spacer(6));
             document.add(buildIndividualTable(data.individuales));
@@ -105,7 +105,7 @@ public class ReporteEstadisticaService {
         brand.setBackgroundColor(NAVY);
         brand.setPadding(18);
         Paragraph eyebrow = new Paragraph(
-            "SISTEMA DE GESTION DEPORTIVA",
+            "SISTEMA DE GESTIÓN DEPORTIVA",
             FontFactory.getFont(FontFactory.HELVETICA_BOLD, 8, LIGHT_BLUE)
         );
         eyebrow.setSpacingAfter(5);
@@ -115,7 +115,7 @@ public class ReporteEstadisticaService {
             FontFactory.getFont(FontFactory.HELVETICA_BOLD, 22, Color.WHITE)
         ));
         Paragraph reportName = new Paragraph(
-            "Reporte oficial de estadisticas",
+            "Reporte oficial de estadísticas",
             FontFactory.getFont(FontFactory.HELVETICA, 10, new Color(203, 219, 239))
         );
         reportName.setSpacingBefore(3);
@@ -150,7 +150,7 @@ public class ReporteEstadisticaService {
         PdfPTable cards = new PdfPTable(4);
         cards.setWidthPercentage(100);
         cards.setSpacingBefore(2);
-        addSummaryCard(cards, "EQUIPOS", String.valueOf(data.ranking.size()), "con clasificacion");
+        addSummaryCard(cards, "EQUIPOS", String.valueOf(data.ranking.size()), "con clasificación");
         addSummaryCard(cards, "PARTIDOS", String.valueOf(partidos), "finalizados");
         addSummaryCard(cards, "LIDER", lider, "tabla general");
         addSummaryCard(cards, "DESTACADO", destacado, anotaciones + " anotaciones totales");
@@ -252,7 +252,7 @@ public class ReporteEstadisticaService {
             addPdfCell(table, item.tantosContra(), rowColor);
             addPdfCell(table, item.tantosFavor() - item.tantosContra(), rowColor);
         }
-        addEmptyState(table, ranking.isEmpty(), 10, "Aun no existen resultados para generar la clasificacion.");
+        addEmptyState(table, ranking.isEmpty(), 10, "Aún no existen resultados para generar la clasificación.");
         return table;
     }
 
@@ -270,7 +270,7 @@ public class ReporteEstadisticaService {
             addPdfCell(table, item.indicador(), rowColor, Element.ALIGN_LEFT, false);
             addPdfCell(table, item.anotaciones(), rowColor, Element.ALIGN_CENTER, true);
         }
-        addEmptyState(table, individuales.isEmpty(), 5, "No se registraron estadisticas individuales.");
+        addEmptyState(table, individuales.isEmpty(), 5, "No se registraron estadísticas individuales.");
         return table;
     }
 
@@ -354,7 +354,7 @@ public class ReporteEstadisticaService {
         CellStyle headerStyle) {
 
         Sheet sheet = workbook.createSheet("Ranking equipos");
-        String[] headers = {"Posicion", "Equipo", "PJ", "Victorias", "Empates", "Derrotas", "Puntos", "Favor", "Contra", "Diferencia"};
+        String[] headers = {"Posición", "Equipo", "PJ", "Victorias", "Empates", "Derrotas", "Puntos", "Favor", "Contra", "Diferencia"};
         createExcelHeader(sheet, headers, headerStyle);
         for (int index = 0; index < ranking.size(); index++) {
             RankingEquipoResponse item = ranking.get(index);
@@ -379,7 +379,7 @@ public class ReporteEstadisticaService {
         CellStyle headerStyle) {
 
         Sheet sheet = workbook.createSheet("Estadisticas individuales");
-        String[] headers = {"Posicion", "Participante", "Equipo", "Deporte", "Indicador", "Cantidad"};
+        String[] headers = {"Posición", "Participante", "Equipo", "Deporte", "Indicador", "Cantidad"};
         createExcelHeader(sheet, headers, headerStyle);
         for (int index = 0; index < individuales.size(); index++) {
             GoleadorResponse item = individuales.get(index);
@@ -477,7 +477,7 @@ public class ReporteEstadisticaService {
                 );
                 canvas.showTextAligned(
                     Element.ALIGN_RIGHT,
-                    "Pagina " + writer.getPageNumber(),
+                    "Página " + writer.getPageNumber(),
                     page.getWidth() - document.rightMargin(),
                     y,
                     0

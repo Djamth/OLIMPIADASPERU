@@ -1,7 +1,7 @@
 "use client";
 
 import { authService } from "@/services/authService";
-import { getErrorMessage, alerts } from "@/utils/alerts";
+import { alerts, getErrorMessage } from "@/utils/alerts";
 import { ArrowLeft, Loader2, Mail, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -31,23 +31,23 @@ export default function RecuperarPasswordPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-100 p-4 text-slate-950 md:p-7">
-      <section className="mx-auto grid min-h-[calc(100vh-3.5rem)] max-w-6xl overflow-hidden rounded-[28px] border border-white/80 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.14)] lg:grid-cols-[0.95fr_1.05fr]">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_8%_10%,rgba(21,101,192,0.12),transparent_26%),linear-gradient(135deg,#f8fbff,#eef4fb)] text-slate-950">
+      <section className="grid min-h-screen overflow-hidden bg-white shadow-[0_30px_90px_rgba(15,23,42,0.16)] lg:grid-cols-[1.05fr_1fr]">
         <div className="relative hidden overflow-hidden bg-slate-950 lg:block">
           <div className="absolute inset-0 bg-[url('/images/fondo.png')] bg-cover bg-center" />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,20,52,0.18),rgba(4,20,52,0.66))]" />
-          <div className="relative z-10 flex h-full flex-col justify-end p-12 text-white">
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,20,52,0.18),rgba(4,20,52,0.99)),radial-gradient(circle_at_50%_24%,rgba(21,101,192,0.18),transparent_28%)]" />
+          <div className="relative z-10 flex h-full flex-col justify-end p-14 text-white">
             <div className="mb-6 grid h-16 w-16 place-items-center rounded-2xl border border-white/20 bg-white/10 backdrop-blur">
               <ShieldCheck className="text-sky-200" size={34} />
             </div>
-            <h1 className="text-4xl font-black tracking-normal">Recuperación segura</h1>
+            <h1 className="text-5xl font-black tracking-normal">Recuperación segura</h1>
             <p className="mt-4 max-w-md text-sm font-semibold leading-6 text-sky-50/85">
               Enviaremos un código temporal de 6 dígitos al correo registrado para validar el cambio de contraseña.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center justify-center px-5 py-10 md:px-12">
+        <div className="flex min-h-screen items-center justify-center bg-white px-5 py-10 md:px-12">
           <section className="w-full max-w-md">
             <Link className="mb-8 inline-flex items-center gap-2 text-sm font-black text-slate-500 transition hover:text-blue-700" href="/login">
               <ArrowLeft size={18} />
@@ -84,7 +84,7 @@ export default function RecuperarPasswordPage() {
               </label>
 
               <button
-                className="inline-flex h-14 w-full items-center justify-center gap-3 rounded-xl bg-blue-700 px-5 text-base font-black text-white shadow-[0_18px_36px_rgba(37,99,235,0.22)] transition hover:-translate-y-0.5 hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex h-14 w-full items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-blue-700 to-blue-600 px-5 text-base font-black text-white shadow-[0_18px_36px_rgba(37,99,235,0.28)] transition hover:-translate-y-0.5 hover:from-blue-800 hover:to-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
                 type="submit"
                 disabled={submitting}
               >

@@ -45,6 +45,7 @@ export function EstadisticasClient() {
   const [loading, setLoading] = useState(true);
   const [reportLoading, setReportLoading] = useState(false);
   const [downloading, setDownloading] = useState<"pdf" | "excel" | null>(null);
+  const [downloadingExecutive, setDownloadingExecutive] = useState<"pdf" | "excel" | null>(null);
   const selectedDeporte = deportes.find((item) => item.id === deporteId);
   const labels = getSportLabels(selectedDeporte?.nombre);
   const rankingTable = useTableControls(ranking, (item, query) =>
@@ -110,6 +111,19 @@ export function EstadisticasClient() {
     }
   };
 
+  const downloadExecutiveReport = async (format: "pdf" | "excel") => {
+    if (!eventoId) return;
+    setDownloadingExecutive(format);
+    try {
+      await reporteEjecutivoService.descargar(eventoId, format);
+      await alerts.success("Reporte ejecutivo generado", `El archivo ${format.toUpperCase()} se descargó correctamente.`);
+    } catch (error) {
+      await alerts.error("No se pudo generar el reporte ejecutivo", getErrorMessage(error));
+    } finally {
+      setDownloadingExecutive(null);
+    }
+  };
+
   return (
     <>
       <PageHeader
@@ -125,11 +139,19 @@ export function EstadisticasClient() {
             </select>
             <SecondaryButton disabled={!deporteId || Boolean(downloading)} onClick={() => void downloadReport("pdf")}>
               <Download size={16} />
-              {downloading === "pdf" ? "Generando..." : "PDF"}
+              {downloading === "pdf" ? "Generando..." : "PDF deporte"}
             </SecondaryButton>
             <SecondaryButton disabled={!deporteId || Boolean(downloading)} onClick={() => void downloadReport("excel")}>
               <FileSpreadsheet size={16} />
-              {downloading === "excel" ? "Generando..." : "Excel"}
+              {downloading === "excel" ? "Generando..." : "Excel deporte"}
+            </SecondaryButton>
+            <SecondaryButton disabled={!eventoId || Boolean(downloadingExecutive)} onClick={() => void downloadExecutiveReport("pdf")}>
+              <Download size={16} />
+              {downloadingExecutive === "pdf" ? "Generando..." : "PDF ejecutivo"}
+            </SecondaryButton>
+            <SecondaryButton disabled={!eventoId || Boolean(downloadingExecutive)} onClick={() => void downloadExecutiveReport("excel")}>
+              <FileSpreadsheet size={16} />
+              {downloadingExecutive === "excel" ? "Generando..." : "Excel ejecutivo"}
             </SecondaryButton>
           </div>
         }

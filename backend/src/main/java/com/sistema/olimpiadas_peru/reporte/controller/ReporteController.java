@@ -1,6 +1,7 @@
 package com.sistema.olimpiadas_peru.reporte.controller;
 
 import com.sistema.olimpiadas_peru.reporte.dto.ReporteArchivo;
+import com.sistema.olimpiadas_peru.reporte.service.ReporteEjecutivoArchivoService;
 import com.sistema.olimpiadas_peru.reporte.service.ReporteEstadisticaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ContentDisposition;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ReporteController {
 
     private final ReporteEstadisticaService reporteEstadisticaService;
+    private final ReporteEjecutivoArchivoService reporteEjecutivoArchivoService;
 
     @GetMapping("/estadisticas/{deporteId}/pdf")
     public ResponseEntity<byte[]> descargarPdf(@PathVariable Long deporteId) {
@@ -29,6 +31,16 @@ public class ReporteController {
     @GetMapping("/estadisticas/{deporteId}/excel")
     public ResponseEntity<byte[]> descargarExcel(@PathVariable Long deporteId) {
         return fileResponse(reporteEstadisticaService.generarExcel(deporteId));
+    }
+
+    @GetMapping("/eventos/{eventoId}/ejecutivo/pdf")
+    public ResponseEntity<byte[]> descargarEjecutivoPdf(@PathVariable Long eventoId) {
+        return fileResponse(reporteEjecutivoArchivoService.generarPdf(eventoId));
+    }
+
+    @GetMapping("/eventos/{eventoId}/ejecutivo/excel")
+    public ResponseEntity<byte[]> descargarEjecutivoExcel(@PathVariable Long eventoId) {
+        return fileResponse(reporteEjecutivoArchivoService.generarExcel(eventoId));
     }
 
     private ResponseEntity<byte[]> fileResponse(ReporteArchivo reporte) {
