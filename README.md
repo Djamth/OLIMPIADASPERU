@@ -1,56 +1,112 @@
-# Olimpiadas Peru
+# Olimpiadas Perú
 
-Sistema web para la gestion de olimpiadas internas de instituciones educativas. La solucion permite administrar instituciones, deportes, equipos, participantes, inscripciones, sorteos, programacion de contiendas, resultados, estadisticas, usuarios, roles y accesos por modulo.
+Sistema web para la gestión de olimpiadas internas de instituciones educativas. La solución permite administrar el flujo completo del evento: institución, categorías con país representativo, equipos, participantes, inscripciones, sorteos, programación de partidos, resultados, estadísticas, reportes, usuarios, roles y permisos por módulo.
 
-El proyecto esta orientado al segundo entregable APF2: ambiente levantado, trabajo versionado con Git, autenticacion segura, conexion a base de datos sin credenciales hardcodeadas y funcionalidades principales implementadas para validar al menos el 30% de los procesos.
+El proyecto está orientado a una arquitectura de servicios con backend REST en Spring Boot y frontend en Next.js.
 
 ## Arquitectura
 
 ```text
 OLIMPIADASPERU/
-├── backend/    API REST con Spring Boot
-└── frontend/   Panel administrativo con Next.js
+├── backend/     API REST con Spring Boot
+├── frontend/    Portal público y panel administrativo con Next.js
+└── docs/        Guías internas del equipo
 ```
 
-## Tecnologias
+## Tecnologías
 
-| Capa | Tecnologia |
+| Capa | Tecnología |
 | --- | --- |
 | Backend | Java 21, Spring Boot 3.3.5, Spring Security, JWT, Spring Data JPA |
 | Base de datos | PostgreSQL, H2 para pruebas |
-| Documentacion API | Springdoc OpenAPI / Swagger UI |
+| Migraciones/Data | Flyway, semilla demo SQL |
+| Documentación API | Springdoc OpenAPI / Swagger UI |
 | Frontend | Next.js 15, React 19, TypeScript, Tailwind CSS |
 | UI | SweetAlert2, Lucide React |
+| Reportes | PDF/Excel desde backend |
 | Control de versiones | Git / GitHub |
 
-## Modulos Implementados
+## Módulos Implementados
 
-- Autenticacion con JWT y refresh token.
-- Usuarios, roles, modulos y permisos por rol.
+- Portal público con hero deportivo, próximos encuentros y estadísticas.
+- Autenticación con JWT, refresh token y cookies seguras.
+- Recuperación de contraseña por código.
+- Usuarios, roles, módulos y permisos por rol.
 - Instituciones participantes.
-- Deportes obligatorios: futbol varones, basquet varones, voley damas y ping pong mixto.
-- Equipos con pais asignado.
+- Catálogo de países con bandera, colores y dato cultural.
+- Eventos institucionales.
+- Categorías del evento con asignación automática de país.
+- Deportes obligatorios: fútbol varones, básquet varones, vóley damas y ping pong mixto.
+- Equipos por categoría, país y deporte.
 - Participantes por equipo.
 - Inscripciones por deporte.
-- Sorteos y generacion de grupos.
-- Programacion de partidos con fecha, hora, sede y estado.
-- Resultados por contienda.
-- Estadisticas y resumen para dashboard.
-- Auditoria de operaciones relevantes.
+- Sorteos y generación visual de grupos.
+- Programación de partidos con fecha, hora, sede y estado.
+- Registro de resultados y anotaciones individuales.
+- Estadísticas deportivas.
+- Reportes ejecutivos.
+- Auditoría de operaciones relevantes.
+- Notificaciones por correo para eventos importantes.
+
+## Flujo De Negocio Cubierto
+
+El flujo principal implementado sigue el enunciado del negocio:
+
+1. Se registra una institución.
+2. Se crea un evento de olimpiadas internas.
+3. Se registran categorías o grupos del evento.
+4. El sistema asigna países representativos sin repetir país dentro del mismo evento.
+5. Cada categoría registra equipos para los deportes obligatorios.
+6. Se registran participantes por equipo.
+7. Los equipos se inscriben por deporte.
+8. Se realiza el sorteo para formar grupos por deporte.
+9. Se programan partidos entre equipos del grupo/deporte.
+10. Se registran resultados y estadísticas individuales.
+11. Se generan reportes y rankings.
+
+## Data Demo
+
+El backend incluye una semilla reiniciable en:
+
+```text
+backend/src/main/resources/demo-data.sql
+```
+
+Con `DEMO_DATA_ENABLED=true`, al iniciar el backend se limpia y recarga la data demo. La semilla actual contiene:
+
+- 3 instituciones.
+- 1 evento principal.
+- 5 categorías con país asignado.
+- 8 países.
+- 4 deportes obligatorios.
+- 20 equipos.
+- 120 participantes.
+- 20 inscripciones confirmadas.
+- 8 grupos.
+- 10 partidos.
+- 6 resultados.
+- 21 anotaciones individuales.
+
+Para conservar datos creados manualmente, usar:
+
+```env
+DEMO_DATA_ENABLED=false
+```
 
 ## Seguridad
 
-- Las contrasenas de usuarios se almacenan encriptadas con BCrypt.
-- La autenticacion se realiza mediante JWT.
-- Los endpoints protegidos requieren token Bearer.
-- El acceso a modulos se valida por rol en backend y tambien se refleja en el frontend.
-- La configuracion sensible se toma desde variables de entorno.
+- Las contraseñas se almacenan con BCrypt.
+- La autenticación usa JWT.
+- Los endpoints protegidos requieren sesión válida.
+- Los permisos se validan por rol y módulo en backend.
+- El frontend oculta o restringe vistas según módulos autorizados.
+- Las credenciales sensibles se cargan desde variables de entorno.
 - El archivo `.env` local no se versiona.
 - Se incluye `backend/.env.example` como plantilla segura.
 
 ## Variables De Entorno Backend
 
-El backend usa `backend/.env` para desarrollo local. La plantilla disponible es:
+Crear `backend/.env` tomando como base:
 
 ```text
 backend/.env.example
@@ -67,6 +123,8 @@ DB_DRIVER=org.postgresql.Driver
 JPA_DDL_AUTO=update
 JPA_SHOW_SQL=false
 JPA_DIALECT=org.hibernate.dialect.PostgreSQLDialect
+FLYWAY_ENABLED=true
+DEMO_DATA_ENABLED=true
 
 SERVER_PORT=8080
 SERVER_CONTEXT_PATH=/olimpiadas
@@ -88,18 +146,18 @@ APP_FRONTEND_RESET_PASSWORD_URL=http://localhost:3000/reset-password
 PASSWORD_RESET_EXPIRATION_MINUTES=30
 ```
 
-## Ejecucion Backend
+## Ejecución Backend
 
 Requisitos:
 
 - JDK 21.
 - PostgreSQL 14 o superior.
-- Maven Wrapper incluido en el proyecto.
+- Maven o Maven Wrapper.
 
 Desde la carpeta `backend`:
 
 ```bash
-./mvnw spring-boot:run
+mvn spring-boot:run
 ```
 
 En Windows PowerShell:
@@ -108,7 +166,7 @@ En Windows PowerShell:
 .\mvnw.cmd spring-boot:run
 ```
 
-Base URL local:
+Base URL:
 
 ```text
 http://localhost:8080/olimpiadas
@@ -120,18 +178,18 @@ Swagger UI:
 http://localhost:8080/olimpiadas/swagger-ui/index.html
 ```
 
-Ejecutar pruebas:
+Pruebas:
 
 ```powershell
 .\mvnw.cmd test
 ```
 
-## Ejecucion Frontend
+## Ejecución Frontend
 
 Requisitos:
 
 - Node.js 20 o superior.
-- Backend ejecutandose en `http://localhost:8080/olimpiadas`.
+- Backend ejecutándose en `http://localhost:8080/olimpiadas`.
 
 Desde la carpeta `frontend`:
 
@@ -146,21 +204,19 @@ URL local:
 http://localhost:3000
 ```
 
-Variable opcional para la API:
+Variable opcional:
 
 ```env
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8080/olimpiadas
 ```
 
-Compilar frontend:
+Compilar:
 
 ```bash
 npm run build
 ```
 
 ## Credenciales De Prueba
-
-La data inicial del backend incluye usuarios de prueba:
 
 ```text
 Administrador
@@ -180,9 +236,17 @@ Clave: Admin123*
 
 ```text
 POST /api/auth/login
-POST /api/auth/refresh
-GET  /api/dashboard
+POST /api/auth/refresh-token
+POST /api/auth/forgot-password
+POST /api/auth/reset-password
+
+GET  /api/dashboard/resumen
+GET  /api/public/dashboard
+
 GET  /api/instituciones
+GET  /api/paises
+GET  /api/eventos
+GET  /api/categorias-evento
 GET  /api/deportes
 GET  /api/equipos
 GET  /api/participantes
@@ -191,25 +255,59 @@ GET  /api/sorteos
 GET  /api/programaciones
 GET  /api/resultados
 GET  /api/estadisticas
+GET  /api/reportes
+
 GET  /api/usuarios
 GET  /api/roles
 GET  /api/modulos
 GET  /api/auditoria
 ```
 
+## Reportes
+
+El sistema genera reportes para sustentar el avance funcional:
+
+- Ranking por país.
+- Medallero.
+- Participantes por institución.
+- Fixture completo.
+- Reporte ejecutivo en PDF/Excel.
+- Estadísticas por deporte.
+
+## Pruebas
+
+El backend cuenta con pruebas automatizadas para:
+
+- Autenticación y sesión.
+- Reglas por deporte.
+- Participantes.
+- Inscripciones.
+- Sorteos.
+- Programación.
+- Resultados.
+- Dashboard y reportes.
+
+Comando:
+
+```bash
+mvn test
+```
+
 ## Estado Del Proyecto
 
-El sistema ya cuenta con la base funcional para el avance APF2:
+El sistema cubre los bloques clave solicitados para el avance:
 
 - Ambiente backend y frontend levantado.
 - Repositorio versionado con Git.
 - Login seguro con JWT.
-- Passwords encriptados.
-- Conexion a PostgreSQL mediante variables de entorno.
+- Contraseñas encriptadas.
+- Conexión a PostgreSQL mediante variables de entorno.
 - CRUD principales conectados a base de datos.
-- Permisos por rol y modulo.
-- Dashboard con metricas reales.
-- Pruebas automatizadas en backend.
+- Permisos por rol y módulo.
+- Flujo de inscripción con países representativos.
+- Sorteos, programación, resultados y estadísticas.
+- Reportes ejecutivos.
+- Pruebas automatizadas.
 
 ## Autores
 

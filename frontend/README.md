@@ -1,42 +1,44 @@
-# Frontend - Olimpiadas Peru
+# Frontend - Olimpiadas Perú
 
-Frontend administrativo para el sistema **Olimpiadas Peru**, construido con **Next.js**, **TypeScript**, **Tailwind CSS**, **Axios**, **SweetAlert2** y **Lucide React**.
+Frontend del sistema **Olimpiadas Perú**, construido con **Next.js**, **React**, **TypeScript**, **Tailwind CSS**, **Axios**, **SweetAlert2** y **Lucide React**.
 
-La aplicacion permite gestionar instituciones, deportes, equipos, participantes, inscripciones, sorteos, programacion, resultados, estadisticas, usuarios y perfiles con permisos por modulo.
+La aplicación incluye un portal público deportivo y un panel administrativo para gestionar instituciones, países, eventos, categorías, deportes, equipos, participantes, inscripciones, sorteos, programación, resultados, estadísticas, reportes, usuarios y perfiles con permisos por módulo.
 
 ## Requisitos
 
-- Node.js 20 o superior recomendado.
-- Backend Spring Boot ejecutandose.
-- Base de datos backend poblada con usuarios, roles y modulos.
+- Node.js 20 o superior.
+- Backend Spring Boot ejecutándose.
+- PostgreSQL poblado con la semilla demo del backend.
 
-## Instalacion
+## Instalación
+
+Desde la carpeta `frontend`:
 
 ```bash
 npm install
 ```
 
-## Configuracion
+## Configuración
 
-La URL base del backend se toma desde la variable:
+La URL base del backend se toma desde:
 
 ```env
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8080/olimpiadas
 ```
 
-Si no se define, la aplicacion usa por defecto:
+Si no se define, la aplicación usa por defecto:
 
-```ts
+```text
 http://localhost:8080/olimpiadas
 ```
 
-Puedes crear un archivo `.env.local` en la carpeta `frontend`:
+Se puede crear un archivo `.env.local` en `frontend`:
 
 ```env
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8080/olimpiadas
 ```
 
-## Ejecutar en desarrollo
+## Ejecutar En Desarrollo
 
 ```bash
 npm run dev
@@ -48,21 +50,14 @@ URL local:
 http://localhost:3000
 ```
 
-## Compilar produccion
+## Compilar Producción
 
 ```bash
 npm run build
-```
-
-Ejecutar build:
-
-```bash
 npm run start
 ```
 
-## Credenciales de prueba
-
-Estas credenciales dependen de la data cargada en el backend:
+## Credenciales De Prueba
 
 ```text
 Administrador
@@ -78,47 +73,74 @@ Correo: consulta@olimpiadasperu.pe
 Clave: Admin123*
 ```
 
-## Rutas principales
+## Rutas Principales
 
-| Ruta | Descripcion |
+| Ruta | Descripción |
 | --- | --- |
-| `/login` | Inicio de sesion |
+| `/` | Portal público con hero deportivo, próximos encuentros y estadísticas |
+| `/login` | Inicio de sesión administrativo |
+| `/recuperar-password` | Solicitud de recuperación de contraseña |
+| `/reset-password` | Registro de nueva contraseña con código |
 | `/dashboard` | Resumen general conectado al backend |
 | `/instituciones` | CRUD de instituciones |
+| `/paises` | Catálogo de países con bandera y colores |
+| `/eventos` | Gestión de eventos por institución |
 | `/deportes` | CRUD de deportes y reglas base |
-| `/equipos` | CRUD de equipos |
-| `/participantes` | CRUD de participantes |
-| `/inscripciones` | Inscripcion de equipos por deporte |
-| `/sorteos` | Generacion y consulta de grupos |
-| `/programacion` | Programacion de partidos |
-| `/resultados` | Registro de marcadores y anotaciones |
-| `/estadisticas` | Ranking y goleadores |
-| `/usuarios` | Gestion de usuarios |
-| `/perfiles` | Gestion de roles y modulos por rol |
+| `/equipos` | CRUD de equipos por categoría/deporte |
+| `/participantes` | Participantes agrupados por equipo |
+| `/inscripciones` | Inscripción de equipos por deporte y filtro por deporte |
+| `/sorteos` | Equipos inscritos, conteos y grupos generados |
+| `/programacion` | Programación de partidos |
+| `/resultados` | Registro de marcadores y anotaciones individuales |
+| `/estadisticas` | Ranking, goleadores, encestadores y reportes |
+| `/usuarios` | Gestión de usuarios |
+| `/perfiles` | Gestión de roles y módulos por rol |
+| `/modulos` | Gestión de módulos del sistema |
+| `/auditoria` | Consulta de acciones relevantes |
 
-## Seguridad y permisos
+## Flujo Principal Para Probar
 
-El login guarda en `localStorage`:
+1. Iniciar sesión como administrador.
+2. Revisar instituciones y evento demo.
+3. Validar categorías con país asignado.
+4. Revisar equipos por deporte.
+5. Revisar participantes agrupados por equipo.
+6. Filtrar inscripciones por deporte.
+7. Entrar a sorteos y revisar equipos inscritos, confirmados y grupos.
+8. Programar o revisar partidos.
+9. Registrar resultados con anotaciones individuales.
+10. Revisar estadísticas y reportes.
+
+## Seguridad Y Permisos
+
+La sesión se gestiona desde:
+
+```text
+src/context/AuthContext.tsx
+```
+
+El frontend maneja:
 
 - `op_access_token`
 - `op_refresh_token`
 - `op_user`
 
-El token se envia automaticamente en cada request mediante el interceptor de Axios en:
+El token se envía automáticamente mediante el interceptor de Axios en:
 
 ```text
 src/services/api.ts
 ```
 
-El sidebar filtra los modulos visibles segun los modulos devueltos por el login. Adicionalmente, las pantallas sensibles usan:
+Las vistas protegidas usan:
 
 ```text
+src/components/auth/ProtectedPage.tsx
 src/components/auth/RequireModule.tsx
 ```
 
-Si un usuario no tiene permisos, se muestra una vista de acceso restringido.
+El sidebar muestra únicamente los módulos permitidos para el rol autenticado.
 
-## Estructura relevante
+## Estructura Relevante
 
 ```text
 src/app
@@ -126,12 +148,17 @@ src/app
   deportes/
   equipos/
   estadisticas/
+  eventos/
   inscripciones/
   instituciones/
   login/
+  modulos/
+  paises/
   participantes/
   perfiles/
   programacion/
+  recuperar-password/
+  reset-password/
   resultados/
   sorteos/
   usuarios/
@@ -157,9 +184,9 @@ src/types
   admin.ts
 ```
 
-## Componentes reutilizables
+## Componentes Reutilizables
 
-Los CRUD usan componentes comunes para mantener el diseño consistente:
+Los módulos usan componentes comunes para mantener consistencia visual:
 
 - `PageHeader`
 - `TableToolbar`
@@ -174,11 +201,9 @@ Los CRUD usan componentes comunes para mantener el diseño consistente:
 
 ## Servicios
 
-Servicios principales:
-
-- `authService`: login.
-- `crudServices`: instituciones, deportes, equipos, participantes, inscripciones, programacion, resultados, sorteos y estadisticas.
-- `adminServices`: usuarios, roles, modulos y dashboard.
+- `authService`: login, refresh token, recuperación y cierre de sesión.
+- `crudServices`: instituciones, países, eventos, deportes, equipos, participantes, inscripciones, sorteos, programación, resultados, estadísticas y reportes.
+- `adminServices`: usuarios, roles, módulos, auditoría y dashboard.
 
 ## Dashboard
 
@@ -188,28 +213,62 @@ El dashboard consume:
 GET /api/dashboard/resumen
 ```
 
-Este endpoint devuelve:
+Muestra:
 
-- metricas generales
-- avance funcional
-- proximas contiendas
+- métricas generales
+- próximas contiendas
+- actividad reciente
+- accesos rápidos
 
-## Alertas y modales
+## Portal Público
 
-Las alertas de exito, error, confirmacion y carga se centralizan en:
+La ruta `/` es independiente del panel administrativo. Está orientada a visitantes y muestra:
+
+- hero deportivo con imágenes del proyecto
+- próximos encuentros
+- estadísticas generales
+- rankings o información pública del evento
+
+## Reportes
+
+Desde estadísticas se pueden descargar reportes ejecutivos:
+
+- PDF
+- Excel
+- ranking por país
+- medallero
+- participantes por institución
+- fixture completo
+
+## Alertas Y Modales
+
+Las alertas de éxito, error, confirmación y carga se centralizan en:
 
 ```text
 src/utils/alerts.ts
 ```
 
-Se usa SweetAlert2 para confirmaciones, estados de espera y respuestas visuales.
+Se usa SweetAlert2 para:
 
-## Comandos utiles
+- confirmaciones
+- mensajes de éxito
+- errores
+- estados de espera
+- advertencias de validación
+
+## Comandos Útiles
 
 ```bash
 npm run dev
 npm run build
 npm run start
+npm run lint
+npm run typecheck
 ```
 
+## Notas Para Desarrollo
 
+- Reiniciar backend si se cambia la semilla demo.
+- Usar `DEMO_DATA_ENABLED=true` para restaurar una data limpia de exposición.
+- Usar `DEMO_DATA_ENABLED=false` si se desea conservar datos creados manualmente.
+- Si el login no reconoce credenciales después de modificar la data, reiniciar backend para limpiar el estado de sesión/cache del proceso.

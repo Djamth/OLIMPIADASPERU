@@ -1,86 +1,118 @@
-# Olimpiadas Peru API
+# Olimpiadas Perú API
 
-Backend REST para la gestion de olimpiadas deportivas escolares. El proyecto esta construido con Spring Boot, JWT, PostgreSQL .
+Backend REST para la gestión de olimpiadas deportivas internas. La API cubre autenticación, seguridad por roles, gestión institucional, asignación de países, equipos, participantes, inscripciones, sorteos, programación, resultados, estadísticas, reportes y notificaciones.
 
-## Resumen
-
-La API cubre los modulos principales del sistema:
-
-- autenticacion y autorizacion con JWT
-- usuarios, roles y modulos
-- instituciones
-- deportes
-- equipos
-- participantes
-- inscripciones
-- sorteos y grupos
-- programacion de partidos
-- resultados
-- estadisticas
-
-Base URL local:
+## Base URL
 
 ```text
 http://localhost:8080/olimpiadas
 ```
 
-Documentacion API:
+Swagger UI:
 
 ```text
 http://localhost:8080/olimpiadas/swagger-ui/index.html
 ```
 
-## Tecnologias
+## Tecnologías
 
 - Java 21
 - Spring Boot 3.3.5
-- Spring Security + JWT
+- Spring Security
+- JWT y refresh token
 - Spring Data JPA
 - Flyway
 - PostgreSQL
 - H2 para pruebas
 - Springdoc OpenAPI
 - Maven
+- PDF/Excel para reportes
 
-## Requisitos
+## Configuración
 
-- JDK 21
-- Maven 3.9+
-- PostgreSQL 14+ recomendado
+La aplicación usa variables de entorno para evitar credenciales hardcodeadas. Crear `backend/.env` a partir de `backend/.env.example`.
 
-## Configuracion
-
-La aplicacion usa variables de entorno para evitar credenciales hardcodeadas.
-
-Variables soportadas:
+Variables principales:
 
 ```properties
 DB_URL=jdbc:postgresql://localhost:5432/olimpiadas_peru
 DB_USERNAME=postgres
-DB_PASSWORD=admin
+DB_PASSWORD=change_me
 DB_DRIVER=org.postgresql.Driver
+
 JPA_DDL_AUTO=update
+JPA_SHOW_SQL=false
+JPA_DIALECT=org.hibernate.dialect.PostgreSQLDialect
 FLYWAY_ENABLED=true
 DEMO_DATA_ENABLED=true
-JWT_SECRET=clave-secreta-de-al-menos-32-caracteres
+
+SERVER_PORT=8080
+SERVER_CONTEXT_PATH=/olimpiadas
+
+JWT_SECRET=change-this-secret-for-a-long-secure-random-value
 JWT_EXPIRATION=900000
 JWT_REFRESH_EXPIRATION=604800000
+
 APP_CORS_ALLOWED_ORIGINS=http://localhost:3000
+
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=change_me@example.com
+MAIL_PASSWORD=change_me
+MAIL_SMTP_AUTH=true
+MAIL_SMTP_STARTTLS_ENABLE=true
+
+APP_FRONTEND_RESET_PASSWORD_URL=http://localhost:3000/reset-password
+PASSWORD_RESET_EXPIRATION_MINUTES=30
 ```
 
-Flyway ejecuta las migraciones ubicadas en `src/main/resources/db/migration`. Cuando
-`DEMO_DATA_ENABLED=true`, la aplicacion carga al final la semilla idempotente
-`src/main/resources/demo-data.sql`. En produccion se recomienda desactivar esa semilla.
+## Data Demo
 
-## Ejecucion local
+La semilla de desarrollo está en:
 
-Desde la carpeta `backend`:
+```text
+src/main/resources/demo-data.sql
+```
+
+Con `DEMO_DATA_ENABLED=true`, al iniciar el backend se limpian y recargan los datos demo. Esto es útil para exposiciones y pruebas del flujo completo.
+
+La semilla actual incluye:
+
+- 3 instituciones.
+- 1 evento.
+- 5 categorías con país asignado.
+- 8 países con colores y código de bandera.
+- 4 deportes obligatorios.
+- 20 equipos.
+- 120 participantes.
+- 20 inscripciones confirmadas.
+- 8 grupos.
+- 10 partidos.
+- 6 resultados.
+- 21 anotaciones individuales.
+- Usuarios, roles y módulos listos para probar permisos.
+
+Para conservar datos manuales:
+
+```properties
+DEMO_DATA_ENABLED=false
+```
+
+## Ejecución Local
+
+Desde `backend`:
 
 ```bash
 mvn spring-boot:run
 ```
 
-Para ejecutar pruebas:
+Con Maven Wrapper en Windows:
+
+```powershell
+.\mvnw.cmd spring-boot:run
+```
+
+Ejecutar pruebas:
 
 ```bash
 mvn test
@@ -88,14 +120,33 @@ mvn test
 
 ## Seguridad
 
-- la API usa JWT almacenado en cookies `HttpOnly`
-- login, renovacion y recuperacion de contrasena son publicos
-- el resto de endpoints requiere JWT
-- las contrasenas se almacenan con `BCrypt`
+- Contraseñas almacenadas con BCrypt.
+- Autenticación con JWT.
+- Renovación de sesión con refresh token.
+- Soporte de cookies `HttpOnly`.
+- Endpoints protegidos por autenticación.
+- Permisos por rol y módulo en backend.
+- Control para evitar que el administrador se desactive a sí mismo.
+- Recuperación de contraseña con código temporal.
+- Rate limit para login y recuperación de contraseña.
 
-El navegador debe enviar las credenciales con `credentials: "include"`.
+## Credenciales Demo
 
-## Flujo de autenticacion
+```text
+Administrador
+Correo: admin@olimpiadasperu.pe
+Clave: Admin123*
+
+Coordinador
+Correo: coordinador@olimpiadasperu.pe
+Clave: Admin123*
+
+Consulta
+Correo: consulta@olimpiadasperu.pe
+Clave: Admin123*
+```
+
+## Flujo De Autenticación
 
 ### Login
 
@@ -110,279 +161,194 @@ Request:
 }
 ```
 
-Respuesta esperada:
+Respuesta en modo cookie:
 
 ```json
 {
   "id": 1,
-  "nombre": "Administrador",
+  "nombre": "Administrador Olimpiadas",
   "email": "admin@olimpiadasperu.pe",
   "rolId": 1,
   "rolNombre": "administrador",
-  "estado": "ACTIVO",
-  "modulos": [
-    {
-      "id": 1,
-      "nombre": "Usuarios",
-      "ruta": "/usuarios",
-      "icono": "users"
-    }
-  ],
+  "institucionId": 1,
+  "institucionNombre": "Colegio San José",
+  "modulos": [],
   "expiresIn": 900000,
   "tokenType": "Cookie"
 }
 ```
 
-### Endpoints publicos de autenticacion
+Si se requiere token en la respuesta, enviar header:
+
+```text
+X-Auth-Mode: bearer
+```
+
+### Endpoints públicos de autenticación
 
 - `POST /api/auth/login`
 - `POST /api/auth/refresh-token`
 - `POST /api/auth/forgot-password`
 - `POST /api/auth/reset-password`
 
-### Endpoints autenticados de sesion
+### Endpoints autenticados de sesión
 
 - `POST /api/auth/logout`
 - `GET /api/auth/me`
 
-## Endpoints principales
+## Endpoints Principales
 
-Todos estos endpoints usan como prefijo real:
+Todos los endpoints usan el prefijo real `/olimpiadas`.
 
-```text
-/olimpiadas
-```
+### Seguridad
 
-Por ejemplo, `GET /api/deportes` realmente se consume como `GET /olimpiadas/api/deportes`.
-
-### Usuarios, roles y modulos
-
-#### Usuarios
-
-- `POST /api/usuarios`
 - `GET /api/usuarios`
-- `GET /api/usuarios/{id}`
-- `GET /api/usuarios/email/{email}`
+- `POST /api/usuarios`
 - `PUT /api/usuarios/{id}`
-- `PUT /api/usuarios/{id}/desactivar`
+- `PUT /api/usuarios/{id}/estado`
 - `DELETE /api/usuarios/{id}`
-
-#### Roles
-
-- `POST /api/roles`
 - `GET /api/roles`
-- `GET /api/roles/{id}`
-- `GET /api/roles/{id}/modulos`
-- `PUT /api/roles/{id}`
 - `PUT /api/roles/{id}/modulos`
-- `POST /api/roles/{rolId}/modulos/{moduloId}`
-- `DELETE /api/roles/{rolId}/modulos/{moduloId}`
-- `DELETE /api/roles/{id}`
-
-#### Modulos
-
-- `POST /api/modulos`
 - `GET /api/modulos`
-- `GET /api/modulos/{id}`
-- `PUT /api/modulos/{id}`
-- `DELETE /api/modulos/{id}`
+- `GET /api/auditoria`
 
-### Instituciones
+### Institucional
 
 - `GET /api/instituciones`
-- `GET /api/instituciones/{id}`
 - `POST /api/instituciones`
 - `PUT /api/instituciones/{id}`
 - `DELETE /api/instituciones/{id}`
+- `GET /api/paises`
+- `POST /api/paises`
+- `GET /api/eventos`
+- `POST /api/eventos`
+- `GET /api/categorias-evento`
+- `POST /api/categorias-evento`
 
-### Deportes
+### Gestión Deportiva
 
 - `GET /api/deportes`
-- `GET /api/deportes/{id}`
-- `POST /api/deportes`
-- `PUT /api/deportes/{id}`
-- `DELETE /api/deportes/{id}`
-
-### Equipos
-
 - `GET /api/equipos`
-- `GET /api/equipos/{id}`
-- `POST /api/equipos`
-- `PUT /api/equipos/{id}`
-- `DELETE /api/equipos/{id}`
-
-### Participantes
-
 - `GET /api/participantes`
-- `GET /api/participantes/{id}`
-- `POST /api/participantes`
-- `PUT /api/participantes/{id}`
-- `DELETE /api/participantes/{id}`
+- `GET /api/inscripciones`
+- `GET /api/sorteos`
+- `GET /api/programaciones`
+- `GET /api/resultados`
+- `GET /api/estadisticas`
+
+### Dashboard y Portal Público
+
+- `GET /api/dashboard/resumen`
+- `GET /api/public/dashboard`
+
+### Reportes
+
+- Ranking por país.
+- Medallero.
+- Participantes por institución.
+- Fixture completo.
+- Reporte ejecutivo en PDF.
+- Reporte ejecutivo en Excel.
+
+## Reglas De Negocio
+
+### Deportes obligatorios
+
+- `FUTBOL`: equipos masculinos, 11 participantes mínimos, control de goles.
+- `BASQUET`: equipos masculinos, 5 participantes mínimos, control de encestadores.
+- `VOLEY`: equipos femeninos, 6 participantes mínimos, control por sets.
+- `PING_PONG`: equipos mixtos, 1 participante mínimo, control por sets/puntos.
+
+### Institución, evento y países
+
+- Una institución puede crear eventos.
+- Cada evento puede tener categorías.
+- Cada categoría recibe un país representativo.
+- No se permite repetir país dentro del mismo evento.
+- El país incluye bandera, colores y dato cultural.
 
 ### Inscripciones
 
-- `GET /api/inscripciones`
-- `GET /api/inscripciones/{id}`
-- `POST /api/inscripciones`
-- `PUT /api/inscripciones/{id}`
-- `DELETE /api/inscripciones/{id}`
-
-Ejemplo de request:
-
-```json
-{
-  "equipoId": 1,
-  "deporteId": 1,
-  "estado": "CONFIRMADA",
-  "fechaInscripcion": "2026-05-07"
-}
-```
+- Un equipo no puede inscribirse dos veces en el mismo deporte/evento.
+- Una inscripción confirmada exige participantes suficientes.
+- El género del equipo debe ser compatible con el deporte.
 
 ### Sorteos
 
-- `POST /api/sorteos/deporte/{deporteId}/grupos`
-- `GET /api/sorteos/deporte/{deporteId}/grupos`
+- Solo participan inscripciones `CONFIRMADA`.
+- Se requieren al menos dos equipos confirmados.
+- Los equipos se distribuyen en grupos por deporte.
 
-### Programacion de partidos
+### Programación
 
-- `GET /api/programaciones`
-- `GET /api/programaciones/{id}`
-- `POST /api/programaciones`
-- `PUT /api/programaciones/{id}`
-- `DELETE /api/programaciones/{id}`
-
-Ejemplo de request:
-
-```json
-{
-  "grupoId": 1,
-  "deporteId": 1,
-  "equipoLocalId": 1,
-  "equipoVisitanteId": 2,
-  "fechaHora": "2026-05-10T09:00:00",
-  "sede": "Cancha Principal",
-  "estado": "PROGRAMADO"
-}
-```
+- Un equipo no puede jugar contra sí mismo.
+- Ambos equipos deben pertenecer al deporte indicado.
+- Si se indica grupo, ambos equipos deben pertenecer a ese grupo.
+- La fecha del partido debe ser válida.
 
 ### Resultados
 
-- `GET /api/resultados`
-- `GET /api/resultados/{id}`
-- `POST /api/resultados`
-- `PUT /api/resultados/{id}`
-- `DELETE /api/resultados/{id}`
+- Un partido solo puede tener un resultado asociado.
+- Las anotaciones se registran por participante real.
+- Los participantes anotados deben pertenecer a uno de los equipos del partido.
 
-Ejemplo de request:
+## Ejemplo De Resultado
 
 ```json
 {
-  "partidoId": 1,
+  "partidoId": 1001,
   "puntajeLocal": 3,
   "puntajeVisitante": 1,
-  "observaciones": "Partido intenso",
+  "observaciones": "Brasil abrió el torneo con alta presión ofensiva.",
   "anotaciones": [
     {
-      "participanteId": 10,
+      "participanteId": 10101,
       "cantidad": 2
     },
     {
-      "participanteId": 11,
+      "participanteId": 10102,
       "cantidad": 1
     }
   ]
 }
 ```
 
-### Estadisticas
+## Notificaciones
 
-- `GET /api/estadisticas/deporte/{deporteId}/goleadores`
-- `GET /api/estadisticas/deporte/{deporteId}/ranking`
+El backend contempla envío de correos para eventos importantes:
 
-## Reglas de negocio implementadas
+- Inscripción confirmada.
+- Partido programado.
+- Cambio o reprogramación de horario.
+- Resultado registrado.
+- Recuperación de contraseña.
 
-### Reglas por deporte
+## Pruebas Automatizadas
 
-La API ya aplica validaciones obligatorias por deporte:
+Las pruebas se ejecutan con H2 en memoria:
 
-- `FUTBOL`: 11 jugadores, equipos masculinos
-- `BASQUET`: 5 jugadores, equipos masculinos
-- `VOLEY`: 6 jugadores, equipos femeninos
-- `PING_PONG`: 1 jugador, equipos mixtos
-
-### Reglas de inscripcion
-
-- un equipo no puede inscribirse dos veces en el mismo deporte
-- una inscripcion `CONFIRMADA` exige que el equipo tenga el minimo de participantes del deporte
-- el genero del equipo debe ser compatible con el deporte
-
-### Reglas de sorteo
-
-- el sorteo solo considera inscripciones `CONFIRMADA`
-- se requieren al menos dos equipos confirmados
-- cada equipo sorteado debe cumplir el minimo de participantes
-
-### Reglas de programacion
-
-- un equipo no puede jugar contra si mismo
-- ambos equipos deben tener inscripcion `CONFIRMADA` en el deporte
-- ambos equipos deben cumplir el minimo de participantes del deporte
-- si se informa `grupoId`, ambos equipos deben pertenecer a ese grupo
-- el grupo debe pertenecer al mismo deporte del partido
-- la fecha del partido debe ser futura
-
-### Reglas de resultados
-
-- un partido solo puede tener un resultado asociado
-- las anotaciones se registran por participante real
-- los participantes anotados deben pertenecer a uno de los equipos del partido
-
-## Codigos de respuesta esperados
-
-- `200 OK`: consulta o actualizacion exitosa
-- `201 Created`: recurso creado
-- `400 Bad Request`: validacion o regla de negocio incumplida
-- `401 Unauthorized`: no autenticado
-- `404 Not Found`: recurso no encontrado
-
-Ejemplo de error:
-
-```json
-{
-  "mensaje": "No autenticado"
-}
+```bash
+mvn test
 ```
 
-## Pruebas automatizadas
+Cobertura funcional:
 
-Actualmente existen pruebas para:
+- Autenticación.
+- Refresh token y sesión.
+- Reglas por deporte.
+- Participantes.
+- Inscripciones.
+- Sorteos.
+- Programación.
+- Resultados.
+- Dashboard.
+- Reportes.
 
-- autenticacion
-- reglas por deporte
-- participantes
-- inscripciones
-- sorteos
-- programacion
-- resultados
+## Estado Actual
 
-Se ejecutan con H2 en memoria para no depender de PostgreSQL durante testing.
-
-## Notas para frontend
-
-- usar siempre la base URL `http://localhost:8080/olimpiadas`
-- guardar `accessToken` y enviarlo como `Bearer`
-- usar `refreshToken` para renovar sesion
-- los formularios de inscripcion, sorteo y programacion deben contemplar las reglas de negocio listadas arriba
-- para registrar resultados, el frontend debe enviar participantes reales en `anotaciones`
-
-## Estado actual
-
-- autenticacion operativa
-- CRUD principales implementados
-- validaciones de negocio clave activas
-- pruebas automatizadas pasando
-
-
-## Pendiente :
-- Implementacion de websocket para notificaciones en tiempo real
-- Implementacion de notificaciones por email para eventos importantes
+- API funcional para el flujo principal de Olimpiadas Perú.
+- CRUD principales implementados.
+- Permisos de backend por rol/módulo.
+- Data demo limpia y alineada al negocio.
+- Reportes ejecutivos disponibles.
+- Pruebas automatizadas pasando.
