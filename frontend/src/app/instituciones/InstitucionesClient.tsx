@@ -141,7 +141,7 @@ export function InstitucionesClient() {
       {loading ? <LoadingState /> : data.length === 0 ? (
         <EmptyState title="Sin instituciones" description="Registra la primera institución para empezar a crear equipos." />
       ) : (
-        <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+        <div className="module-panel">
           <TableToolbar
             query={table.query}
             onQueryChange={table.setQuery}

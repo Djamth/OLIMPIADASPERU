@@ -84,7 +84,7 @@ export function AuditoriaClient() {
       {loading ? <LoadingState /> : items.length === 0 ? (
         <EmptyState title="Sin auditoria" description="Aun no se registran acciones administrativas." />
       ) : (
-        <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+        <div className="module-panel">
           <TableToolbar
             query={table.query}
             onQueryChange={table.setQuery}

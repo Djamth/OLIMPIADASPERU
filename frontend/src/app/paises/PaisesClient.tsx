@@ -127,7 +127,7 @@ export function PaisesClient() {
       {loading ? <LoadingState /> : data.length === 0 ? (
         <EmptyState title="Sin países" description="Registra países para habilitar la asignación automática." />
       ) : (
-        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <section className="module-panel">
           <TableToolbar query={table.query} onQueryChange={table.setQuery} pageSize={table.pageSize}
             onPageSizeChange={table.setPageSize} totalItems={table.totalItems}
             filteredItems={table.filteredItems} placeholder="Buscar país o código ISO..." />

@@ -223,11 +223,11 @@ export function EventosClient() {
       />
 
       <div className="grid gap-5">
-        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <section className="module-panel">
           <DataTable columns={columns} items={eventos} getRowKey={(item) => item.id} />
         </section>
 
-        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <section className="module-panel">
           <div className="mb-5 flex items-center justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-700">Identidad del torneo</p>
