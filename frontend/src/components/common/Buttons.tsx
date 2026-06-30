@@ -63,7 +63,7 @@ export function IconActionButton({
 
   return (
     <button
-      className={`inline-grid h-9 w-9 place-items-center rounded-lg border bg-white shadow-sm transition hover:-translate-y-0.5 ${toneClass} ${className}`}
+      className={`inline-grid h-8 w-8 place-items-center rounded-lg border bg-white shadow-sm transition hover:-translate-y-0.5 ${toneClass} ${className}`}
       type="button"
       aria-label={label}
       title={label}
@@ -82,12 +82,12 @@ export function RowActions({
   onDelete: () => void;
 }) {
   return (
-    <div className="flex justify-end gap-2">
+    <div className="flex justify-end gap-1.5">
       <IconActionButton label="Editar" tone="primary" onClick={onEdit}>
-        <Edit2 size={16} />
+        <Edit2 size={14} />
       </IconActionButton>
       <IconActionButton label="Eliminar" tone="danger" onClick={onDelete}>
-        <Trash2 size={16} />
+        <Trash2 size={14} />
       </IconActionButton>
     </div>
   );

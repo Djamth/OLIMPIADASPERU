@@ -15,12 +15,12 @@ export function PaginationControls({
     .filter((item) => item === 1 || item === totalPages || Math.abs(item - page) <= 1);
 
   return (
-    <div className="mt-4 flex flex-col gap-3 rounded-xl border border-slate-100 bg-slate-50/70 p-3 md:flex-row md:items-center md:justify-between">
-      <div className="text-sm font-bold text-slate-500">Pagina {page} de {totalPages}</div>
+    <div className="mt-3 flex flex-col gap-2 rounded-lg border border-slate-100 bg-slate-50/70 p-2.5 md:flex-row md:items-center md:justify-between">
+      <div className="text-xs font-bold text-slate-500">Pagina {page} de {totalPages}</div>
       <nav aria-label="Paginacion">
         <div className="flex items-center gap-1">
           <button
-            className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="grid h-8 w-8 place-items-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
             onClick={() => onPageChange(page - 1)}
             disabled={page === 1}
             aria-label="Anterior"
@@ -33,9 +33,9 @@ export function PaginationControls({
             const showGap = previous && item - previous > 1;
             return (
               <span className="flex items-center gap-1" key={item}>
-                {showGap && <span className="px-2 text-sm font-bold text-slate-400">...</span>}
+                {showGap && <span className="px-1.5 text-xs font-bold text-slate-400">...</span>}
                 <button
-                  className={`h-9 min-w-9 rounded-lg border px-3 text-sm font-bold transition ${
+                  className={`h-8 min-w-8 rounded-lg border px-2.5 text-xs font-bold transition ${
                     item === page
                       ? "border-blue-600 bg-blue-600 text-white shadow-[0_10px_20px_rgba(21,101,192,0.22)]"
                       : "border-slate-200 bg-white text-blue-600 shadow-sm hover:bg-blue-50"
@@ -49,7 +49,7 @@ export function PaginationControls({
             );
           })}
           <button
-            className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="grid h-8 w-8 place-items-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
             onClick={() => onPageChange(page + 1)}
             disabled={page === totalPages}
             aria-label="Siguiente"
