@@ -12,10 +12,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const sidebarWidth = collapsed ? 72 : 240;
 
   useEffect(() => {
+    setCollapsed(localStorage.getItem("op_sidebar_collapsed") === "true");
+  }, []);
+
+  useEffect(() => {
     document.body.classList.toggle("mobile-menu-open", sidebarOpen);
 
     return () => document.body.classList.remove("mobile-menu-open");
   }, [sidebarOpen]);
+
+  const toggleCollapsed = () => {
+    setCollapsed((value) => {
+      const next = !value;
+      localStorage.setItem("op_sidebar_collapsed", String(next));
+      return next;
+    });
+  };
 
   return (
     <ProtectedPage>
@@ -26,7 +38,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <aside className={`op-sidebar ${sidebarOpen ? "is-open" : ""}`}>
           <AppSidebar
             collapsed={collapsed}
-            onToggleCollapsed={() => setCollapsed((value) => !value)}
+            onToggleCollapsed={toggleCollapsed}
             onNavigate={() => setSidebarOpen(false)}
           />
         </aside>

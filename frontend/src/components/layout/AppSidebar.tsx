@@ -12,18 +12,17 @@ import {
   ChevronLeft,
   ClipboardCheck,
   Flag,
-  HelpCircle,
   History,
   LayoutDashboard,
   LogOut,
   Medal,
-  Settings,
   ShieldCheck,
   Shuffle,
   Trophy,
   UserRound,
   Users,
   UsersRound,
+  Zap,
 } from "lucide-react";
 
 const items = [
@@ -85,11 +84,13 @@ export function AppSidebar({
     <div className={`op-sidebar-panel ${collapsed ? "is-collapsed" : ""}`}>
       <div className="op-sidebar-header">
         <div className="op-brand-row">
-          <div className="op-brand-mark">OP</div>
+          <div className="op-brand-mark">
+            <Zap size={19} fill="currentColor" />
+          </div>
           {!collapsed && (
             <div className="op-brand-copy">
               <strong>Olimpiadas Perú</strong>
-              <span>Gestión deportiva</span>
+              <span>Dashboard</span>
             </div>
           )}
           <button
@@ -101,19 +102,10 @@ export function AppSidebar({
             <ChevronLeft className={collapsed ? "rotate-180" : ""} size={18} />
           </button>
         </div>
-
-        <div className="op-profile-card">
-          <div className="op-profile-initials">{getInitials(user?.nombre)}</div>
-          {!collapsed && (
-            <div className="op-profile-copy">
-              <strong>{user?.nombre || "Sin sesión"}</strong>
-              <span>{user?.rolNombre || "Invitado"}</span>
-            </div>
-          )}
-        </div>
       </div>
 
       <nav className="op-sidebar-nav">
+        {!collapsed && <span className="op-nav-section">Gestión</span>}
         {visibleItems.map((item) => {
           const Icon = item.icon;
           const active = pathname === item.href;
@@ -134,19 +126,18 @@ export function AppSidebar({
       </nav>
 
       <div className="op-sidebar-footer">
-        <button className="op-sidebar-action" type="button" title="Ayuda">
-          <HelpCircle size={19} />
-          {!collapsed && <span>Ayuda</span>}
-        </button>
-
-        <button className="op-sidebar-action danger" type="button" onClick={handleLogout} title="Cerrar sesión">
-          <LogOut size={19} />
-          {!collapsed && <span>Cerrar sesión</span>}
-        </button>
-
-        <button className="op-theme-button" type="button" aria-label="Tema principal">
-          <Settings size={16} />
-        </button>
+        <div className="op-sidebar-user-card">
+          <div className="op-profile-initials">{getInitials(user?.nombre)}</div>
+          {!collapsed && (
+            <div className="op-profile-copy">
+              <strong>{user?.nombre || "Sin sesión"}</strong>
+              <span>{user?.rolNombre || "Invitado"}</span>
+            </div>
+          )}
+          <button className="op-sidebar-logout-icon" type="button" onClick={handleLogout} title="Cerrar sesión" aria-label="Cerrar sesión">
+            <LogOut size={18} />
+          </button>
+        </div>
       </div>
     </div>
   );
