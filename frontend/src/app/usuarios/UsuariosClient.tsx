@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { FormModal } from "@/components/common/FormModal";
 import { fieldClass, labelClass } from "@/components/common/formStyles";
 import { LoadingState } from "@/components/common/LoadingState";
+import { ModuleKpis } from "@/components/common/ModuleKpis";
 import { PageHeader } from "@/components/common/PageHeader";
 import { PaginationControls } from "@/components/common/PaginationControls";
 import { TableToolbar } from "@/components/common/TableToolbar";
@@ -225,6 +226,10 @@ export function UsuariosClient() {
     },
   ];
 
+  const usuariosActivos = usuarios.filter((item) => item.estado === "ACTIVO").length;
+  const usuariosInactivos = usuarios.length - usuariosActivos;
+  const usuariosConInstitucion = usuarios.filter((item) => item.institucionId).length;
+
   return (
     <>
       <PageHeader
@@ -236,7 +241,15 @@ export function UsuariosClient() {
       {loading ? <LoadingState /> : usuarios.length === 0 ? (
         <EmptyState title="Sin usuarios" description="Crea usuarios para iniciar pruebas por perfil." />
       ) : (
-        <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+        <div className="module-panel">
+          <ModuleKpis
+            items={[
+              { label: "Usuarios", value: usuarios.length, hint: "Cuentas registradas", tone: "blue" },
+              { label: "Activos", value: usuariosActivos, hint: "Con acceso permitido", tone: "green" },
+              { label: "Inactivos", value: usuariosInactivos, hint: "Sin acceso vigente", tone: usuariosInactivos > 0 ? "amber" : "slate" },
+              { label: "Institucionales", value: usuariosConInstitucion, hint: "Vinculados a institución", tone: "slate" },
+            ]}
+          />
           <TableToolbar
             query={table.query}
             onQueryChange={table.setQuery}

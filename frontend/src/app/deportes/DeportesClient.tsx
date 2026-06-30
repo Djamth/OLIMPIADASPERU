@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { FormModal } from "@/components/common/FormModal";
 import { fieldClass, labelClass, textareaClass } from "@/components/common/formStyles";
 import { LoadingState } from "@/components/common/LoadingState";
+import { ModuleKpis } from "@/components/common/ModuleKpis";
 import { PaginationControls } from "@/components/common/PaginationControls";
 import { PageHeader } from "@/components/common/PageHeader";
 import { TableToolbar } from "@/components/common/TableToolbar";
@@ -94,6 +95,10 @@ export function DeportesClient() {
     { key: "acciones", header: "Acciones", align: "right", render: (item) => <RowActions onEdit={() => startEdit(item)} onDelete={() => remove(item)} /> },
   ];
 
+  const totalJugadoresBase = data.reduce((total, item) => total + item.numeroJugadores, 0);
+  const promedioJugadores = data.length ? Math.round(totalJugadoresBase / data.length) : 0;
+  const capacidadGrupos = data.reduce((total, item) => total + item.maximoEquiposPorGrupo, 0);
+
   return (
     <>
       <PageHeader
@@ -105,7 +110,15 @@ export function DeportesClient() {
       {loading ? <LoadingState /> : data.length === 0 ? (
         <EmptyState title="Sin deportes" description="Crea los deportes obligatorios para iniciar la competencia." />
       ) : (
-        <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+        <div className="module-panel">
+          <ModuleKpis
+            items={[
+              { label: "Deportes", value: data.length, hint: "Disciplinas configuradas", tone: "blue" },
+              { label: "Jugadores base", value: totalJugadoresBase, hint: "Suma de plantillas mínimas", tone: "green" },
+              { label: "Promedio", value: promedioJugadores, hint: "Jugadores por deporte", tone: "slate" },
+              { label: "Capacidad grupos", value: capacidadGrupos, hint: "Equipos máximos acumulados", tone: "amber" },
+            ]}
+          />
           <TableToolbar
             query={table.query}
             onQueryChange={table.setQuery}

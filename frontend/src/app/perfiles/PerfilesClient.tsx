@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { FormModal } from "@/components/common/FormModal";
 import { fieldClass, labelClass } from "@/components/common/formStyles";
 import { LoadingState } from "@/components/common/LoadingState";
+import { ModuleKpis } from "@/components/common/ModuleKpis";
 import { PageHeader } from "@/components/common/PageHeader";
 import { PaginationControls } from "@/components/common/PaginationControls";
 import { TableToolbar } from "@/components/common/TableToolbar";
@@ -174,6 +175,10 @@ export function PerfilesClient() {
     },
   ];
 
+  const perfilesActivos = roles.filter((item) => item.estado === "ACTIVO").length;
+  const modulosAsignados = Object.values(modulosPorRol).reduce((total, items) => total + items.length, 0);
+  const promedioModulos = roles.length ? Math.round(modulosAsignados / roles.length) : 0;
+
   return (
     <>
       <PageHeader
@@ -185,7 +190,15 @@ export function PerfilesClient() {
       {loading ? <LoadingState /> : roles.length === 0 ? (
         <EmptyState title="Sin perfiles" description="Crea perfiles para controlar los permisos del sistema." />
       ) : (
-        <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+        <div className="module-panel">
+          <ModuleKpis
+            items={[
+              { label: "Perfiles", value: roles.length, hint: "Roles configurados", tone: "blue" },
+              { label: "Activos", value: perfilesActivos, hint: "Disponibles para usuarios", tone: "green" },
+              { label: "Módulos", value: modulos.length, hint: "Catálogo de accesos", tone: "slate" },
+              { label: "Promedio acceso", value: promedioModulos, hint: "Módulos por perfil", tone: "amber" },
+            ]}
+          />
           <TableToolbar
             query={table.query}
             onQueryChange={table.setQuery}
