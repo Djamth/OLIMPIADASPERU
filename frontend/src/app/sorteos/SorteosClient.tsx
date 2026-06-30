@@ -104,7 +104,7 @@ export function SorteosClient() {
         action={<PrimaryActionButton onClick={generar} disabled={!puedeGenerar}><Shuffle size={16} /> Generar sorteo</PrimaryActionButton>}
       />
 
-      <div className="mb-4 rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+      <div className="mb-4 module-panel">
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_260px_260px] lg:items-end">
           <div>
             <label className={labelClass}>Evento</label>
@@ -149,7 +149,7 @@ export function SorteosClient() {
         )}
       </div>
 
-      <div className="mb-4 rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+      <div className="mb-4 module-panel">
         <div className="mb-3 flex items-center justify-between gap-3">
           <div>
             <h3 className="m-0 text-lg font-extrabold text-slate-950">Equipos inscritos en el deporte</h3>
@@ -183,7 +183,7 @@ export function SorteosClient() {
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
           {grupos.map((grupo) => (
-            <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl" key={grupo.id}>
+            <div className="module-panel" key={grupo.id}>
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
                   <h3 className="m-0 text-lg font-black text-slate-950">{grupo.nombre}</h3>

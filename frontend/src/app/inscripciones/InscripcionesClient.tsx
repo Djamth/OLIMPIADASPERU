@@ -151,7 +151,7 @@ export function InscripcionesClient() {
   ];
 
   const filterPanel = (
-    <section className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+    <section className="module-panel">
       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_260px_260px] lg:items-end">
         <div>
           <label className={labelClass}>Evento</label>
@@ -196,7 +196,7 @@ export function InscripcionesClient() {
       ) : (
         <div className="grid gap-5">
           {filterPanel}
-          <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+          <div className="module-panel">
             <TableToolbar
               query={table.query}
               onQueryChange={table.setQuery}

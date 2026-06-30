@@ -159,7 +159,7 @@ export function EstadisticasClient() {
 
       {reportLoading ? <LoadingState /> : reporte && (
         <section className="mb-5 grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-          <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+          <div className="module-panel">
             <div className="mb-4 flex items-center gap-2">
               <Award className="text-blue-700" size={20} />
               <h3 className="text-lg font-black text-slate-950">Ranking por país</h3>
@@ -181,7 +181,7 @@ export function EstadisticasClient() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+          <div className="module-panel">
             <div className="mb-4 flex items-center gap-2">
               <Medal className="text-amber-500" size={20} />
               <h3 className="text-lg font-black text-slate-950">Medallero</h3>
@@ -201,7 +201,7 @@ export function EstadisticasClient() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+          <div className="module-panel">
             <div className="mb-4 flex items-center gap-2">
               <UsersRound className="text-emerald-600" size={20} />
               <h3 className="text-lg font-black text-slate-950">Participantes por institución</h3>
@@ -219,7 +219,7 @@ export function EstadisticasClient() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+          <div className="module-panel">
             <div className="mb-4 flex items-center gap-2">
               <CalendarDays className="text-blue-700" size={20} />
               <h3 className="text-lg font-black text-slate-950">Fixture completo</h3>
@@ -243,7 +243,7 @@ export function EstadisticasClient() {
         <EmptyState title="Sin estadísticas" description="Registra resultados para generar ranking y anotadores." />
       ) : (
         <div className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
-          <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+          <div className="module-panel">
             <div className="mb-3">
               <h3 className="text-lg font-extrabold text-slate-950">{labels.rankingTitle}</h3>
               <p className="text-xs font-semibold text-slate-500">
@@ -263,7 +263,7 @@ export function EstadisticasClient() {
             <PaginationControls page={rankingTable.page} totalPages={rankingTable.totalPages} onPageChange={rankingTable.setPage} />
           </div>
 
-          <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+          <div className="module-panel">
             <div className="mb-3">
               <h3 className="text-lg font-extrabold text-slate-950">{labels.individualTitle}</h3>
               <p className="text-xs font-semibold text-slate-500">

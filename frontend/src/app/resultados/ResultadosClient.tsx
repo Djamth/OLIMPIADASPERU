@@ -214,7 +214,7 @@ export function ResultadosClient() {
 
       {loading ? <LoadingState /> : data.length === 0 ? (
         <div className="grid gap-5">
-          <section className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+          <section className="module-panel">
             <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-700">Filtro por deporte</p>
@@ -234,7 +234,7 @@ export function ResultadosClient() {
         </div>
       ) : (
         <div className="grid gap-5">
-          <section className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+          <section className="module-panel">
             <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-700">Filtro por deporte</p>
@@ -253,7 +253,7 @@ export function ResultadosClient() {
             </div>
           </section>
 
-          <div className="rounded-xl border border-white/70 bg-white/95 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+          <div className="module-panel">
             <TableToolbar
               query={table.query}
               onQueryChange={table.setQuery}
