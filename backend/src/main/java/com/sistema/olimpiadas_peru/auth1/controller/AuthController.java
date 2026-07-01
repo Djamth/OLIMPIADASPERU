@@ -94,7 +94,7 @@ public class AuthController {
 
     @GetMapping("/me")
     public ResponseEntity<?> me(Authentication authentication) {
-        return ResponseEntity.ok(usuarioService.obtenerPorEmail(authentication.getName()));
+        return ResponseEntity.ok(usuarioService.obtenerSesionActual(authentication.getName()));
     }
 
     @PostMapping("/forgot-password")

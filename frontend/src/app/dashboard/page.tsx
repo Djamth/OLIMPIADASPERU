@@ -2,11 +2,12 @@
 
 import { Badge } from "@/components/common/Badge";
 import { LoadingState } from "@/components/common/LoadingState";
-import { hasModuleAccess, RequireModule } from "@/components/auth/RequireModule";
+import { RequireModule } from "@/components/auth/RequireModule";
 import { AppShell } from "@/components/layout/AppShell";
 import { useAuth } from "@/context/AuthContext";
 import { dashboardService } from "@/services/adminServices";
 import type { DashboardResumen } from "@/types/admin";
+import { hasModuleAccess } from "@/utils/access";
 import { alerts, getErrorMessage } from "@/utils/alerts";
 import Link from "next/link";
 import { useEffect, useState } from "react";
