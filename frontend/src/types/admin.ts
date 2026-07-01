@@ -82,12 +82,41 @@ export interface DashboardActivity {
   fecha: string;
 }
 
+export interface DashboardSportChart {
+  deporte: string;
+  equipos: number;
+  participantes: number;
+  partidos: number;
+  resultados: number;
+}
+
+export interface DashboardAlert {
+  tipo: string;
+  titulo: string;
+  detalle: string;
+  severidad: "danger" | "warning" | "info" | string;
+  referencia: string;
+}
+
+export interface DashboardCountrySummary {
+  pais: string;
+  bandera: string;
+  categoria: string;
+  equipos: number;
+  participantes: number;
+  partidos: number;
+  resultados: number;
+}
+
 export interface DashboardResumen {
   metricas: DashboardMetric[];
   avanceFuncional: DashboardProgress[];
   proximasContiendas: DashboardUpcomingMatch[];
   ultimosResultados: DashboardRecentResult[];
   actividadReciente: DashboardActivity[];
+  graficasPorDeporte: DashboardSportChart[];
+  alertas: DashboardAlert[];
+  resumenPorPais: DashboardCountrySummary[];
 }
 
 export interface PublicDashboardResumen {
