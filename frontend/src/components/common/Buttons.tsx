@@ -12,6 +12,7 @@ export function PrimaryActionButton({ children, className = "", ...props }: Butt
     <button
       className={`inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-blue-700 px-5 text-sm font-black text-white shadow-[0_16px_32px_rgba(21,101,192,0.22)] ring-0 ring-blue-500/20 transition hover:-translate-y-0.5 hover:bg-blue-800 hover:shadow-[0_22px_40px_rgba(21,101,192,0.28)] disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
       type="button"
+      data-op-primary-action="true"
       {...props}
     >
       <PlusCircle size={17} />
@@ -56,7 +57,7 @@ export function IconActionButton({
   children: ReactNode;
 }) {
   const toneClass = {
-    primary: "border-blue-5 text-blue-600 shadow-blue-100/70 hover:bg-blue-50 hover:text-blue-700",
+    primary: "border-blue-100 text-blue-600 shadow-blue-100/70 hover:bg-blue-50 hover:text-blue-700",
     danger: "border-red-100 text-red-600 shadow-red-100/70 hover:bg-red-50 hover:text-red-700",
     neutral: "border-slate-200 text-slate-500 shadow-slate-100/70 hover:bg-slate-50",
   }[tone];

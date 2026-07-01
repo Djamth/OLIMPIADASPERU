@@ -83,6 +83,12 @@ public class UsuarioService {
         return mapearADTO(usuario);
     }
 
+    public LoginResponseDTO obtenerSesionActual(String email) {
+        Usuario usuario = usuarioRepository.findWithRolAndModulosByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        return mapearSesion(usuario, null, null, "Cookie");
+    }
+
     public LoginResponseDTO login(LoginRequestDTO loginRequestDTO) {
         Usuario usuario = usuarioRepository.findWithRolAndModulosByEmail(loginRequestDTO.getEmail())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciales invalidas"));
@@ -95,27 +101,12 @@ public class UsuarioService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El usuario esta inactivo");
         }
 
-        return LoginResponseDTO.builder()
-            .id(usuario.getId())
-            .nombre(usuario.getNombre())
-            .email(usuario.getEmail())
-            .rolId(usuario.getRol() != null ? usuario.getRol().getId() : null)
-            .rolNombre(usuario.getRol() != null ? usuario.getRol().getNombre() : null)
-            .institucionId(usuario.getInstitucion() != null ? usuario.getInstitucion().getId() : null)
-            .institucionNombre(usuario.getInstitucion() != null ? usuario.getInstitucion().getNombre() : null)
-            .estado(usuario.getEstado().toString())
-            .modulos(usuario.getRol() != null
-                ? usuario.getRol().getModulos().stream()
-                    .filter(Objects::nonNull)
-                    .sorted(Comparator.comparing(Modulo::getId, Comparator.nullsLast(Integer::compareTo)))
-                    .map(this::mapearModuloADTO)
-                    .collect(Collectors.toList())
-                : List.of())
-            .accessToken(jwtTokenProvider.generateAccessToken(usuario.getEmail(), usuario.getId()))
-            .refreshToken(jwtTokenProvider.generateRefreshToken(usuario.getEmail(), usuario.getId()))
-            .expiresIn(jwtTokenProvider.getAccessTokenExpirationMs())
-            .tokenType("Bearer")
-            .build();
+        return mapearSesion(
+            usuario,
+            jwtTokenProvider.generateAccessToken(usuario.getEmail(), usuario.getId()),
+            jwtTokenProvider.generateRefreshToken(usuario.getEmail(), usuario.getId()),
+            "Bearer"
+        );
     }
 
     public RefreshTokenResponseDTO renovarSesion(String refreshToken) {
@@ -265,6 +256,30 @@ public class UsuarioService {
             .institucionId(usuario.getInstitucion() != null ? usuario.getInstitucion().getId() : null)
             .institucionNombre(usuario.getInstitucion() != null ? usuario.getInstitucion().getNombre() : null)
             .estado(usuario.getEstado().toString())
+            .build();
+    }
+
+    private LoginResponseDTO mapearSesion(Usuario usuario, String accessToken, String refreshToken, String tokenType) {
+        return LoginResponseDTO.builder()
+            .id(usuario.getId())
+            .nombre(usuario.getNombre())
+            .email(usuario.getEmail())
+            .rolId(usuario.getRol() != null ? usuario.getRol().getId() : null)
+            .rolNombre(usuario.getRol() != null ? usuario.getRol().getNombre() : null)
+            .institucionId(usuario.getInstitucion() != null ? usuario.getInstitucion().getId() : null)
+            .institucionNombre(usuario.getInstitucion() != null ? usuario.getInstitucion().getNombre() : null)
+            .estado(usuario.getEstado().toString())
+            .modulos(usuario.getRol() != null
+                ? usuario.getRol().getModulos().stream()
+                    .filter(Objects::nonNull)
+                    .sorted(Comparator.comparing(Modulo::getId, Comparator.nullsLast(Integer::compareTo)))
+                    .map(this::mapearModuloADTO)
+                    .collect(Collectors.toList())
+                : List.of())
+            .accessToken(accessToken)
+            .refreshToken(refreshToken)
+            .expiresIn(jwtTokenProvider.getAccessTokenExpirationMs())
+            .tokenType(tokenType)
             .build();
     }
 

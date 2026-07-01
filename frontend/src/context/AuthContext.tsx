@@ -3,6 +3,7 @@
 import { authService } from "@/services/authService";
 import { clearStoredSession } from "@/services/api";
 import type { LoginRequest, LoginResponse } from "@/types/auth";
+import { getLandingRoute } from "@/utils/access";
 import { alerts } from "@/utils/alerts";
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
@@ -19,22 +20,6 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 const publicRoutes = ["/", "/login", "/recuperar-password", "/reset-password"];
 
-function getLandingRoute(user: LoginResponse) {
-  const routeMap: Record<string, string> = {
-    "/roles": "/perfiles",
-    "/modulos": "/perfiles",
-    "/programaciones": "/programacion",
-  };
-
-  const dashboard = user.modulos?.find((modulo) => modulo.ruta?.toLowerCase() === "/dashboard");
-  if (dashboard || user.rolNombre?.toLowerCase() === "administrador") {
-    return "/dashboard";
-  }
-
-  const firstRoute = user.modulos?.find((modulo) => Boolean(modulo.ruta))?.ruta?.toLowerCase();
-  return firstRoute ? routeMap[firstRoute] ?? firstRoute : "/dashboard";
-}
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -49,9 +34,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (storedUser) {
         try {
-          await authService.me();
+          const currentUser = await authService.me();
           if (active) {
-            setUser(JSON.parse(storedUser) as LoginResponse);
+            localStorage.setItem("op_user", JSON.stringify(currentUser));
+            setUser(currentUser);
           }
         } catch {
           clearStoredSession();
