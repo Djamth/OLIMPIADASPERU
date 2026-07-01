@@ -83,8 +83,9 @@ export function HeroSection({ nextMatch }: HeroSectionProps) {
 export function EventSummarySection({ metrics, loading }: { metrics: DashboardMetric[]; loading: boolean }) {
   return (
     <section className="public-scroll-section relative flex min-h-screen items-center overflow-hidden bg-[#061225] px-5 py-20 text-white lg:px-8">
-      <div className="absolute inset-0 bg-[url('/images/public-stadium-bg.png')] bg-cover bg-center opacity-55" />
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,18,37,0.96),rgba(6,18,37,0.78)_46%,rgba(6,18,37,0.94)),radial-gradient(circle_at_72%_45%,rgba(11,77,255,0.24),transparent_34%)]" />
+      <div className="absolute inset-0 bg-[url('/images/public-stadium-bg.png')] bg-cover bg-center opacity-50" />
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,18,37,0.78),rgba(6,18,37,0.7)_46%,rgba(6,18,37,0.94)),radial-gradient(circle_at_72%_45%,rgba(11,77,255,0.24),transparent_34%)]" />
+      <div className="absolute bottom-8 left-8 hidden h-28 w-28 rounded-full bg-[url('/images/public-ball.png')] bg-cover bg-center opacity-30 blur-[1px] lg:block" />
       <div className="public-section-inner relative mx-auto grid w-full max-w-7xl gap-8 lg:grid-cols-[1fr_0.8fr] lg:items-center">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.24em] text-red-400">Evento principal</p>
@@ -97,7 +98,8 @@ export function EventSummarySection({ metrics, loading }: { metrics: DashboardMe
         </div>
         <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
           {metrics.slice(0, 3).map((metric) => (
-            <div className="border border-white/10 bg-white/10 p-4 backdrop-blur-xl" key={metric.title}>
+            <div className="relative overflow-hidden border border-white/15 bg-white/10 p-5 backdrop-blur-xl shadow-[0_24px_80px_rgba(0,0,0,0.22)]" key={metric.title}>
+              <div className="absolute inset-y-0 left-0 w-1 bg-red-500" />
               <div className="text-3xl font-black">{metric.value}</div>
               <div className="mt-1 text-xs font-black uppercase tracking-[0.14em] text-slate-300">{metric.title}</div>
             </div>
@@ -115,16 +117,34 @@ export function EventSummarySection({ metrics, loading }: { metrics: DashboardMe
 
 export function FeaturedResultsSection({ results, loading }: { results: DashboardRecentResult[]; loading: boolean }) {
   return (
-    <section className="public-scroll-section flex min-h-screen items-center bg-slate-50 px-5 py-20 lg:px-8">
-      <div className="public-section-inner mx-auto grid w-full max-w-7xl gap-4 md:grid-cols-3">
-        {results.slice(0, 3).map((result) => (
-          <ResultCard key={result.id} result={result} />
-        ))}
-        {!loading && results.length === 0 && (
-          <div className="border border-slate-200 bg-white p-5 text-sm font-bold text-slate-500 md:col-span-3">
-            No hay resultados publicados todavia.
+    <section className="public-scroll-section relative flex min-h-screen items-center overflow-hidden bg-[#061225] px-5 py-20 text-white lg:px-8">
+      <div className="absolute inset-0 bg-[url('/images/public-sports-texture-bg.png')] bg-cover bg-center opacity-70" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_25%,rgba(37,99,235,0.18),transparent_32%),linear-gradient(180deg,rgba(6,18,37,0.88),rgba(6,18,37,0.96))]" />
+      <div className="absolute -right-20 top-24 hidden h-80 w-80 rounded-full bg-[url('/images/public-ball.png')] bg-cover bg-center opacity-[0.14] lg:block" />
+      <div className="absolute left-8 top-20 hidden text-[9rem] font-black uppercase leading-none tracking-normal text-white/[0.035] xl:block">
+        Resultados
+      </div>
+      <div className="public-section-inner relative mx-auto w-full max-w-7xl">
+        <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.24em] text-red-400">Resumen reciente</p>
+            <h2 className="mt-2 text-4xl font-black uppercase tracking-normal text-white">El ultimo pulso del torneo</h2>
           </div>
-        )}
+          <p className="max-w-xl text-sm font-bold leading-7 text-slate-300">
+            Marcadores publicados desde el modulo de resultados, listos para alimentar rankings y estadisticas.
+          </p>
+        </div>
+
+        <div className="grid gap-5 md:grid-cols-3">
+          {results.slice(0, 3).map((result) => (
+            <ResultCard key={result.id} result={result} />
+          ))}
+          {!loading && results.length === 0 && (
+            <div className="border border-white/10 bg-white/10 p-5 text-sm font-bold text-slate-300 backdrop-blur-xl md:col-span-3">
+              No hay resultados publicados todavia.
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );
@@ -155,6 +175,7 @@ export function UpcomingMatchesSection({ matches, loading }: { matches: Dashboar
     <section id="encuentros" className="public-scroll-section relative flex min-h-screen items-center overflow-hidden bg-[#061225] px-5 py-20 text-white lg:px-8">
       <div className="absolute inset-0 bg-[url('/images/public-sports-texture-bg.png')] bg-cover bg-center opacity-70" />
       <div className="absolute inset-0 bg-gradient-to-b from-[#061225]/80 via-[#061225]/92 to-[#061225]" />
+      <div className="absolute right-12 top-16 hidden h-32 w-32 rounded-full bg-[url('/images/public-ball.png')] bg-cover bg-center opacity-20 lg:block" />
       <div className="public-section-inner relative mx-auto w-full max-w-7xl">
         <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
@@ -183,14 +204,17 @@ export function UpcomingMatchesSection({ matches, loading }: { matches: Dashboar
 
 export function ResultsSection({ results, loading }: { results: DashboardRecentResult[]; loading: boolean }) {
   return (
-    <section id="resultados" className="public-scroll-section flex min-h-screen items-center bg-slate-50 px-5 py-20 lg:px-8">
-      <div className="public-section-inner mx-auto w-full max-w-7xl">
+    <section id="resultados" className="public-scroll-section relative flex min-h-screen items-center overflow-hidden bg-[#061225] px-5 py-20 text-white lg:px-8">
+      <div className="absolute inset-0 bg-[url('/images/public-sports-texture-bg.png')] bg-cover bg-center opacity-70" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_86%_18%,rgba(220,38,38,0.16),transparent_30%),linear-gradient(180deg,rgba(6,18,37,0.9),rgba(6,18,37,0.97))]" />
+      <div className="absolute -left-16 bottom-16 hidden h-72 w-72 rounded-full bg-[url('/images/public-ball.png')] bg-cover bg-center opacity-[0.14] lg:block" />
+      <div className="public-section-inner relative mx-auto w-full max-w-7xl">
         <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.24em] text-red-600">Marcadores</p>
-            <h2 className="mt-2 text-4xl font-black uppercase tracking-normal text-slate-950">Ultimos resultados</h2>
+            <p className="text-xs font-black uppercase tracking-[0.24em] text-red-400">Marcadores</p>
+            <h2 className="mt-2 text-4xl font-black uppercase tracking-normal text-white">Ultimos resultados</h2>
           </div>
-          <a className="inline-flex items-center text-sm font-black text-blue-700" href="#clasificacion">
+          <a className="inline-flex items-center text-sm font-black text-sky-300 transition hover:text-white" href="#clasificacion">
             Ver tabla completa <ChevronRight size={18} />
           </a>
         </div>
@@ -200,7 +224,7 @@ export function ResultsSection({ results, loading }: { results: DashboardRecentR
             <ResultCard key={result.id} result={result} />
           ))}
           {!loading && results.length === 0 && (
-            <div className="border border-slate-200 bg-white p-5 text-sm font-bold text-slate-500">
+            <div className="border border-white/10 bg-white/10 p-5 text-sm font-bold text-slate-300 backdrop-blur-xl">
               No hay resultados publicados todavia.
             </div>
           )}
@@ -212,15 +236,18 @@ export function ResultsSection({ results, loading }: { results: DashboardRecentR
 
 export function StatsSection({ metrics, loading }: { metrics: DashboardMetric[]; loading: boolean }) {
   return (
-    <section id="estadisticas" className="public-scroll-section relative flex min-h-screen items-center overflow-hidden bg-white px-5 py-20 lg:px-8">
-      <div className="absolute bottom-0 right-0 h-80 w-80 translate-x-1/3 translate-y-1/3 rounded-full bg-blue-100 blur-3xl" />
+    <section id="estadisticas" className="public-scroll-section relative flex min-h-screen items-center overflow-hidden bg-[#061225] px-5 py-20 text-white lg:px-8">
+      <div className="absolute inset-0 bg-[url('/images/public-sports-texture-bg.png')] bg-cover bg-center opacity-75" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_80%,rgba(37,99,235,0.18),transparent_34%),linear-gradient(180deg,rgba(6,18,37,0.88),rgba(6,18,37,0.97))]" />
+      <div className="absolute bottom-0 right-0 h-80 w-80 translate-x-1/3 translate-y-1/3 rounded-full bg-blue-500/20 blur-3xl" />
+      <div className="absolute right-16 top-16 hidden h-40 w-40 rounded-full bg-[url('/images/public-ball.png')] bg-cover bg-center opacity-[0.14] lg:block" />
       <div className="public-section-inner relative mx-auto grid w-full max-w-7xl gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.24em] text-red-600">Estadisticas</p>
-          <h2 className="mt-2 text-4xl font-black uppercase tracking-normal text-slate-950">
+          <p className="text-xs font-black uppercase tracking-[0.24em] text-red-400">Estadisticas</p>
+          <h2 className="mt-2 text-4xl font-black uppercase tracking-normal text-white">
             Rendimiento del torneo
           </h2>
-          <p className="mt-4 text-sm font-semibold leading-7 text-slate-500">
+          <p className="mt-4 text-sm font-semibold leading-7 text-slate-300">
             Indicadores publicos del avance deportivo: equipos, participantes, partidos y resultados registrados.
           </p>
         </div>
@@ -229,21 +256,22 @@ export function StatsSection({ metrics, loading }: { metrics: DashboardMetric[];
           {metrics.map((metric, index) => {
             const Icon = metricIcons[index] ?? Trophy;
             return (
-              <article className="border border-slate-200 bg-white p-5 shadow-[0_18px_55px_rgba(15,23,42,0.07)]" key={metric.title}>
+              <article className="relative overflow-hidden border border-white/10 bg-white/10 p-5 shadow-[0_18px_55px_rgba(0,0,0,0.18)] backdrop-blur-xl transition duration-200 hover:-translate-y-1 hover:bg-white/15 hover:shadow-[0_26px_70px_rgba(0,0,0,0.24)]" key={metric.title}>
+                <div className="absolute inset-x-0 top-0 h-1 bg-blue-600" />
                 <div className="mb-5 flex items-center justify-between">
-                  <span className="grid h-11 w-11 place-items-center bg-blue-50 text-blue-700">
+                  <span className="grid h-11 w-11 place-items-center bg-white/10 text-sky-300 ring-1 ring-white/10">
                     <Icon size={21} />
                   </span>
-                  <Clock3 size={17} className="text-slate-300" />
+                  <Clock3 size={17} className="text-slate-400" />
                 </div>
-                <div className="text-3xl font-black text-slate-950">{metric.value}</div>
-                <div className="mt-1 text-sm font-black text-slate-700">{metric.title}</div>
+                <div className="text-3xl font-black text-white">{metric.value}</div>
+                <div className="mt-1 text-sm font-black text-slate-200">{metric.title}</div>
                 <div className="mt-3 text-xs font-black uppercase text-emerald-600">{metric.change}</div>
               </article>
             );
           })}
           {loading && (
-            <div className="border border-slate-200 bg-white p-5 text-sm font-bold text-slate-500 sm:col-span-2 xl:col-span-4">
+            <div className="border border-white/10 bg-white/10 p-5 text-sm font-bold text-slate-300 backdrop-blur-xl sm:col-span-2 xl:col-span-4">
               Cargando informacion publica...
             </div>
           )}

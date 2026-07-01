@@ -1,0 +1,202 @@
+﻿.op-sidebar {
+  background: #070707;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+
+.op-sidebar-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1rem 0.8rem;
+}
+
+.op-brand-row {
+  gap: 0.7rem;
+}
+
+.op-brand-mark {
+  background: #04945c;
+  box-shadow: 0 14px 24px rgba(4, 148, 92, 0.28);
+  color: #fff;
+  flex-basis: 34px;
+  height: 34px;
+  width: 34px;
+}
+
+.op-brand-copy strong {
+  color: #f8fafc;
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+}
+
+.op-brand-copy span {
+  color: #6b7280;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.op-collapse-button {
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 999px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+  color: #0f172a;
+}
+
+.op-collapse-button:hover {
+  background: #f8fafc;
+  color: #04945c;
+}
+
+.op-profile-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+
+.op-profile-initials {
+  background: #dcfce7;
+  border-color: #bbf7d0;
+  border-radius: 999px;
+  color: #047857;
+}
+
+.op-profile-copy strong {
+  color: #f8fafc;
+}
+
+.op-profile-copy span {
+  color: #7f8ea3;
+}
+
+.op-sidebar-nav {
+  padding: 1rem 0.8rem;
+  scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+}
+
+.op-nav-section {
+  color: #525b68;
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  margin: 0.55rem 0.65rem 0.7rem;
+  text-transform: uppercase;
+}
+
+.op-nav-link,
+.op-sidebar-action {
+  color: #a6b0bf;
+  font-size: 0.89rem;
+  font-weight: 760;
+  min-height: 2.6rem;
+}
+
+.op-nav-link:hover,
+.op-sidebar-action:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #f8fafc;
+  transform: none;
+}
+
+.op-nav-link.is-active {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+  color: #00c875;
+}
+
+.op-nav-link.is-active::before {
+  background: #00c875;
+  border-radius: 999px;
+  bottom: 0.65rem;
+  content: "";
+  left: 0.2rem;
+  position: absolute;
+  top: 0.65rem;
+  width: 3px;
+}
+
+.op-sidebar-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.9rem 0.8rem;
+}
+
+.op-sidebar-action {
+  background: transparent;
+}
+
+.op-sidebar-action.danger:hover {
+  background: rgba(239, 68, 68, 0.12);
+  color: #fca5a5;
+}
+
+.op-theme-button {
+  background: #04945c;
+  border-radius: 999px;
+  box-shadow: 0 12px 22px rgba(4, 148, 92, 0.28);
+}
+
+.op-sidebar-user-card {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  min-height: 3.8rem;
+  width: 100%;
+}
+
+.op-sidebar-user-card .op-profile-initials {
+  background: #00a86b;
+  border: 0;
+  color: #fff;
+  flex: 0 0 34px;
+  font-size: 0.75rem;
+  height: 34px;
+  width: 34px;
+}
+
+.op-sidebar-user-card .op-profile-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.op-sidebar-user-card .op-profile-copy strong {
+  color: #f8fafc;
+  font-size: 0.88rem;
+  font-weight: 900;
+}
+
+.op-sidebar-user-card .op-profile-copy span {
+  color: #7f8ea3;
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.op-sidebar-logout-icon {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 10px;
+  color: #6b7280;
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 34px;
+  height: 34px;
+  justify-content: center;
+  transition: background 0.16s ease, color 0.16s ease;
+  width: 34px;
+}
+
+.op-sidebar-logout-icon:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f8fafc;
+}
+
+.op-sidebar-panel.is-collapsed .op-sidebar-user-card {
+  flex-direction: column;
+  gap: 0.55rem;
+  justify-content: center;
+}
+

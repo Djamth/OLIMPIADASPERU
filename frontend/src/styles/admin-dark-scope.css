@@ -1,0 +1,98 @@
+﻿/* Dark mode is intentionally scoped to the sidebar only. */
+html.op-dark body {
+  background: #f6f8fb;
+  color: var(--op-text);
+}
+
+html.op-dark .op-shell,
+html.op-dark .op-main {
+  background: #f5f7fb;
+}
+
+html.op-dark .op-navbar {
+  background: rgba(255, 255, 255, 0.94);
+  border-bottom-color: #e5e7eb;
+}
+
+html.op-dark .op-top-search {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+html.op-dark .op-top-search input {
+  color: #0f172a;
+}
+
+html.op-dark .op-top-search span {
+  border-color: #e2e8f0;
+  color: #64748b;
+}
+
+html.op-dark .op-action-divider {
+  background: #e5e7eb;
+}
+
+html.op-dark .op-mobile-menu-button:hover,
+html.op-dark .op-icon-button:hover {
+  background: #eef2f7;
+  color: #0f172a;
+}
+
+html.op-dark .op-notification-dot {
+  border-color: #fff;
+}
+
+html.op-dark .op-profile-popover {
+  background: #fff;
+  border-color: #e2e8f0;
+  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.16);
+}
+
+html.op-dark .op-profile-popover-head {
+  border-bottom-color: #e2e8f0;
+}
+
+html.op-dark .op-profile-popover-head strong {
+  color: #0f172a;
+}
+
+html.op-dark .op-profile-popover-item {
+  color: #475569;
+}
+
+html.op-dark .op-profile-popover-item:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+html.op-dark .surface-card,
+html.op-dark .bg-white {
+  background-color: #fff !important;
+  border-color: rgba(226, 232, 240, 0.9) !important;
+  color: var(--op-text);
+}
+
+html.op-dark .text-slate-950 {
+  color: #020617 !important;
+}
+
+html.op-dark .text-slate-900 {
+  color: #0f172a !important;
+}
+
+html.op-dark .text-slate-800 {
+  color: #1e293b !important;
+}
+
+html.op-dark .text-slate-700 {
+  color: #334155 !important;
+}
+
+html.op-dark .text-slate-600 {
+  color: #475569 !important;
+}
+
+html.op-dark .text-slate-500 {
+  color: #64748b !important;
+}
+

@@ -1,0 +1,18 @@
+﻿/* Premium dashboard shell */
+html.op-dark {
+  color-scheme: dark;
+}
+
+html.op-dark body {
+  background: #0c111d;
+  color: #dce6f4;
+}
+
+.op-shell {
+  background: #f5f7fb;
+}
+
+html.op-dark .op-shell {
+  background: #0c111d;
+}
+
