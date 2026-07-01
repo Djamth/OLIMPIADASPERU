@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -24,6 +25,15 @@ public class NotificacionController {
     @GetMapping
     public ResponseEntity<NotificacionResumenResponse> resumen(Authentication authentication) {
         return ResponseEntity.ok(notificacionService.resumen(authentication.getName()));
+    }
+
+    @GetMapping("/historial")
+    public ResponseEntity<NotificacionResumenResponse> historial(
+        @RequestParam(required = false) String tipo,
+        @RequestParam(required = false, defaultValue = "TODAS") String estado,
+        Authentication authentication
+    ) {
+        return ResponseEntity.ok(notificacionService.listar(authentication.getName(), tipo, estado));
     }
 
     @PatchMapping("/{id}/leida")

@@ -1,16 +1,16 @@
 package com.sistema.olimpiadas_peru.auth1.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ModuloDTO {
-    private Integer id;
-    private String nombre;
-    private String ruta;
-    private String icono;
+public class ModuloPermisoDTO {
+    private Integer moduloId;
     private Boolean puedeVer;
     private Boolean puedeCrear;
     private Boolean puedeEditar;

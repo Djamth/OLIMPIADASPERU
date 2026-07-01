@@ -20,11 +20,66 @@ import { LockKeyhole, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type PerfilForm = RolRequest;
+type PermissionKey = "puedeVer" | "puedeCrear" | "puedeEditar" | "puedeEliminar" | "puedeExportar";
+
+type AccessPermission = {
+  moduloId: number;
+  puedeVer: boolean;
+  puedeCrear: boolean;
+  puedeEditar: boolean;
+  puedeEliminar: boolean;
+  puedeExportar: boolean;
+};
 
 const emptyForm: PerfilForm = {
   nombre: "",
   estado: "ACTIVO",
 };
+
+const permissionLabels: Array<{ key: PermissionKey; label: string }> = [
+  { key: "puedeVer", label: "Ver" },
+  { key: "puedeCrear", label: "Crear" },
+  { key: "puedeEditar", label: "Editar" },
+  { key: "puedeEliminar", label: "Eliminar" },
+  { key: "puedeExportar", label: "Exportar" },
+];
+
+function emptyPermission(moduloId: number): AccessPermission {
+  return {
+    moduloId,
+    puedeVer: false,
+    puedeCrear: false,
+    puedeEditar: false,
+    puedeEliminar: false,
+    puedeExportar: false,
+  };
+}
+
+function fullPermission(moduloId: number): AccessPermission {
+  return {
+    moduloId,
+    puedeVer: true,
+    puedeCrear: true,
+    puedeEditar: true,
+    puedeEliminar: true,
+    puedeExportar: true,
+  };
+}
+
+function permissionFromModule(module: Modulo): AccessPermission {
+  return {
+    moduloId: module.id,
+    puedeVer: module.puedeVer !== false,
+    puedeCrear: module.puedeCrear !== false,
+    puedeEditar: module.puedeEditar !== false,
+    puedeEliminar: module.puedeEliminar !== false,
+    puedeExportar: module.puedeExportar !== false,
+  };
+}
+
+function isAssigned(permission?: AccessPermission) {
+  return Boolean(permission?.puedeVer);
+}
 
 export function PerfilesClient() {
   const [roles, setRoles] = useState<Rol[]>([]);
@@ -36,7 +91,7 @@ export function PerfilesClient() {
   const [editing, setEditing] = useState<Rol | null>(null);
   const [accessRole, setAccessRole] = useState<Rol | null>(null);
   const [form, setForm] = useState<PerfilForm>(emptyForm);
-  const [accessModuloIds, setAccessModuloIds] = useState<number[]>([]);
+  const [accessPermissions, setAccessPermissions] = useState<Record<number, AccessPermission>>({});
   const [submitting, setSubmitting] = useState(false);
   const [savingAccess, setSavingAccess] = useState(false);
 
@@ -80,15 +135,31 @@ export function PerfilesClient() {
   };
 
   const startAccess = (item: Rol) => {
+    const current = Object.fromEntries((modulosPorRol[item.id] ?? []).map((modulo) => [modulo.id, permissionFromModule(modulo)]));
     setAccessRole(item);
-    setAccessModuloIds((modulosPorRol[item.id] ?? []).map((modulo) => modulo.id));
+    setAccessPermissions(current);
     setAccessOpen(true);
   };
 
-  const toggleAccessModulo = (id: number) => {
-    setAccessModuloIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
-    );
+  const toggleModule = (id: number) => {
+    setAccessPermissions((prev) => ({
+      ...prev,
+      [id]: isAssigned(prev[id]) ? emptyPermission(id) : fullPermission(id),
+    }));
+  };
+
+  const togglePermission = (id: number, key: PermissionKey) => {
+    setAccessPermissions((prev) => {
+      const current = prev[id] ?? emptyPermission(id);
+      const next = { ...current, [key]: !current[key] };
+      if (key !== "puedeVer" && next[key]) {
+        next.puedeVer = true;
+      }
+      if (key === "puedeVer" && !next.puedeVer) {
+        return { ...prev, [id]: emptyPermission(id) };
+      }
+      return { ...prev, [id]: next };
+    });
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -116,19 +187,20 @@ export function PerfilesClient() {
     if (!accessRole) return;
     setSavingAccess(true);
     try {
-      const response = await rolService.asignarModulos(accessRole.id, accessModuloIds);
+      const permisos = Object.values(accessPermissions).filter(isAssigned);
+      const response = await rolService.asignarModulos(accessRole.id, permisos);
       setModulosPorRol((prev) => ({ ...prev, [accessRole.id]: response.modulos }));
       setAccessOpen(false);
-      await alerts.success("Accesos actualizados");
+      await alerts.success("Permisos actualizados");
     } catch (error) {
-      await alerts.error("No se pudieron actualizar los accesos", getErrorMessage(error));
+      await alerts.error("No se pudieron actualizar los permisos", getErrorMessage(error));
     } finally {
       setSavingAccess(false);
     }
   };
 
   const remove = async (item: Rol) => {
-    const result = await alerts.confirm("Eliminar perfil", `Se eliminara ${item.nombre}.`);
+    const result = await alerts.confirm("Eliminar perfil", `Se eliminará ${item.nombre}.`);
     if (!result.isConfirmed) return;
     try {
       await rolService.remove(item.id);
@@ -166,7 +238,7 @@ export function PerfilesClient() {
       align: "right",
       render: (item) => (
         <div className="flex justify-end gap-2">
-          <IconActionButton label="Gestionar módulos" tone="neutral" onClick={() => startAccess(item)}>
+          <IconActionButton label="Gestionar permisos" tone="neutral" onClick={() => startAccess(item)}>
             <LockKeyhole size={16} />
           </IconActionButton>
           <RowActions onEdit={() => startEdit(item)} onDelete={() => remove(item)} />
@@ -183,7 +255,7 @@ export function PerfilesClient() {
     <>
       <PageHeader
         title="Perfiles"
-        description="Administra roles y define qué módulos puede usar cada perfil."
+        description="Administra roles, módulos y permisos por acción para cada perfil."
         action={<PrimaryActionButton onClick={startCreate}>Nuevo perfil</PrimaryActionButton>}
       />
 
@@ -206,7 +278,7 @@ export function PerfilesClient() {
             onPageSizeChange={table.setPageSize}
             totalItems={table.totalItems}
             filteredItems={table.filteredItems}
-            placeholder="Buscar perfil o modulo..."
+            placeholder="Buscar perfil o módulo..."
           />
           <DataTable columns={columns} items={table.pageItems} getRowKey={(item) => item.id} />
           <PaginationControls page={table.page} totalPages={table.totalPages} onPageChange={table.setPage} />
@@ -233,35 +305,48 @@ export function PerfilesClient() {
 
       <FormModal
         open={accessOpen}
-        title={`Módulos permitidos${accessRole ? ` - ${accessRole.nombre}` : ""}`}
+        title={`Permisos del perfil${accessRole ? ` - ${accessRole.nombre}` : ""}`}
         onClose={() => setAccessOpen(false)}
         onSubmit={handleAccessSubmit}
-        submitLabel="Guardar accesos"
+        submitLabel="Guardar permisos"
         submitting={savingAccess}
       >
         <div className="grid gap-3">
           <p className="m-0 text-sm font-semibold text-slate-500">
-            Selecciona los módulos que este rol podrá visualizar y usar en el sistema.
+            Define qué módulos puede ver el rol y qué acciones puede realizar dentro de cada uno.
           </p>
-          <div className="grid gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 md:grid-cols-2">
-            {modulos.map((modulo) => (
-              <label
-                className={`flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 text-sm font-bold transition ${
-                  accessModuloIds.includes(modulo.id)
-                    ? "border-blue-200 bg-blue-50 text-blue-700"
-                    : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                }`}
-                key={modulo.id}
-              >
-                <input
-                  type="checkbox"
-                  className="h-4 w-4 accent-blue-600"
-                  checked={accessModuloIds.includes(modulo.id)}
-                  onChange={() => toggleAccessModulo(modulo.id)}
-                />
-                <span>{modulo.nombre}</span>
-              </label>
-            ))}
+          <div className="max-h-[58vh] overflow-auto rounded-xl border border-slate-200 bg-slate-50">
+            <div className="grid min-w-[760px] grid-cols-[240px_repeat(5,1fr)] gap-0 border-b border-slate-200 bg-white px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-slate-400">
+              <span>Módulo</span>
+              {permissionLabels.map((item) => <span className="text-center" key={item.key}>{item.label}</span>)}
+            </div>
+            <div className="grid min-w-[760px] gap-1 p-2">
+              {modulos.map((modulo) => {
+                const permission = accessPermissions[modulo.id] ?? emptyPermission(modulo.id);
+                return (
+                  <div className="grid grid-cols-[240px_repeat(5,1fr)] items-center rounded-lg border border-slate-200 bg-white px-3 py-2" key={modulo.id}>
+                    <button
+                      className={`text-left text-sm font-black transition ${isAssigned(permission) ? "text-blue-700" : "text-slate-700"}`}
+                      type="button"
+                      onClick={() => toggleModule(modulo.id)}
+                    >
+                      {modulo.nombre}
+                      <span className="block text-xs font-semibold text-slate-400">{isAssigned(permission) ? "Asignado" : "Sin acceso"}</span>
+                    </button>
+                    {permissionLabels.map((item) => (
+                      <label className="grid place-items-center" key={item.key}>
+                        <input
+                          className="h-4 w-4 accent-blue-700"
+                          type="checkbox"
+                          checked={permission[item.key]}
+                          onChange={() => togglePermission(modulo.id, item.key)}
+                        />
+                      </label>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </FormModal>

@@ -55,6 +55,32 @@ public class NotificacionService {
         );
     }
 
+    public NotificacionResumenResponse listar(String destinatarioEmail, String tipo, String estado) {
+        List<NotificacionResponse> items = notificacionRepository
+            .findByDestinatarioEmailIgnoreCaseOrderByCreadoEnDesc(destinatarioEmail)
+            .stream()
+            .filter(item -> tipo == null || tipo.isBlank() || item.getTipo().name().equalsIgnoreCase(tipo))
+            .filter(item -> {
+                if (estado == null || estado.isBlank() || "TODAS".equalsIgnoreCase(estado)) {
+                    return true;
+                }
+                if ("NO_LEIDAS".equalsIgnoreCase(estado)) {
+                    return !item.isLeido();
+                }
+                if ("LEIDAS".equalsIgnoreCase(estado)) {
+                    return item.isLeido();
+                }
+                return true;
+            })
+            .map(this::mapear)
+            .toList();
+
+        return new NotificacionResumenResponse(
+            notificacionRepository.countByDestinatarioEmailIgnoreCaseAndLeidoFalse(destinatarioEmail),
+            items
+        );
+    }
+
     @Transactional
     public void marcarComoLeida(Long id, String destinatarioEmail) {
         notificacionRepository.findById(id)

@@ -12,6 +12,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 const searchTargets = [
   { label: "Dashboard", href: "/dashboard", keywords: ["inicio", "panel", "resumen"] },
   { label: "Mi perfil", href: "/perfil", keywords: ["perfil", "cuenta", "password", "contraseña"] },
+  { label: "Notificaciones", href: "/notificaciones", keywords: ["avisos", "mensajes", "alertas"] },
   { label: "Usuarios", href: "/usuarios", keywords: ["usuario", "accesos"] },
   { label: "Perfiles", href: "/perfiles", keywords: ["roles", "permisos", "modulos"] },
   { label: "Instituciones", href: "/instituciones", keywords: ["colegios", "clientes"] },
@@ -243,6 +244,17 @@ export function AppNavbar({ onOpenMobileMenu }: { onOpenMobileMenu: () => void }
                     </button>
                   ))}
                 </div>
+
+                <button
+                  className="op-notification-view-all"
+                  type="button"
+                  onClick={() => {
+                    setNotificationsOpen(false);
+                    router.push("/notificaciones");
+                  }}
+                >
+                  Ver centro de notificaciones
+                </button>
               </div>
             )}
           </div>

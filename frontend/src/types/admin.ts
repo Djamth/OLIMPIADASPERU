@@ -120,3 +120,5 @@ export interface NotificacionResumen {
   noLeidas: number;
   items: Notificacion[];
 }
+
+export type NotificacionEstadoFiltro = "TODAS" | "NO_LEIDAS" | "LEIDAS";

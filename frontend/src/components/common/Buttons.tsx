@@ -1,6 +1,9 @@
 "use client";
 
+import { useAuth } from "@/context/AuthContext";
+import { hasActionPermission } from "@/utils/access";
 import { Edit2, PlusCircle, Trash2 } from "lucide-react";
+import { usePathname } from "next/navigation";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -8,12 +11,18 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 export function PrimaryActionButton({ children, className = "", ...props }: ButtonProps) {
+  const { user } = useAuth();
+  const pathname = usePathname();
+  const allowed = hasActionPermission(user, pathname, "crear");
+
   return (
     <button
       className={`inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-blue-700 px-5 text-sm font-black text-white shadow-[0_16px_32px_rgba(21,101,192,0.22)] ring-0 ring-blue-500/20 transition hover:-translate-y-0.5 hover:bg-blue-800 hover:shadow-[0_22px_40px_rgba(21,101,192,0.28)] disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
       type="button"
       data-op-primary-action="true"
       {...props}
+      disabled={!allowed || props.disabled}
+      title={!allowed ? "Tu perfil no tiene permiso para crear en este módulo" : props.title}
     >
       <PlusCircle size={17} />
       {children}
@@ -82,14 +91,27 @@ export function RowActions({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const { user } = useAuth();
+  const pathname = usePathname();
+  const canEdit = hasActionPermission(user, pathname, "editar");
+  const canDelete = hasActionPermission(user, pathname, "eliminar");
+
+  if (!canEdit && !canDelete) {
+    return <span className="text-xs font-bold text-slate-400">Sin acciones</span>;
+  }
+
   return (
     <div className="flex justify-end gap-1.5">
-      <IconActionButton label="Editar" tone="primary" onClick={onEdit}>
-        <Edit2 size={14} />
-      </IconActionButton>
-      <IconActionButton label="Eliminar" tone="danger" onClick={onDelete}>
-        <Trash2 size={14} />
-      </IconActionButton>
+      {canEdit && (
+        <IconActionButton label="Editar" tone="primary" onClick={onEdit}>
+          <Edit2 size={14} />
+        </IconActionButton>
+      )}
+      {canDelete && (
+        <IconActionButton label="Eliminar" tone="danger" onClick={onDelete}>
+          <Trash2 size={14} />
+        </IconActionButton>
+      )}
     </div>
   );
 }

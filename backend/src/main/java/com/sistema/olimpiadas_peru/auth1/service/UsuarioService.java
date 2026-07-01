@@ -3,6 +3,8 @@ package com.sistema.olimpiadas_peru.auth1.service;
 import com.sistema.olimpiadas_peru.auth1.dto.LoginRequestDTO;
 import com.sistema.olimpiadas_peru.auth1.dto.LoginResponseDTO;
 import com.sistema.olimpiadas_peru.auth1.dto.ModuloDTO;
+import com.sistema.olimpiadas_peru.auth1.dto.ModuloPermisoDTO;
+import com.sistema.olimpiadas_peru.auth1.dto.PerfilUpdateDTO;
 import com.sistema.olimpiadas_peru.auth1.dto.RefreshTokenResponseDTO;
 import com.sistema.olimpiadas_peru.auth1.dto.UsuarioCreateDTO;
 import com.sistema.olimpiadas_peru.auth1.dto.UsuarioDTO;
@@ -17,14 +19,18 @@ import com.sistema.olimpiadas_peru.auth1.security.TokenBlacklistService;
 import com.sistema.olimpiadas_peru.institucion.service.InstitucionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.BadSqlGrammarException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Comparator;
+import java.util.Map;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,6 +46,7 @@ public class UsuarioService {
     private final TokenBlacklistService tokenBlacklistService;
     private final AuditoriaService auditoriaService;
     private final InstitucionService institucionService;
+    private final JdbcTemplate jdbcTemplate;
 
     @Transactional
     public UsuarioDTO crearUsuario(UsuarioCreateDTO usuarioCreateDTO) {
@@ -81,6 +88,55 @@ public class UsuarioService {
         Usuario usuario = usuarioRepository.findByEmail(email)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
         return mapearADTO(usuario);
+    }
+
+    @Transactional
+    public LoginResponseDTO actualizarPerfil(Integer usuarioId, PerfilUpdateDTO perfilUpdateDTO) {
+        Usuario usuario = usuarioRepository.findWithRolAndModulosById(usuarioId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+
+        String nuevoEmail = perfilUpdateDTO.getEmail().trim();
+        if (!nuevoEmail.equalsIgnoreCase(usuario.getEmail())) {
+            usuarioRepository.findByEmail(nuevoEmail).ifPresent(existente -> {
+                if (!existente.getId().equals(usuario.getId())) {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un usuario con ese correo");
+                }
+            });
+            usuario.setEmail(nuevoEmail);
+        }
+
+        usuario.setNombre(perfilUpdateDTO.getNombre().trim());
+        Usuario actualizado = usuarioRepository.save(usuario);
+        auditoriaService.registrar(
+            usuarioId,
+            "ACTUALIZAR_PERFIL",
+            String.format("El usuario '%s' actualizó su perfil", actualizado.getEmail())
+        );
+
+        return mapearSesion(actualizado, null, null, "Cookie");
+    }
+
+    @Transactional
+    public void cambiarPassword(Integer usuarioId, String passwordActual, String nuevaPassword) {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+
+        if (!passwordEncoder.matches(passwordActual, usuario.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La contraseña actual no es correcta");
+        }
+
+        if (passwordEncoder.matches(nuevaPassword, usuario.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La nueva contraseña debe ser diferente a la actual");
+        }
+
+        usuario.setPassword(passwordEncoder.encode(nuevaPassword));
+        usuarioRepository.save(usuario);
+
+        auditoriaService.registrar(
+            usuarioId,
+            "CAMBIAR_PASSWORD",
+            String.format("El usuario '%s' cambió su contraseña", usuario.getEmail())
+        );
     }
 
     public LoginResponseDTO obtenerSesionActual(String email) {
@@ -260,6 +316,9 @@ public class UsuarioService {
     }
 
     private LoginResponseDTO mapearSesion(Usuario usuario, String accessToken, String refreshToken, String tokenType) {
+        Map<Integer, ModuloPermisoDTO> permisos = usuario.getRol() != null
+            ? obtenerPermisos(usuario.getRol().getId())
+            : Map.of();
         return LoginResponseDTO.builder()
             .id(usuario.getId())
             .nombre(usuario.getNombre())
@@ -273,7 +332,7 @@ public class UsuarioService {
                 ? usuario.getRol().getModulos().stream()
                     .filter(Objects::nonNull)
                     .sorted(Comparator.comparing(Modulo::getId, Comparator.nullsLast(Integer::compareTo)))
-                    .map(this::mapearModuloADTO)
+                    .map(modulo -> mapearModuloADTO(modulo, permisos.getOrDefault(modulo.getId(), permisoCompleto(modulo.getId()))))
                     .collect(Collectors.toList())
                 : List.of())
             .accessToken(accessToken)
@@ -284,11 +343,56 @@ public class UsuarioService {
     }
 
     private ModuloDTO mapearModuloADTO(Modulo modulo) {
+        return mapearModuloADTO(modulo, permisoCompleto(modulo.getId()));
+    }
+
+    private ModuloDTO mapearModuloADTO(Modulo modulo, ModuloPermisoDTO permiso) {
         return ModuloDTO.builder()
             .id(modulo.getId())
             .nombre(modulo.getNombre())
             .ruta(modulo.getRuta())
             .icono(modulo.getIcono())
+            .puedeVer(valor(permiso.getPuedeVer()))
+            .puedeCrear(valor(permiso.getPuedeCrear()))
+            .puedeEditar(valor(permiso.getPuedeEditar()))
+            .puedeEliminar(valor(permiso.getPuedeEliminar()))
+            .puedeExportar(valor(permiso.getPuedeExportar()))
             .build();
+    }
+
+    private Map<Integer, ModuloPermisoDTO> obtenerPermisos(Integer rolId) {
+        try {
+            return jdbcTemplate.query("""
+                select modulo_id, puede_ver, puede_crear, puede_editar, puede_eliminar, puede_exportar
+                from rol_modulos
+                where rol_id = ?
+                """, (rs, rowNum) -> ModuloPermisoDTO.builder()
+                    .moduloId(rs.getInt("modulo_id"))
+                    .puedeVer(rs.getBoolean("puede_ver"))
+                    .puedeCrear(rs.getBoolean("puede_crear"))
+                    .puedeEditar(rs.getBoolean("puede_editar"))
+                    .puedeEliminar(rs.getBoolean("puede_eliminar"))
+                    .puedeExportar(rs.getBoolean("puede_exportar"))
+                    .build(), rolId)
+                .stream()
+                .collect(Collectors.toMap(ModuloPermisoDTO::getModuloId, Function.identity()));
+        } catch (BadSqlGrammarException exception) {
+            return Map.of();
+        }
+    }
+
+    private ModuloPermisoDTO permisoCompleto(Integer moduloId) {
+        return ModuloPermisoDTO.builder()
+            .moduloId(moduloId)
+            .puedeVer(true)
+            .puedeCrear(true)
+            .puedeEditar(true)
+            .puedeEliminar(true)
+            .puedeExportar(true)
+            .build();
+    }
+
+    private boolean valor(Boolean value) {
+        return value == null || value;
     }
 }

@@ -51,8 +51,15 @@ export const rolService = {
     const { data } = await api.get<RolModulos>(`/api/roles/${id}/modulos`);
     return data;
   },
-  async asignarModulos(id: number, moduloIds: number[]) {
-    const { data } = await api.put<RolModulos>(`/api/roles/${id}/modulos`, { moduloIds });
+  async asignarModulos(id: number, permisos: Array<{
+    moduloId: number;
+    puedeVer: boolean;
+    puedeCrear: boolean;
+    puedeEditar: boolean;
+    puedeEliminar: boolean;
+    puedeExportar: boolean;
+  }>) {
+    const { data } = await api.put<RolModulos>(`/api/roles/${id}/modulos`, { permisos });
     return data;
   },
 };
@@ -88,6 +95,10 @@ export const auditoriaService = {
 export const notificacionService = {
   async resumen() {
     const { data } = await api.get<NotificacionResumen>("/api/notificaciones");
+    return data;
+  },
+  async historial(params?: { tipo?: string; estado?: string }) {
+    const { data } = await api.get<NotificacionResumen>("/api/notificaciones/historial", { params });
     return data;
   },
   async marcarComoLeida(id: number) {
