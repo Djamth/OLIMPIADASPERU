@@ -1,6 +1,8 @@
 package com.sistema.olimpiadas_peru.programacion.event;
 
 import com.sistema.olimpiadas_peru.auth1.service.EmailService;
+import com.sistema.olimpiadas_peru.notificacion.entity.Notificacion;
+import com.sistema.olimpiadas_peru.notificacion.service.NotificacionService;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -18,6 +20,7 @@ public class PartidoNotificationListener {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     private final EmailService emailService;
+    private final NotificacionService notificacionService;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void enviarAviso(PartidoProgramadoEvent event) {
@@ -48,6 +51,17 @@ public class PartidoNotificationListener {
                 event.equipoVisitante(),
                 event.fechaHora().format(FORMATTER),
                 event.sede());
+
+        notificacionService.crearParaDestinatarios(
+                destinatarios,
+                Notificacion.Tipo.PROGRAMACION,
+                event.reprogramado() ? "Partido reprogramado" : "Nuevo partido programado",
+                "%s vs %s - %s en %s".formatted(
+                        event.equipoLocal(),
+                        event.equipoVisitante(),
+                        event.fechaHora().format(FORMATTER),
+                        event.sede()),
+                "/programacion");
 
         destinatarios.forEach(destinatario -> enviar(destinatario, asunto, contenido));
     }

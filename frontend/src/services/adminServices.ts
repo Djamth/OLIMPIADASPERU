@@ -3,6 +3,7 @@ import type { Modulo } from "@/types/auth";
 import type {
   Auditoria,
   DashboardResumen,
+  NotificacionResumen,
   PublicDashboardResumen,
   Rol,
   RolModulos,
@@ -81,5 +82,18 @@ export const auditoriaService = {
   async list() {
     const { data } = await api.get<Auditoria[]>("/api/auditoria");
     return data;
+  },
+};
+
+export const notificacionService = {
+  async resumen() {
+    const { data } = await api.get<NotificacionResumen>("/api/notificaciones");
+    return data;
+  },
+  async marcarComoLeida(id: number) {
+    await api.patch(`/api/notificaciones/${id}/leida`);
+  },
+  async marcarTodasComoLeidas() {
+    await api.patch("/api/notificaciones/leidas");
   },
 };

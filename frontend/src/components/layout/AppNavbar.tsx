@@ -1,14 +1,17 @@
 "use client";
 
 import { useAuth } from "@/context/AuthContext";
+import { notificacionService } from "@/services/adminServices";
+import type { NotificacionResumen } from "@/types/admin";
 import { alerts } from "@/utils/alerts";
 import { Bell, ChevronDown, LogOut, Menu, Moon, Plus, Search, Sun, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const searchTargets = [
   { label: "Dashboard", href: "/dashboard", keywords: ["inicio", "panel", "resumen"] },
+  { label: "Mi perfil", href: "/perfil", keywords: ["perfil", "cuenta", "password", "contraseña"] },
   { label: "Usuarios", href: "/usuarios", keywords: ["usuario", "accesos"] },
   { label: "Perfiles", href: "/perfiles", keywords: ["roles", "permisos", "modulos"] },
   { label: "Instituciones", href: "/instituciones", keywords: ["colegios", "clientes"] },
@@ -24,14 +27,42 @@ const searchTargets = [
   { label: "Estadísticas", href: "/estadisticas", keywords: ["ranking", "reportes", "medallero"] },
 ];
 
+const notificationTone: Record<string, string> = {
+  INSCRIPCION: "bg-emerald-50 text-emerald-700",
+  PROGRAMACION: "bg-blue-50 text-blue-700",
+  RESULTADO: "bg-rose-50 text-rose-700",
+  SISTEMA: "bg-slate-100 text-slate-700",
+};
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("es-PE", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
 export function AppNavbar({ onOpenMobileMenu }: { onOpenMobileMenu: () => void }) {
   const { user, logout } = useAuth();
   const router = useRouter();
   const [profileOpen, setProfileOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [query, setQuery] = useState("");
+  const [notifications, setNotifications] = useState<NotificacionResumen>({ noLeidas: 0, items: [] });
   const profileRef = useRef<HTMLDivElement | null>(null);
+  const notificationsRef = useRef<HTMLDivElement | null>(null);
   const searchRef = useRef<HTMLInputElement | null>(null);
+
+  const loadNotifications = useCallback(async () => {
+    if (!user) return;
+    try {
+      setNotifications(await notificacionService.resumen());
+    } catch {
+      setNotifications({ noLeidas: 0, items: [] });
+    }
+  }, [user]);
 
   useEffect(() => {
     const storedTheme = localStorage.getItem("op_theme");
@@ -41,9 +72,17 @@ export function AppNavbar({ onOpenMobileMenu }: { onOpenMobileMenu: () => void }
   }, []);
 
   useEffect(() => {
+    void loadNotifications();
+  }, [loadNotifications]);
+
+  useEffect(() => {
     const onClickOutside = (event: MouseEvent) => {
-      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (profileRef.current && !profileRef.current.contains(target)) {
         setProfileOpen(false);
+      }
+      if (notificationsRef.current && !notificationsRef.current.contains(target)) {
+        setNotificationsOpen(false);
       }
     };
 
@@ -109,13 +148,16 @@ export function AppNavbar({ onOpenMobileMenu }: { onOpenMobileMenu: () => void }
     action.click();
   };
 
-  const handleNotifications = async () => {
-    await alerts.warning("Notificaciones", "No tienes notificaciones pendientes por revisar.");
+  const handleNotificationClick = async (id: number, referencia?: string | null) => {
+    await notificacionService.marcarComoLeida(id);
+    await loadNotifications();
+    setNotificationsOpen(false);
+    if (referencia) router.push(referencia);
   };
 
-  const handleProfile = async () => {
-    await alerts.success(user?.nombre || "Usuario", `${user?.rolNombre || "Invitado"} · ${user?.email || "Sin correo"}`);
-    setProfileOpen(false);
+  const markAllAsRead = async () => {
+    await notificacionService.marcarTodasComoLeidas();
+    await loadNotifications();
   };
 
   const initials = (user?.nombre ?? "Usuario")
@@ -159,10 +201,51 @@ export function AppNavbar({ onOpenMobileMenu }: { onOpenMobileMenu: () => void }
             {darkMode ? <Sun size={17} /> : <Moon size={17} />}
           </button>
 
-          <button className="op-icon-button has-dot" type="button" onClick={handleNotifications} aria-label="Notificaciones">
-            <Bell size={17} />
-            <span className="op-notification-dot" />
-          </button>
+          <div className="op-notification-menu" ref={notificationsRef}>
+            <button
+              className={`op-icon-button ${notifications.noLeidas > 0 ? "has-dot" : ""}`}
+              type="button"
+              onClick={() => setNotificationsOpen((value) => !value)}
+              aria-label="Notificaciones"
+            >
+              <Bell size={17} />
+              {notifications.noLeidas > 0 && <span className="op-notification-dot" />}
+            </button>
+
+            {notificationsOpen && (
+              <div className="op-notification-popover">
+                <div className="op-notification-head">
+                  <div>
+                    <strong>Notificaciones</strong>
+                    <span>{notifications.noLeidas} sin leer</span>
+                  </div>
+                  <button type="button" onClick={markAllAsRead} disabled={notifications.noLeidas === 0}>
+                    Marcar leídas
+                  </button>
+                </div>
+
+                <div className="op-notification-list">
+                  {notifications.items.length === 0 ? (
+                    <div className="op-notification-empty">No tienes notificaciones recientes.</div>
+                  ) : notifications.items.map((item) => (
+                    <button
+                      className={`op-notification-item ${item.leido ? "" : "unread"}`}
+                      type="button"
+                      key={item.id}
+                      onClick={() => handleNotificationClick(item.id, item.referencia)}
+                    >
+                      <div className="op-notification-item-top">
+                        <span className={notificationTone[item.tipo] ?? notificationTone.SISTEMA}>{item.tipo}</span>
+                        <small>{formatDate(item.creadoEn)}</small>
+                      </div>
+                      <strong>{item.titulo}</strong>
+                      <p>{item.mensaje}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
           <div className="op-profile-menu" ref={profileRef}>
             <button
@@ -186,9 +269,18 @@ export function AppNavbar({ onOpenMobileMenu }: { onOpenMobileMenu: () => void }
                   </div>
                 </div>
 
-                <button className="op-profile-popover-item" type="button" onClick={handleProfile}>
+                <div className="op-profile-details">
+                  <span>Correo</span>
+                  <strong>{user?.email || "Sin correo"}</strong>
+                  <span>Institución</span>
+                  <strong>{user?.institucionNombre || "Sin institución asignada"}</strong>
+                  <span>Módulos activos</span>
+                  <strong>{user?.modulos?.length ?? 0}</strong>
+                </div>
+
+                <button className="op-profile-popover-item" type="button" onClick={() => { setProfileOpen(false); router.push("/perfil"); }}>
                   <UserRound size={17} />
-                  <span>Mi perfil</span>
+                  <span>Ver perfil completo</span>
                 </button>
 
                 <button className="op-profile-popover-item danger" type="button" onClick={handleLogout}>
