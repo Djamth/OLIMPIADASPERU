@@ -227,6 +227,30 @@ html.op-dark .op-notification-head button {
   padding: 0.45rem;
 }
 
+.op-notification-view-all {
+  background: #0f172a;
+  border: 0;
+  border-radius: 12px;
+  color: #fff;
+  cursor: pointer;
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 900;
+  margin: 0.45rem;
+  padding: 0.78rem 1rem;
+  transition: 0.18s ease;
+  width: calc(100% - 0.9rem);
+}
+
+.op-notification-view-all:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+html.op-dark .op-notification-view-all {
+  background: #2563eb;
+}
+
 .op-notification-empty {
   color: #64748b;
   font-size: 0.86rem;

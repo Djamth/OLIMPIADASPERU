@@ -14,6 +14,8 @@ interface AuthContextValue {
   isLoading: boolean;
   login: (payload: LoginRequest) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<LoginResponse | null>;
+  updateUser: (user: LoginResponse) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -26,6 +28,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<LoginResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const updateUser = useCallback((nextUser: LoginResponse) => {
+    localStorage.setItem("op_user", JSON.stringify(nextUser));
+    setUser(nextUser);
+  }, []);
+
+  const refreshUser = useCallback(async () => {
+    try {
+      const currentUser = await authService.me();
+      updateUser(currentUser);
+      return currentUser;
+    } catch {
+      clearStoredSession();
+      setUser(null);
+      return null;
+    }
+  }, [updateUser]);
+
   useEffect(() => {
     let active = true;
 
@@ -36,8 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           const currentUser = await authService.me();
           if (active) {
-            localStorage.setItem("op_user", JSON.stringify(currentUser));
-            setUser(currentUser);
+            updateUser(currentUser);
           }
         } catch {
           clearStoredSession();
@@ -53,7 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       active = false;
     };
-  }, []);
+  }, [updateUser]);
 
   useEffect(() => {
     if (isLoading) {
@@ -75,8 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     alerts.loading("Validando acceso");
     try {
       const response = await authService.login(payload);
-      localStorage.setItem("op_user", JSON.stringify(response));
-      setUser(response);
+      updateUser(response);
       alerts.close();
       await alerts.success("Bienvenido", "Inicio de sesión realizado correctamente.");
       router.push(getLandingRoute(response));
@@ -86,7 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await alerts.error("Acceso denegado", message);
       throw error;
     }
-  }, [router]);
+  }, [router, updateUser]);
 
   const logout = useCallback(async () => {
     try {
@@ -107,8 +124,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isLoading,
       login,
       logout,
+      refreshUser,
+      updateUser,
     }),
-    [isLoading, login, logout, user],
+    [isLoading, login, logout, refreshUser, updateUser, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

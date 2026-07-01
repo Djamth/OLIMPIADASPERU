@@ -1,5 +1,13 @@
 import { api } from "@/services/api";
-import type { ApiMessageResponse, ForgotPasswordRequest, LoginRequest, LoginResponse, ResetPasswordRequest } from "@/types/auth";
+import type {
+  ApiMessageResponse,
+  CambiarPasswordRequest,
+  ForgotPasswordRequest,
+  LoginRequest,
+  LoginResponse,
+  PerfilUpdateRequest,
+  ResetPasswordRequest,
+} from "@/types/auth";
 
 export const authService = {
   async login(payload: LoginRequest) {
@@ -23,6 +31,16 @@ export const authService = {
 
   async resetPassword(payload: ResetPasswordRequest) {
     const { data } = await api.post<ApiMessageResponse>("/api/auth/reset-password", payload);
+    return data;
+  },
+
+  async updateProfile(payload: PerfilUpdateRequest) {
+    const { data } = await api.put<LoginResponse>("/api/perfil", payload);
+    return data;
+  },
+
+  async changePassword(payload: CambiarPasswordRequest) {
+    const { data } = await api.put<ApiMessageResponse>("/api/perfil/password", payload);
     return data;
   },
 };

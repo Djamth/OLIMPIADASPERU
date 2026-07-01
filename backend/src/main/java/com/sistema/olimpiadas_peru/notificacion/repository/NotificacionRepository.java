@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface NotificacionRepository extends JpaRepository<Notificacion, Long> {
     List<Notificacion> findTop10ByDestinatarioEmailIgnoreCaseOrderByCreadoEnDesc(String destinatarioEmail);
+    List<Notificacion> findByDestinatarioEmailIgnoreCaseOrderByCreadoEnDesc(String destinatarioEmail);
     long countByDestinatarioEmailIgnoreCaseAndLeidoFalse(String destinatarioEmail);
     List<Notificacion> findByDestinatarioEmailIgnoreCaseAndLeidoFalse(String destinatarioEmail);
 }

@@ -13,4 +13,5 @@ import java.util.List;
 @Builder
 public class AsignarModulosRolDTO {
     private List<Integer> moduloIds;
+    private List<ModuloPermisoDTO> permisos;
 }

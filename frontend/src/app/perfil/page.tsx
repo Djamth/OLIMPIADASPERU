@@ -10,15 +10,19 @@ import {
   BadgeCheck,
   Building2,
   CheckCircle2,
+  Eye,
+  EyeOff,
   KeyRound,
   LockKeyhole,
   Mail,
+  Save,
   ShieldCheck,
   UserRound,
   type LucideIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import type { FormEvent } from "react";
+import { useEffect, useState } from "react";
 
 function getInitials(name?: string | null) {
   return (name || "Usuario")
@@ -30,9 +34,87 @@ function getInitials(name?: string | null) {
 }
 
 export default function PerfilPage() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const router = useRouter();
   const [sendingRecovery, setSendingRecovery] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [profileForm, setProfileForm] = useState({ nombre: "", email: "" });
+  const [passwordForm, setPasswordForm] = useState({
+    passwordActual: "",
+    nuevaPassword: "",
+    confirmarPassword: "",
+  });
+
+  useEffect(() => {
+    setProfileForm({
+      nombre: user?.nombre ?? "",
+      email: user?.email ?? "",
+    });
+  }, [user]);
+
+  const modules = user?.modulos ?? [];
+
+  const handleProfileSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!profileForm.nombre.trim() || !profileForm.email.trim()) {
+      await alerts.warning("Datos incompletos", "Ingresa tu nombre y correo para actualizar el perfil.");
+      return;
+    }
+
+    setSavingProfile(true);
+    alerts.loading("Actualizando perfil");
+    try {
+      const response = await authService.updateProfile({
+        nombre: profileForm.nombre.trim(),
+        email: profileForm.email.trim(),
+      });
+      updateUser(response);
+      alerts.close();
+      await alerts.success("Perfil actualizado", "Tus datos fueron guardados correctamente.");
+    } catch (error) {
+      alerts.close();
+      await alerts.error("No se pudo actualizar", getErrorMessage(error));
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const handlePasswordSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (passwordForm.nuevaPassword.length < 6) {
+      await alerts.warning("Contraseña débil", "La nueva contraseña debe tener al menos 6 caracteres.");
+      return;
+    }
+    if (passwordForm.nuevaPassword !== passwordForm.confirmarPassword) {
+      await alerts.warning("No coinciden", "La confirmación debe ser igual a la nueva contraseña.");
+      return;
+    }
+
+    const result = await alerts.confirm(
+      "Cambiar contraseña",
+      "Se actualizará tu contraseña de acceso para próximas sesiones.",
+    );
+    if (!result.isConfirmed) return;
+
+    setChangingPassword(true);
+    alerts.loading("Actualizando contraseña");
+    try {
+      const response = await authService.changePassword({
+        passwordActual: passwordForm.passwordActual,
+        nuevaPassword: passwordForm.nuevaPassword,
+      });
+      setPasswordForm({ passwordActual: "", nuevaPassword: "", confirmarPassword: "" });
+      alerts.close();
+      await alerts.success("Contraseña actualizada", response.mensaje);
+    } catch (error) {
+      alerts.close();
+      await alerts.error("No se pudo cambiar", getErrorMessage(error));
+    } finally {
+      setChangingPassword(false);
+    }
+  };
 
   const sendRecoveryCode = async () => {
     if (!user?.email) {
@@ -54,8 +136,6 @@ export default function PerfilPage() {
       setSendingRecovery(false);
     }
   };
-
-  const modules = user?.modulos ?? [];
 
   return (
     <AppShell>
@@ -82,21 +162,54 @@ export default function PerfilPage() {
             </div>
           </div>
 
-          <div className="grid gap-5 p-5 md:p-8 xl:grid-cols-[minmax(0,1.2fr)_minmax(340px,0.8fr)]">
-            <section className="grid gap-4">
-              <div>
-                <h2 className="text-2xl font-black tracking-normal text-slate-950">Información de cuenta</h2>
-                <p className="mt-1 text-sm font-semibold text-slate-500">
-                  Datos principales de tu usuario dentro del panel administrativo.
-                </p>
-              </div>
+          <div className="grid gap-5 p-5 md:p-8 xl:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)]">
+            <section className="grid gap-5">
+              <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="mb-5">
+                  <h2 className="text-2xl font-black tracking-normal text-slate-950">Información de cuenta</h2>
+                  <p className="mt-1 text-sm font-semibold text-slate-500">
+                    Actualiza tus datos personales visibles dentro del panel administrativo.
+                  </p>
+                </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <InfoCard icon={UserRound} label="Nombre" value={user?.nombre || "Sin nombre"} />
-                <InfoCard icon={Mail} label="Correo" value={user?.email || "Sin correo"} />
-                <InfoCard icon={ShieldCheck} label="Rol" value={user?.rolNombre || "Invitado"} />
-                <InfoCard icon={Building2} label="Institución" value={user?.institucionNombre || "Sin institución asignada"} />
-              </div>
+                <form className="grid gap-4" onSubmit={handleProfileSubmit}>
+                  <label className="grid gap-2">
+                    <span className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">Nombre completo</span>
+                    <div className="flex h-12 items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3">
+                      <UserRound className="text-slate-400" size={18} />
+                      <input
+                        className="w-full bg-transparent text-sm font-bold text-slate-900 outline-none"
+                        value={profileForm.nombre}
+                        onChange={(event) => setProfileForm((prev) => ({ ...prev, nombre: event.target.value }))}
+                        maxLength={100}
+                      />
+                    </div>
+                  </label>
+
+                  <label className="grid gap-2">
+                    <span className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">Correo</span>
+                    <div className="flex h-12 items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3">
+                      <Mail className="text-slate-400" size={18} />
+                      <input
+                        className="w-full bg-transparent text-sm font-bold text-slate-900 outline-none"
+                        type="email"
+                        value={profileForm.email}
+                        onChange={(event) => setProfileForm((prev) => ({ ...prev, email: event.target.value }))}
+                        maxLength={100}
+                      />
+                    </div>
+                  </label>
+
+                  <button
+                    className="inline-flex h-11 w-fit items-center justify-center gap-2 rounded-xl bg-blue-700 px-5 text-sm font-black text-white shadow-[0_18px_34px_rgba(37,99,235,0.22)] transition hover:-translate-y-0.5 hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    type="submit"
+                    disabled={savingProfile}
+                  >
+                    <Save size={17} />
+                    Guardar perfil
+                  </button>
+                </form>
+              </section>
 
               <section className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                 <div className="mb-4 flex items-center justify-between gap-3">
@@ -117,6 +230,11 @@ export default function PerfilPage() {
                   ))}
                 </div>
               </section>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <InfoCard icon={ShieldCheck} label="Rol" value={user?.rolNombre || "Invitado"} />
+                <InfoCard icon={Building2} label="Institución" value={user?.institucionNombre || "Sin institución asignada"} />
+              </div>
             </section>
 
             <aside className="grid content-start gap-4">
@@ -124,18 +242,50 @@ export default function PerfilPage() {
                 <div className="mb-4 grid h-12 w-12 place-items-center rounded-xl bg-white text-blue-700 shadow-sm">
                   <KeyRound size={24} />
                 </div>
-                <h3 className="text-xl font-black text-slate-950">Seguridad de contraseña</h3>
+                <h3 className="text-xl font-black text-slate-950">Cambiar contraseña</h3>
                 <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">
-                  Envía un código de recuperación a tu correo y registra una nueva contraseña desde el flujo seguro.
+                  Usa tu contraseña actual para confirmar la operación y proteger tu cuenta.
                 </p>
+
+                <form className="mt-5 grid gap-3" onSubmit={handlePasswordSubmit}>
+                  <PasswordInput
+                    label="Contraseña actual"
+                    value={passwordForm.passwordActual}
+                    show={showPassword}
+                    onChange={(value) => setPasswordForm((prev) => ({ ...prev, passwordActual: value }))}
+                    onToggle={() => setShowPassword((value) => !value)}
+                  />
+                  <PasswordInput
+                    label="Nueva contraseña"
+                    value={passwordForm.nuevaPassword}
+                    show={showPassword}
+                    onChange={(value) => setPasswordForm((prev) => ({ ...prev, nuevaPassword: value }))}
+                    onToggle={() => setShowPassword((value) => !value)}
+                  />
+                  <PasswordInput
+                    label="Confirmar contraseña"
+                    value={passwordForm.confirmarPassword}
+                    show={showPassword}
+                    onChange={(value) => setPasswordForm((prev) => ({ ...prev, confirmarPassword: value }))}
+                    onToggle={() => setShowPassword((value) => !value)}
+                  />
+                  <button
+                    className="mt-2 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 text-sm font-black text-white shadow-[0_18px_34px_rgba(37,99,235,0.22)] transition hover:-translate-y-0.5 hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    type="submit"
+                    disabled={changingPassword}
+                  >
+                    <LockKeyhole size={17} />
+                    Actualizar contraseña
+                  </button>
+                </form>
+
                 <button
-                  className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 text-sm font-black text-white shadow-[0_18px_34px_rgba(37,99,235,0.22)] transition hover:-translate-y-0.5 hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-blue-200 bg-white px-4 text-sm font-black text-blue-700 transition hover:-translate-y-0.5 hover:border-blue-300 disabled:cursor-not-allowed disabled:opacity-60"
                   type="button"
                   disabled={sendingRecovery}
                   onClick={sendRecoveryCode}
                 >
-                  <LockKeyhole size={17} />
-                  Recuperar contraseña
+                  Enviar código por correo
                   <ArrowRight size={16} />
                 </button>
               </section>
@@ -156,6 +306,38 @@ export default function PerfilPage() {
         </div>
       </section>
     </AppShell>
+  );
+}
+
+function PasswordInput({
+  label,
+  value,
+  show,
+  onChange,
+  onToggle,
+}: {
+  label: string;
+  value: string;
+  show: boolean;
+  onChange: (value: string) => void;
+  onToggle: () => void;
+}) {
+  return (
+    <label className="grid gap-2">
+      <span className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">{label}</span>
+      <div className="flex h-12 items-center gap-3 rounded-xl border border-blue-100 bg-white px-3">
+        <LockKeyhole className="text-slate-400" size={18} />
+        <input
+          className="w-full bg-transparent text-sm font-bold text-slate-900 outline-none"
+          type={show ? "text" : "password"}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+        />
+        <button className="text-slate-400 transition hover:text-blue-700" type="button" onClick={onToggle} aria-label={show ? "Ocultar contraseña" : "Mostrar contraseña"}>
+          {show ? <EyeOff size={17} /> : <Eye size={17} />}
+        </button>
+      </div>
+    </label>
   );
 }
 
