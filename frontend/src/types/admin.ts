@@ -105,3 +105,18 @@ export interface Auditoria {
   descripcion: string;
   fecha: string;
 }
+
+export interface Notificacion {
+  id: number;
+  tipo: "INSCRIPCION" | "PROGRAMACION" | "RESULTADO" | "SISTEMA" | string;
+  titulo: string;
+  mensaje: string;
+  referencia?: string | null;
+  leido: boolean;
+  creadoEn: string;
+}
+
+export interface NotificacionResumen {
+  noLeidas: number;
+  items: Notificacion[];
+}

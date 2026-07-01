@@ -24,6 +24,14 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
     @Query("select u from Usuario u where coalesce(u.eliminado, false) = false")
     java.util.List<Usuario> findAllVisible();
 
+    @Query("""
+        select u.email from Usuario u
+        where coalesce(u.eliminado, false) = false
+          and u.estado = com.sistema.olimpiadas_peru.auth1.model.Usuario.Estado.ACTIVO
+          and lower(u.rol.nombre) = lower(:nombreRol)
+    """)
+    java.util.List<String> findActiveEmailsByRolNombre(@Param("nombreRol") String nombreRol);
+
     long countByRol_NombreIgnoreCaseAndEstado(String nombreRol, Usuario.Estado estado);
 
     long countByRol_Id(Integer rolId);

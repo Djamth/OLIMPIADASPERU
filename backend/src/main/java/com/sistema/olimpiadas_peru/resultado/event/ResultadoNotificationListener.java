@@ -1,6 +1,8 @@
 package com.sistema.olimpiadas_peru.resultado.event;
 
 import com.sistema.olimpiadas_peru.auth1.service.EmailService;
+import com.sistema.olimpiadas_peru.notificacion.entity.Notificacion;
+import com.sistema.olimpiadas_peru.notificacion.service.NotificacionService;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class ResultadoNotificationListener {
 
     private final EmailService emailService;
+    private final NotificacionService notificacionService;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void enviarAviso(ResultadoRegistradoEvent event) {
@@ -39,6 +42,17 @@ public class ResultadoNotificationListener {
                 event.puntajeLocal(),
                 event.puntajeVisitante(),
                 event.equipoVisitante());
+
+        notificacionService.crearParaDestinatarios(
+                destinatarios,
+                Notificacion.Tipo.RESULTADO,
+                "Resultado registrado",
+                "%s %d - %d %s".formatted(
+                        event.equipoLocal(),
+                        event.puntajeLocal(),
+                        event.puntajeVisitante(),
+                        event.equipoVisitante()),
+                "/resultados");
 
         destinatarios.forEach(destinatario -> enviar(destinatario, contenido));
     }
