@@ -1,0 +1,19 @@
+﻿html.op-dark .surface-card,
+html.op-dark .bg-white {
+  background-color: #111827 !important;
+  border-color: rgba(148, 163, 184, 0.18) !important;
+  color: #dce6f4;
+}
+
+html.op-dark .text-slate-950,
+html.op-dark .text-slate-900,
+html.op-dark .text-slate-800 {
+  color: #f8fafc !important;
+}
+
+html.op-dark .text-slate-700,
+html.op-dark .text-slate-600,
+html.op-dark .text-slate-500 {
+  color: #a6b0bf !important;
+}
+

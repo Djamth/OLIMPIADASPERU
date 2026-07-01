@@ -1,0 +1,144 @@
+﻿/* Sidebar theme toggle: light by default, dark only when op-dark is active. */
+.op-sidebar {
+  background: #ffffff;
+  border-right-color: rgba(226, 232, 240, 0.9);
+  box-shadow: 18px 0 46px rgba(15, 23, 42, 0.08);
+}
+
+.op-sidebar .op-sidebar-header,
+.op-sidebar .op-sidebar-footer {
+  border-color: rgba(226, 232, 240, 0.9);
+}
+
+.op-sidebar .op-brand-copy strong,
+.op-sidebar .op-profile-copy strong {
+  color: #0f172a;
+}
+
+.op-sidebar .op-brand-copy span,
+.op-sidebar .op-profile-copy span,
+.op-sidebar .op-nav-section {
+  color: #94a3b8;
+}
+
+.op-sidebar .op-profile-card {
+  background: #f8fafc;
+  border-color: rgba(226, 232, 240, 0.9);
+}
+
+.op-sidebar .op-nav-link,
+.op-sidebar .op-sidebar-action {
+  color: #64748b;
+}
+
+.op-sidebar .op-nav-link:hover,
+.op-sidebar .op-sidebar-action:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.op-sidebar .op-nav-link.is-active {
+  background: #eaf7f1;
+  color: #04945c;
+}
+
+.op-sidebar .op-sidebar-user-card .op-profile-copy strong {
+  color: #0f172a;
+}
+
+.op-sidebar .op-sidebar-user-card .op-profile-copy span {
+  color: #64748b;
+}
+
+.op-sidebar .op-sidebar-logout-icon {
+  color: #64748b;
+}
+
+.op-sidebar .op-sidebar-logout-icon:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+html.op-dark .op-sidebar {
+  background: #070707;
+  border-right-color: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+
+html.op-dark .op-sidebar .op-sidebar-header,
+html.op-dark .op-sidebar .op-sidebar-footer {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+html.op-dark .op-sidebar .op-brand-copy strong,
+html.op-dark .op-sidebar .op-profile-copy strong {
+  color: #f8fafc;
+}
+
+html.op-dark .op-sidebar .op-brand-copy span,
+html.op-dark .op-sidebar .op-profile-copy span,
+html.op-dark .op-sidebar .op-nav-section {
+  color: #6b7280;
+}
+
+html.op-dark .op-sidebar .op-profile-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+html.op-dark .op-sidebar .op-nav-link,
+html.op-dark .op-sidebar .op-sidebar-action {
+  color: #a6b0bf;
+}
+
+html.op-dark .op-sidebar .op-nav-link:hover,
+html.op-dark .op-sidebar .op-sidebar-action:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #f8fafc;
+}
+
+html.op-dark .op-sidebar .op-nav-link.is-active {
+  background: rgba(255, 255, 255, 0.08);
+  color: #00c875;
+}
+
+html.op-dark .op-sidebar .op-sidebar-user-card .op-profile-copy strong {
+  color: #f8fafc;
+}
+
+html.op-dark .op-sidebar .op-sidebar-user-card .op-profile-copy span {
+  color: #7f8ea3;
+}
+
+html.op-dark .op-sidebar .op-sidebar-logout-icon {
+  color: #6b7280;
+}
+
+html.op-dark .op-sidebar .op-sidebar-logout-icon:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f8fafc;
+}
+
+@media (min-width: 640px) {
+  .op-top-search,
+  .op-primary-top-action,
+  .op-action-divider {
+    display: inline-flex;
+  }
+}
+
+@media (min-width: 1024px) {
+  .op-sidebar {
+    width: var(--op-sidebar-width);
+  }
+
+  .op-navbar {
+    left: var(--op-sidebar-width);
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .op-page-content {
+    padding-top: 5.85rem;
+  }
+}

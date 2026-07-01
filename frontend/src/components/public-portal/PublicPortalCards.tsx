@@ -7,7 +7,9 @@ export function MatchCard({ match }: { match: DashboardUpcomingMatch }) {
   const { local, visitante } = getMatchParts(match.encuentro);
 
   return (
-    <article className="group border border-slate-200 bg-white p-5 shadow-[0_18px_55px_rgba(15,23,42,0.08)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_22px_65px_rgba(15,23,42,0.14)]">
+    <article className="group relative overflow-hidden border border-white/70 bg-white p-5 shadow-[0_18px_55px_rgba(15,23,42,0.12)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_28px_75px_rgba(15,23,42,0.2)]">
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-red-600 via-blue-600 to-sky-400" />
+      <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-blue-100 opacity-80 blur-2xl" />
       <div className="mb-5 flex items-center justify-between">
         <Badge tone="blue">{match.deporte}</Badge>
         <Badge tone={statusTone(match.estado)}>{match.estado}</Badge>
@@ -41,7 +43,8 @@ export function ResultCard({ result }: { result: DashboardRecentResult }) {
   const { local, visitante } = getMatchParts(result.encuentro);
 
   return (
-    <article className="border border-slate-200 bg-white p-5 shadow-[0_18px_55px_rgba(15,23,42,0.07)]">
+    <article className="group relative overflow-hidden border border-slate-200 bg-white p-5 shadow-[0_18px_55px_rgba(15,23,42,0.09)] transition duration-200 hover:-translate-y-1 hover:border-blue-200 hover:shadow-[0_26px_70px_rgba(15,23,42,0.14)]">
+      <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-blue-50 opacity-90 transition group-hover:scale-125" />
       <div className="mb-4 flex items-center justify-between">
         <Badge tone="slate">{result.deporte}</Badge>
         <span className="text-xs font-black uppercase tracking-[0.14em] text-slate-400">Resultado</span>

@@ -1,0 +1,12 @@
+﻿.op-main {
+  background: #f5f7fb;
+}
+
+html.op-dark .op-main {
+  background: #0c111d;
+}
+
+.op-page-content {
+  padding-top: 5.7rem;
+}
+

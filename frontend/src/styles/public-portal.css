@@ -1,0 +1,88 @@
+﻿.public-scroll-shell {
+  height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: y mandatory;
+}
+
+.public-scroll-section {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.public-section-inner {
+  will-change: opacity, transform, filter;
+}
+
+@keyframes public-section-reveal {
+  0% {
+    opacity: 0.18;
+    transform: translateY(4.5rem) scale(0.94);
+    filter: blur(12px);
+  }
+
+  48% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+
+  100% {
+    opacity: 0.82;
+    transform: translateY(-2.3rem) scale(0.985);
+    filter: blur(2px);
+  }
+}
+
+@keyframes public-section-fallback {
+  from {
+    opacity: 0;
+    transform: translateY(2rem) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  .public-section-inner {
+    animation: public-section-reveal both linear;
+    animation-timeline: view(block);
+    animation-range: entry 0% exit 100%;
+  }
+}
+
+@supports not (animation-timeline: view()) {
+  .public-section-inner {
+    animation: public-section-fallback 0.75s ease both;
+  }
+}
+
+@media (max-width: 767px) {
+  .public-scroll-shell {
+    height: auto;
+    overflow-y: visible;
+    scroll-snap-type: none;
+  }
+
+  .public-scroll-section {
+    scroll-snap-align: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .public-scroll-shell {
+    scroll-behavior: auto;
+    scroll-snap-type: none;
+  }
+
+  .public-section-inner {
+    animation: none !important;
+    filter: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
