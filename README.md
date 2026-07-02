@@ -1,4 +1,39 @@
-# Olimpiadas Perú
+<div align="center">
+
+# 🏅 Olimpiadas Perú 🇵🇪
+
+### *Sports Event Management Platform for Schools & Institutions*
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Status-Active-22c55e?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Version-1.0-3b82f6?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Architecture-REST%20API%20%2B%20SPA-8b5cf6?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/License-MIT-f59e0b?style=for-the-badge" />
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Java-21-E76F00?style=flat-square&logo=openjdk&logoColor=white" />
+  <img src="https://img.shields.io/badge/Spring%20Boot-3.3.5-6DB33F?style=flat-square&logo=springboot&logoColor=white" />
+  <img src="https://img.shields.io/badge/Next.js-15-000000?style=flat-square&logo=nextdotjs&logoColor=white" />
+  <img src="https://img.shields.io/badge/PostgreSQL-316192?style=flat-square&logo=postgresql&logoColor=white" />
+  <img src="https://img.shields.io/badge/JWT-Auth-orange?style=flat-square" />
+  <img src="https://img.shields.io/badge/TailwindCSS-38BDF8?style=flat-square&logo=tailwindcss&logoColor=white" />
+  <img src="https://img.shields.io/badge/Swagger-OpenAPI-85EA2D?style=flat-square&logo=swagger&logoColor=black" />
+  <img src="https://img.shields.io/badge/Flyway-CC0200?style=flat-square&logo=flyway&logoColor=white" />
+</p>
+
+<img src="docs/images/dashboard.png" alt="Olimpiadas Perú Cover" width="100%" />
+
+<br/>
+
+</div>
+
+---
+
+
+
+
+![Logo Olimpiadas Perú](docs/images/hero.png)
 
 Sistema web para la gestión de olimpiadas internas de instituciones educativas. La solución permite administrar el flujo completo del evento: institución, categorías con país representativo, equipos, participantes, inscripciones, sorteos, programación de partidos, resultados, estadísticas, reportes, usuarios, roles y permisos por módulo.
 
@@ -12,7 +47,20 @@ OLIMPIADASPERU/
 ├── frontend/    Portal público y panel administrativo con Next.js
 └── docs/        Guías internas del equipo
 ```
+### Diagrama visual de arquitectura
 
+```mermaid
+flowchart LR
+    A[Frontend<br/>Next.js 15 + React 19] -->|HTTPS / JSON| B[Backend<br/>Spring Boot 3.3.5]
+    B --> C[(PostgreSQL)]
+    B --> D[Spring Security + JWT]
+    B --> E[Flyway]
+    B --> F[Swagger / OpenAPI]
+    B --> G[Mail Service]
+    B --> H[PDF / Excel Reports]
+```
+
+---
 ## Tecnologías
 
 | Capa | Tecnología |
@@ -27,6 +75,51 @@ OLIMPIADASPERU/
 | Control de versiones | Git / GitHub |
 
 ## Módulos Implementados
+
+<table align="center">
+  <tr>
+    <td align="center">
+      <img src="docs/images/hero.png" width="380"/><br/>
+      <b>🏠 Hero</b>
+    </td>
+    <td align="center">
+      <img src="docs/images/vista-login.png" width="380"/><br/>
+      <b>🔐 Login</b>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="docs/images/recuperar-password.png" width="380"/><br/>
+      <b>🔐 Recuperar contraseña</b>
+    </td>
+    <td align="center">
+      <img src="docs/images/dashboard.png" width="380"/><br/>
+      <b>📊 Dashboard</b>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="docs/images/modulo-usuarios.png" width="380"/><br/>
+      <b>👥 Usuarios</b>
+    </td>
+    <td align="center">
+      <img src="docs/images/modulo-perfiles.png" width="380"/><br/>
+      <b>👤 Perfiles</b>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="docs/images/modulo-instituciones.png" width="380"/><br/>
+      <b>🏢 Instituciones</b>
+    </td>
+    <td align="center">
+      <img src="docs/images/modulo-deportes.png" width="380"/><br/>
+      <b>⚽ Deportes</b>
+    </td>
+  </tr>
+</table>
+
+
 
 - Portal público con hero deportivo, próximos encuentros y estadísticas.
 - Autenticación con JWT, refresh token y cookies seguras.
