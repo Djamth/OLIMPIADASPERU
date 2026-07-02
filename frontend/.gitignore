@@ -15,6 +15,9 @@ out
 .env.local
 .env*.local
 .next
+playwright-report
+test-results
+tsconfig.tsbuildinfo
 
 # Editor directories and files
 .vscode/*
