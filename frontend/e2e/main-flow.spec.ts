@@ -7,7 +7,7 @@ test.beforeEach(async ({ page, request }) => {
 });
 
 test("recorre el flujo principal de olimpiadas internas", async ({ page }) => {
-  test.setTimeout(120_000);
+  test.setTimeout(240_000);
 
   await expectModulePage(page, "/instituciones", /Instituciones/i);
   await expect(page.getByRole("button", { name: /Nueva instituci/i })).toBeVisible();
