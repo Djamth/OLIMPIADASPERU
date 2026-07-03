@@ -1,6 +1,8 @@
 import { api } from "@/services/api";
 import type { Modulo } from "@/types/auth";
 import type {
+  Accion,
+  AccionRequest,
   Auditoria,
   DashboardResumen,
   NotificacionResumen,
@@ -69,6 +71,24 @@ export const moduloService = {
   async list() {
     const { data } = await api.get<Modulo[]>("/api/modulos");
     return data;
+  },
+};
+
+export const accionService = {
+  async list() {
+    const { data } = await api.get<Accion[]>("/api/acciones");
+    return data;
+  },
+  async create(payload: AccionRequest) {
+    const { data } = await api.post<Accion>("/api/acciones", payload);
+    return data;
+  },
+  async update(id: number, payload: AccionRequest) {
+    const { data } = await api.put<Accion>(`/api/acciones/${id}`, payload);
+    return data;
+  },
+  async remove(id: number) {
+    await api.delete(`/api/acciones/${id}`);
   },
 };
 

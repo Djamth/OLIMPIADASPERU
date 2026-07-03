@@ -91,7 +91,8 @@ VALUES
     (13, 'Usuarios', '/usuarios', 'users'),
     (14, 'Perfiles', '/perfiles', 'shield'),
     (15, 'Módulos', '/modulos', 'layout-grid'),
-    (16, 'Auditoría', '/auditoria', 'history');
+    (16, 'Auditoría', '/auditoria', 'history'),
+    (20, 'Acciones', '/acciones', 'key-round');
 
 INSERT INTO modulos (id, nombre, ruta, icono)
 VALUES
@@ -102,7 +103,7 @@ ON CONFLICT DO NOTHING;
 
 UPDATE modulos SET modulo_padre_id = 19 WHERE ruta IN ('/instituciones', '/paises', '/eventos');
 UPDATE modulos SET modulo_padre_id = 18 WHERE ruta IN ('/deportes', '/equipos', '/participantes', '/inscripciones', '/sorteos', '/programacion', '/resultados', '/estadisticas');
-UPDATE modulos SET modulo_padre_id = 17 WHERE ruta IN ('/usuarios', '/perfiles', '/modulos', '/auditoria');
+UPDATE modulos SET modulo_padre_id = 17 WHERE ruta IN ('/usuarios', '/perfiles', '/modulos', '/acciones', '/auditoria');
 
 INSERT INTO roles (id, nombre, estado)
 VALUES
