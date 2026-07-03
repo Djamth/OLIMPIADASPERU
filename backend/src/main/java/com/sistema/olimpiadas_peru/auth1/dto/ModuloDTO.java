@@ -11,6 +11,9 @@ public class ModuloDTO {
     private String nombre;
     private String ruta;
     private String icono;
+    private Integer moduloPadreId;
+    private String moduloPadreNombre;
+    private java.util.List<String> acciones;
     private Boolean puedeVer;
     private Boolean puedeCrear;
     private Boolean puedeEditar;

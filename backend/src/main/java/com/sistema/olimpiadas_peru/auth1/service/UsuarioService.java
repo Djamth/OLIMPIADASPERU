@@ -352,6 +352,9 @@ public class UsuarioService {
             .nombre(modulo.getNombre())
             .ruta(modulo.getRuta())
             .icono(modulo.getIcono())
+            .moduloPadreId(modulo.getModuloPadre() != null ? modulo.getModuloPadre().getId() : null)
+            .moduloPadreNombre(modulo.getModuloPadre() != null ? modulo.getModuloPadre().getNombre() : null)
+            .acciones(permiso.getAcciones())
             .puedeVer(valor(permiso.getPuedeVer()))
             .puedeCrear(valor(permiso.getPuedeCrear()))
             .puedeEditar(valor(permiso.getPuedeEditar()))
@@ -363,11 +366,20 @@ public class UsuarioService {
     private Map<Integer, ModuloPermisoDTO> obtenerPermisos(Integer rolId) {
         try {
             return jdbcTemplate.query("""
-                select modulo_id, puede_ver, puede_crear, puede_editar, puede_eliminar, puede_exportar
-                from rol_modulos
+                select rma.modulo_id,
+                       bool_or(upper(a.codigo) = 'VER') as puede_ver,
+                       bool_or(upper(a.codigo) = 'CREAR') as puede_crear,
+                       bool_or(upper(a.codigo) = 'EDITAR') as puede_editar,
+                       bool_or(upper(a.codigo) = 'ELIMINAR') as puede_eliminar,
+                       bool_or(upper(a.codigo) = 'EXPORTAR') as puede_exportar,
+                       string_agg(upper(a.codigo), ',' order by upper(a.codigo)) as acciones
+                from rol_modulo_acciones rma
+                join acciones a on a.id = rma.accion_id
                 where rol_id = ?
+                group by rma.modulo_id
                 """, (rs, rowNum) -> ModuloPermisoDTO.builder()
                     .moduloId(rs.getInt("modulo_id"))
+                    .acciones(listaAcciones(rs.getString("acciones")))
                     .puedeVer(rs.getBoolean("puede_ver"))
                     .puedeCrear(rs.getBoolean("puede_crear"))
                     .puedeEditar(rs.getBoolean("puede_editar"))
@@ -384,6 +396,7 @@ public class UsuarioService {
     private ModuloPermisoDTO permisoCompleto(Integer moduloId) {
         return ModuloPermisoDTO.builder()
             .moduloId(moduloId)
+            .acciones(List.of("VER", "CREAR", "EDITAR", "ELIMINAR", "EXPORTAR"))
             .puedeVer(true)
             .puedeCrear(true)
             .puedeEditar(true)
@@ -394,5 +407,16 @@ public class UsuarioService {
 
     private boolean valor(Boolean value) {
         return value == null || value;
+    }
+
+    private List<String> listaAcciones(String acciones) {
+        if (acciones == null || acciones.isBlank()) {
+            return List.of();
+        }
+        return java.util.Arrays.stream(acciones.split(","))
+            .map(String::trim)
+            .filter(item -> !item.isBlank())
+            .distinct()
+            .toList();
     }
 }

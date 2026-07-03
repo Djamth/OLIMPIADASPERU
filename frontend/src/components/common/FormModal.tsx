@@ -12,6 +12,7 @@ export function FormModal({
   onSubmit,
   submitLabel = "Guardar",
   submitting = false,
+  size = "md",
 }: {
   open: boolean;
   title: string;
@@ -20,6 +21,7 @@ export function FormModal({
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   submitLabel?: string;
   submitting?: boolean;
+  size?: "md" | "lg" | "xl";
 }) {
   if (!open) {
     return null;
@@ -27,7 +29,7 @@ export function FormModal({
 
   return (
     <div className="fixed inset-0 z-[1080] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm">
-      <div className="max-h-[calc(100vh-2rem)] w-full max-w-3xl overflow-auto rounded-lg border border-slate-200 bg-white shadow-[0_26px_70px_rgba(15,23,42,0.18)]">
+      <div className={`max-h-[calc(100vh-2rem)] w-full overflow-auto rounded-lg border border-slate-200 bg-white shadow-[0_26px_70px_rgba(15,23,42,0.18)] ${size === "xl" ? "max-w-6xl" : size === "lg" ? "max-w-5xl" : "max-w-3xl"}`}>
         <div className="flex items-center justify-between gap-3 border-b border-slate-200 p-5">
           <h2 className="m-0 text-lg font-extrabold text-slate-950">{title}</h2>
           <button

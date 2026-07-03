@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ModuloPermisoDTO {
     private Integer moduloId;
+    private java.util.List<String> acciones;
     private Boolean puedeVer;
     private Boolean puedeCrear;
     private Boolean puedeEditar;

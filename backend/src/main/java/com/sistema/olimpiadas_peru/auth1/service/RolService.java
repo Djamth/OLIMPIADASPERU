@@ -214,6 +214,9 @@ public class RolService {
             .nombre(modulo.getNombre())
             .ruta(modulo.getRuta())
             .icono(modulo.getIcono())
+            .moduloPadreId(modulo.getModuloPadre() != null ? modulo.getModuloPadre().getId() : null)
+            .moduloPadreNombre(modulo.getModuloPadre() != null ? modulo.getModuloPadre().getNombre() : null)
+            .acciones(permiso.getAcciones())
             .puedeVer(valor(permiso.getPuedeVer()))
             .puedeCrear(valor(permiso.getPuedeCrear()))
             .puedeEditar(valor(permiso.getPuedeEditar()))
@@ -228,11 +231,12 @@ public class RolService {
                 .filter(item -> item.getModuloId() != null)
                 .map(item -> ModuloPermisoDTO.builder()
                     .moduloId(item.getModuloId())
-                    .puedeVer(valor(item.getPuedeVer()))
-                    .puedeCrear(valor(item.getPuedeCrear()))
-                    .puedeEditar(valor(item.getPuedeEditar()))
-                    .puedeEliminar(valor(item.getPuedeEliminar()))
-                    .puedeExportar(valor(item.getPuedeExportar()))
+                    .acciones(normalizarAcciones(item))
+                    .puedeVer(tieneAccion(item, "VER"))
+                    .puedeCrear(tieneAccion(item, "CREAR"))
+                    .puedeEditar(tieneAccion(item, "EDITAR"))
+                    .puedeEliminar(tieneAccion(item, "ELIMINAR"))
+                    .puedeExportar(tieneAccion(item, "EXPORTAR"))
                     .build())
                 .toList();
         }
@@ -245,23 +249,25 @@ public class RolService {
 
     private void guardarPermisos(Integer rolId, List<ModuloPermisoDTO> permisos) {
         try {
-            permisos.forEach(permiso -> jdbcTemplate.update("""
-                update rol_modulos
-                set puede_ver = ?,
-                    puede_crear = ?,
-                    puede_editar = ?,
-                    puede_eliminar = ?,
-                    puede_exportar = ?
-                where rol_id = ? and modulo_id = ?
-                """,
-                valor(permiso.getPuedeVer()),
-                valor(permiso.getPuedeCrear()),
-                valor(permiso.getPuedeEditar()),
-                valor(permiso.getPuedeEliminar()),
-                valor(permiso.getPuedeExportar()),
-                rolId,
-                permiso.getModuloId()
-            ));
+            permisos.forEach(permiso -> {
+                jdbcTemplate.update(
+                    "delete from rol_modulo_acciones where rol_id = ? and modulo_id = ?",
+                    rolId,
+                    permiso.getModuloId()
+                );
+
+                accionesDesdePermiso(permiso).forEach(accion -> jdbcTemplate.update("""
+                    insert into rol_modulo_acciones (rol_id, modulo_id, accion_id)
+                    select ?, ?, a.id
+                    from acciones a
+                    where upper(a.codigo) = ?
+                    on conflict (rol_id, modulo_id, accion_id) do nothing
+                    """,
+                    rolId,
+                    permiso.getModuloId(),
+                    accion
+                ));
+            });
         } catch (BadSqlGrammarException ignored) {
             // Compatibilidad con esquemas de prueba o instalaciones antes de ejecutar Flyway V3.
         }
@@ -270,11 +276,20 @@ public class RolService {
     private Map<Integer, ModuloPermisoDTO> obtenerPermisos(Integer rolId) {
         try {
             return jdbcTemplate.query("""
-                select modulo_id, puede_ver, puede_crear, puede_editar, puede_eliminar, puede_exportar
-                from rol_modulos
+                select rma.modulo_id,
+                       bool_or(upper(a.codigo) = 'VER') as puede_ver,
+                       bool_or(upper(a.codigo) = 'CREAR') as puede_crear,
+                       bool_or(upper(a.codigo) = 'EDITAR') as puede_editar,
+                       bool_or(upper(a.codigo) = 'ELIMINAR') as puede_eliminar,
+                       bool_or(upper(a.codigo) = 'EXPORTAR') as puede_exportar,
+                       string_agg(upper(a.codigo), ',' order by upper(a.codigo)) as acciones
+                from rol_modulo_acciones rma
+                join acciones a on a.id = rma.accion_id
                 where rol_id = ?
+                group by rma.modulo_id
                 """, (rs, rowNum) -> ModuloPermisoDTO.builder()
                     .moduloId(rs.getInt("modulo_id"))
+                    .acciones(listaAcciones(rs.getString("acciones")))
                     .puedeVer(rs.getBoolean("puede_ver"))
                     .puedeCrear(rs.getBoolean("puede_crear"))
                     .puedeEditar(rs.getBoolean("puede_editar"))
@@ -291,6 +306,7 @@ public class RolService {
     private ModuloPermisoDTO permisoCompleto(Integer moduloId) {
         return ModuloPermisoDTO.builder()
             .moduloId(moduloId)
+            .acciones(List.of("VER", "CREAR", "EDITAR", "ELIMINAR", "EXPORTAR"))
             .puedeVer(true)
             .puedeCrear(true)
             .puedeEditar(true)
@@ -301,5 +317,65 @@ public class RolService {
 
     private boolean valor(Boolean value) {
         return value == null || value;
+    }
+
+    private List<String> normalizarAcciones(ModuloPermisoDTO permiso) {
+        if (permiso.getAcciones() != null && !permiso.getAcciones().isEmpty()) {
+            List<String> acciones = permiso.getAcciones().stream()
+                .filter(Objects::nonNull)
+                .map(item -> item.trim().toUpperCase())
+                .filter(item -> !item.isBlank())
+                .distinct()
+                .toList();
+
+            return acciones.stream().anyMatch("VER"::equals)
+                ? acciones
+                : java.util.stream.Stream.concat(java.util.stream.Stream.of("VER"), acciones.stream())
+                    .distinct()
+                    .toList();
+        }
+
+        return accionesDesdeBooleans(permiso);
+    }
+
+    private boolean tieneAccion(ModuloPermisoDTO permiso, String accion) {
+        return normalizarAcciones(permiso).contains(accion);
+    }
+
+    private List<String> accionesDesdePermiso(ModuloPermisoDTO permiso) {
+        return permiso.getAcciones() != null && !permiso.getAcciones().isEmpty()
+            ? normalizarAcciones(permiso)
+            : accionesDesdeBooleans(permiso);
+    }
+
+    private List<String> accionesDesdeBooleans(ModuloPermisoDTO permiso) {
+        java.util.ArrayList<String> acciones = new java.util.ArrayList<>();
+        if (valor(permiso.getPuedeVer())) {
+            acciones.add("VER");
+        }
+        if (Boolean.TRUE.equals(permiso.getPuedeCrear())) {
+            acciones.add("CREAR");
+        }
+        if (Boolean.TRUE.equals(permiso.getPuedeEditar())) {
+            acciones.add("EDITAR");
+        }
+        if (Boolean.TRUE.equals(permiso.getPuedeEliminar())) {
+            acciones.add("ELIMINAR");
+        }
+        if (Boolean.TRUE.equals(permiso.getPuedeExportar())) {
+            acciones.add("EXPORTAR");
+        }
+        return acciones.stream().distinct().toList();
+    }
+
+    private List<String> listaAcciones(String acciones) {
+        if (acciones == null || acciones.isBlank()) {
+            return List.of();
+        }
+        return java.util.Arrays.stream(acciones.split(","))
+            .map(String::trim)
+            .filter(item -> !item.isBlank())
+            .distinct()
+            .toList();
     }
 }

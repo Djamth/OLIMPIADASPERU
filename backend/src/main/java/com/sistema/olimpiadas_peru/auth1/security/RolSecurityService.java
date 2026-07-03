@@ -55,6 +55,32 @@ public class RolSecurityService {
     }
 
     private boolean tienePermisoModulo(Integer rolId, Integer moduloId, String accion) {
+        try {
+            Boolean permitido = jdbcTemplate.queryForObject(
+                """
+                select exists (
+                    select 1
+                    from rol_modulo_acciones rma
+                    join acciones a on a.id = rma.accion_id
+                    where rma.rol_id = ?
+                      and rma.modulo_id = ?
+                      and upper(a.codigo) = ?
+                )
+                """,
+                Boolean.class,
+                rolId,
+                moduloId,
+                normalizarAccion(accion)
+            );
+            return Boolean.TRUE.equals(permitido);
+        } catch (EmptyResultDataAccessException exception) {
+            return false;
+        } catch (BadSqlGrammarException exception) {
+            return tienePermisoModuloLegacy(rolId, moduloId, accion);
+        }
+    }
+
+    private boolean tienePermisoModuloLegacy(Integer rolId, Integer moduloId, String accion) {
         String columna = switch (normalizarAccion(accion)) {
             case "CREAR" -> "puede_crear";
             case "EDITAR" -> "puede_editar";

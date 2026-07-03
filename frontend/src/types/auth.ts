@@ -32,6 +32,9 @@ export interface Modulo {
   nombre: string;
   ruta: string;
   icono?: string | null;
+  moduloPadreId?: number | null;
+  moduloPadreNombre?: string | null;
+  acciones?: string[] | null;
   puedeVer?: boolean | null;
   puedeCrear?: boolean | null;
   puedeEditar?: boolean | null;

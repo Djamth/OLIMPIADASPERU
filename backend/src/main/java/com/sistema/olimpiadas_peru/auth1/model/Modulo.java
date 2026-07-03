@@ -13,7 +13,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@ToString(exclude = "roles")
+@ToString(exclude = {"roles", "moduloPadre", "submodulos"})
 public class Modulo {
     
     @Id
@@ -29,6 +29,14 @@ public class Modulo {
     
     @Column(length = 50)
     private String icono;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "modulo_padre_id")
+    private Modulo moduloPadre;
+
+    @OneToMany(mappedBy = "moduloPadre")
+    @Builder.Default
+    private Set<Modulo> submodulos = new HashSet<>();
     
     @ManyToMany(mappedBy = "modulos")
     @Builder.Default
