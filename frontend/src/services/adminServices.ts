@@ -53,6 +53,7 @@ export const rolService = {
   },
   async asignarModulos(id: number, permisos: Array<{
     moduloId: number;
+    acciones?: string[];
     puedeVer: boolean;
     puedeCrear: boolean;
     puedeEditar: boolean;

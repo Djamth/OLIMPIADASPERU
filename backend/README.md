@@ -125,10 +125,30 @@ mvn test
 - Renovación de sesión con refresh token.
 - Soporte de cookies `HttpOnly`.
 - Endpoints protegidos por autenticación.
-- Permisos por rol y módulo en backend.
+- Permisos por rol, módulo y acción en backend.
 - Control para evitar que el administrador se desactive a sí mismo.
 - Recuperación de contraseña con código temporal.
 - Rate limit para login y recuperación de contraseña.
+
+### RBAC Con Permisos Funcionales
+
+La API implementa un modelo RBAC granular:
+
+```text
+usuarios
+roles
+modulos
+acciones
+rol_modulos
+rol_modulo_acciones
+```
+
+- `roles` agrupa permisos por perfil.
+- `modulos` representa pantallas o áreas funcionales y soporta submódulos con `modulo_padre_id`.
+- `acciones` contiene permisos atómicos: `VER`, `CREAR`, `EDITAR`, `ELIMINAR`, `EXPORTAR`.
+- `rol_modulo_acciones` indica qué acción puede ejecutar un rol sobre cada módulo.
+
+El endpoint de login devuelve los módulos autorizados y sus acciones. Para compatibilidad con el frontend, también expone banderas como `puedeVer`, `puedeCrear`, `puedeEditar`, `puedeEliminar` y `puedeExportar`.
 
 ## Credenciales Demo
 
@@ -348,7 +368,7 @@ Cobertura funcional:
 
 - API funcional para el flujo principal de Olimpiadas Perú.
 - CRUD principales implementados.
-- Permisos de backend por rol/módulo.
+- Permisos de backend por rol, módulo y acción.
 - Data demo limpia y alineada al negocio.
 - Reportes ejecutivos disponibles.
 - Pruebas automatizadas pasando.

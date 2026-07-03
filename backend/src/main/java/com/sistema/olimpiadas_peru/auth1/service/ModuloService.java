@@ -23,6 +23,7 @@ public class ModuloService {
             .nombre(moduloDTO.getNombre())
             .ruta(moduloDTO.getRuta())
             .icono(moduloDTO.getIcono())
+            .moduloPadre(obtenerModuloPadre(moduloDTO.getModuloPadreId()))
             .build();
 
         return mapearADTO(moduloRepository.save(modulo));
@@ -49,6 +50,7 @@ public class ModuloService {
         modulo.setNombre(moduloDTO.getNombre());
         modulo.setRuta(moduloDTO.getRuta());
         modulo.setIcono(moduloDTO.getIcono());
+        modulo.setModuloPadre(obtenerModuloPadre(moduloDTO.getModuloPadreId()));
 
         return mapearADTO(moduloRepository.save(modulo));
     }
@@ -69,6 +71,17 @@ public class ModuloService {
             .nombre(modulo.getNombre())
             .ruta(modulo.getRuta())
             .icono(modulo.getIcono())
+            .moduloPadreId(modulo.getModuloPadre() != null ? modulo.getModuloPadre().getId() : null)
+            .moduloPadreNombre(modulo.getModuloPadre() != null ? modulo.getModuloPadre().getNombre() : null)
+            .acciones(List.of())
             .build();
+    }
+
+    private Modulo obtenerModuloPadre(Integer moduloPadreId) {
+        if (moduloPadreId == null) {
+            return null;
+        }
+        return moduloRepository.findById(moduloPadreId)
+            .orElseThrow(() -> new RuntimeException("Módulo padre no encontrado"));
     }
 }

@@ -191,11 +191,40 @@ DEMO_DATA_ENABLED=false
 - Las contraseñas se almacenan con BCrypt.
 - La autenticación usa JWT.
 - Los endpoints protegidos requieren sesión válida.
-- Los permisos se validan por rol y módulo en backend.
+- Los permisos se validan por rol, módulo y acción en backend.
 - El frontend oculta o restringe vistas según módulos autorizados.
 - Las credenciales sensibles se cargan desde variables de entorno.
 - El archivo `.env` local no se versiona.
 - Se incluye `backend/.env.example` como plantilla segura.
+
+### Modelo RBAC Granular
+
+El sistema usa RBAC extendido con permisos funcionales. La autorización se organiza así:
+
+```text
+usuarios -> roles -> módulos -> acciones
+```
+
+Tablas principales:
+
+| Tabla | Propósito |
+| --- | --- |
+| `usuarios` | Actores que ingresan al sistema. |
+| `roles` | Perfiles de acceso como administrador, coordinador o consulta. |
+| `modulos` | Áreas o pantallas del sistema. Soporta jerarquía mediante `modulo_padre_id`. |
+| `acciones` | Catálogo de operaciones: `VER`, `CREAR`, `EDITAR`, `ELIMINAR`, `EXPORTAR`. |
+| `rol_modulos` | Define qué módulos están asignados a cada rol. |
+| `rol_modulo_acciones` | Define qué acciones puede ejecutar un rol sobre cada módulo. |
+
+Ejemplo:
+
+```text
+Rol: coordinador
+Módulo: Resultados
+Acciones: VER, CREAR, EDITAR, EXPORTAR
+```
+
+El backend valida estos permisos en cada request. El frontend consume los permisos devueltos en la sesión para ocultar botones de crear, editar, eliminar o exportar cuando el rol no tiene autorización.
 
 ## Variables De Entorno Backend
 

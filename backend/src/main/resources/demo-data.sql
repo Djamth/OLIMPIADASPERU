@@ -17,9 +17,11 @@ TRUNCATE TABLE
     categorias_evento,
     eventos,
     usuarios,
+    rol_modulo_acciones,
     rol_modulos,
     roles,
     modulos,
+    acciones,
     paises,
     instituciones,
     deportes
@@ -91,11 +93,31 @@ VALUES
     (15, 'Módulos', '/modulos', 'layout-grid'),
     (16, 'Auditoría', '/auditoria', 'history');
 
+INSERT INTO modulos (id, nombre, ruta, icono)
+VALUES
+    (17, 'Seguridad', '/seguridad', 'shield-check'),
+    (18, 'Gestion deportiva', '/gestion-deportiva', 'trophy'),
+    (19, 'Configuracion institucional', '/configuracion-institucional', 'building-2')
+ON CONFLICT DO NOTHING;
+
+UPDATE modulos SET modulo_padre_id = 19 WHERE ruta IN ('/instituciones', '/paises', '/eventos');
+UPDATE modulos SET modulo_padre_id = 18 WHERE ruta IN ('/deportes', '/equipos', '/participantes', '/inscripciones', '/sorteos', '/programacion', '/resultados', '/estadisticas');
+UPDATE modulos SET modulo_padre_id = 17 WHERE ruta IN ('/usuarios', '/perfiles', '/modulos', '/auditoria');
+
 INSERT INTO roles (id, nombre, estado)
 VALUES
     (1, 'administrador', 'ACTIVO'),
     (2, 'coordinador', 'ACTIVO'),
     (3, 'consulta', 'ACTIVO');
+
+INSERT INTO acciones (id, codigo, nombre)
+VALUES
+    (1, 'VER', 'Ver'),
+    (2, 'CREAR', 'Crear'),
+    (3, 'EDITAR', 'Editar'),
+    (4, 'ELIMINAR', 'Eliminar'),
+    (5, 'EXPORTAR', 'Exportar')
+ON CONFLICT (codigo) DO UPDATE SET nombre = EXCLUDED.nombre;
 
 INSERT INTO rol_modulos (rol_id, modulo_id)
 SELECT 1, id FROM modulos;
@@ -112,6 +134,29 @@ INSERT INTO rol_modulos (rol_id, modulo_id)
 SELECT 3, id
 FROM modulos
 WHERE ruta IN ('/dashboard', '/programacion', '/resultados', '/estadisticas');
+
+INSERT INTO rol_modulo_acciones (rol_id, modulo_id, accion_id)
+SELECT rm.rol_id, rm.modulo_id, a.id
+FROM rol_modulos rm
+CROSS JOIN acciones a
+WHERE rm.rol_id = 1
+ON CONFLICT (rol_id, modulo_id, accion_id) DO NOTHING;
+
+INSERT INTO rol_modulo_acciones (rol_id, modulo_id, accion_id)
+SELECT rm.rol_id, rm.modulo_id, a.id
+FROM rol_modulos rm
+CROSS JOIN acciones a
+WHERE rm.rol_id = 2
+  AND a.codigo IN ('VER', 'CREAR', 'EDITAR', 'EXPORTAR')
+ON CONFLICT (rol_id, modulo_id, accion_id) DO NOTHING;
+
+INSERT INTO rol_modulo_acciones (rol_id, modulo_id, accion_id)
+SELECT rm.rol_id, rm.modulo_id, a.id
+FROM rol_modulos rm
+CROSS JOIN acciones a
+WHERE rm.rol_id = 3
+  AND a.codigo IN ('VER', 'EXPORTAR')
+ON CONFLICT (rol_id, modulo_id, accion_id) DO NOTHING;
 
 INSERT INTO usuarios (id, nombre, email, password, rol_id, institucion_id, estado, eliminado)
 VALUES
