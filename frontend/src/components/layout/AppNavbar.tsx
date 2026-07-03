@@ -15,6 +15,7 @@ const searchTargets = [
   { label: "Notificaciones", href: "/notificaciones", keywords: ["avisos", "mensajes", "alertas"] },
   { label: "Usuarios", href: "/usuarios", keywords: ["usuario", "accesos"] },
   { label: "Perfiles", href: "/perfiles", keywords: ["roles", "permisos", "modulos"] },
+  { label: "Acciones", href: "/acciones", keywords: ["permisos", "rbac", "seguridad"] },
   { label: "Instituciones", href: "/instituciones", keywords: ["colegios", "clientes"] },
   { label: "Eventos y categorías", href: "/eventos", keywords: ["evento", "categorias", "años"] },
   { label: "Catálogo de países", href: "/paises", keywords: ["paises", "banderas"] },

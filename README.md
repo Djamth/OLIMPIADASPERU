@@ -124,7 +124,7 @@ flowchart LR
 - Portal público con hero deportivo, próximos encuentros y estadísticas.
 - Autenticación con JWT, refresh token y cookies seguras.
 - Recuperación de contraseña por código.
-- Usuarios, roles, módulos y permisos por rol.
+- Usuarios, roles, módulos, acciones y permisos por rol.
 - Instituciones participantes.
 - Catálogo de países con bandera, colores y dato cultural.
 - Eventos institucionales.
@@ -138,7 +138,7 @@ flowchart LR
 - Registro de resultados y anotaciones individuales.
 - Estadísticas deportivas.
 - Reportes ejecutivos.
-- Auditoría de operaciones relevantes.
+- Auditoría de operaciones relevantes, incluyendo cambios de permisos por rol.
 - Notificaciones por correo para eventos importantes.
 
 ## Flujo De Negocio Cubierto
@@ -212,9 +212,11 @@ Tablas principales:
 | `usuarios` | Actores que ingresan al sistema. |
 | `roles` | Perfiles de acceso como administrador, coordinador o consulta. |
 | `modulos` | Áreas o pantallas del sistema. Soporta jerarquía mediante `modulo_padre_id`. |
-| `acciones` | Catálogo de operaciones: `VER`, `CREAR`, `EDITAR`, `ELIMINAR`, `EXPORTAR`. |
+| `acciones` | Catálogo administrable de operaciones: `VER`, `CREAR`, `EDITAR`, `ELIMINAR`, `EXPORTAR` y acciones personalizadas. |
 | `rol_modulos` | Define qué módulos están asignados a cada rol. |
 | `rol_modulo_acciones` | Define qué acciones puede ejecutar un rol sobre cada módulo. |
+
+El módulo administrativo **Acciones** permite crear, editar y eliminar operaciones funcionales, siempre que no estén en uso por perfiles. Cada cambio de permisos queda registrado en auditoría con el resumen anterior y posterior.
 
 Ejemplo:
 

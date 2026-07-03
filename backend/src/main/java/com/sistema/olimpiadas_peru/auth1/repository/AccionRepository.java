@@ -8,4 +8,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface AccionRepository extends JpaRepository<Accion, Integer> {
     Optional<Accion> findByCodigoIgnoreCase(String codigo);
+
+    boolean existsByCodigoIgnoreCase(String codigo);
+
+    java.util.List<Accion> findAllByOrderByCodigoAsc();
 }

@@ -12,4 +12,6 @@ public interface RolModuloAccionRepository extends JpaRepository<RolModuloAccion
     void deleteByRol_IdAndModulo_Id(Integer rolId, Integer moduloId);
 
     List<RolModuloAccion> findByRol_Id(Integer rolId);
+
+    long countByAccion_Id(Integer accionId);
 }

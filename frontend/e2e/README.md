@@ -7,6 +7,7 @@ Estas pruebas validan el flujo principal del sistema desde el navegador:
 - Recorrido de instituciones, eventos/categorias, equipos, participantes, inscripciones, sorteos, programacion, resultados y estadisticas.
 - Filtros por deporte.
 - Apertura de formularios principales.
+- RBAC granular: CRUD de acciones para administrador y bloqueo de endpoints administrativos para usuario consulta.
 
 ## Requisitos
 
