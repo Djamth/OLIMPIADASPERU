@@ -436,3 +436,7 @@ El sistema cubre los bloques clave solicitados para el avance:
 ## Autores
 
 - Denis Jamil Tineo Huancas
+- Romario Huaytalla Goicochea
+- Edwin Anthony Espejo Cerna
+- Midhuar Joel Ruelas Cerrillo
+- Jeampierre Pacori Condori
