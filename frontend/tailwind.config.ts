@@ -10,7 +10,7 @@ const config: Config = {
     extend: {
       colors: {
         primary: '#1565c0',
-        'primary-dark': '#0d47a1',
+        'primary-dark': '#628ecf',
         danger: '#e53935',
         surface: '#ffffff',
         'surface-muted': '#f5f7fb',
