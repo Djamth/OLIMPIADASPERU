@@ -42,7 +42,14 @@ public class RolService {
             .estado(Rol.Estado.valueOf(rolDTO.getEstado() != null ? rolDTO.getEstado() : "ACTIVO"))
             .build();
 
-        return mapearADTO(rolRepository.save(rol));
+        Rol guardado = rolRepository.save(rol);
+        auditoriaService.registrar(
+            SecurityUtils.getCurrentUserId(),
+            "CREAR_ROL",
+            String.format("Se creó el rol '%s'", guardado.getNombre())
+        );
+
+        return mapearADTO(guardado);
     }
 
     public List<RolDTO> obtenerTodos() {
@@ -66,7 +73,14 @@ public class RolService {
         rol.setNombre(rolDTO.getNombre());
         rol.setEstado(Rol.Estado.valueOf(rolDTO.getEstado()));
 
-        return mapearADTO(rolRepository.save(rol));
+        Rol guardado = rolRepository.save(rol);
+        auditoriaService.registrar(
+            SecurityUtils.getCurrentUserId(),
+            "ACTUALIZAR_ROL",
+            String.format("Se actualizó el rol '%s' con estado %s", guardado.getNombre(), guardado.getEstado())
+        );
+
+        return mapearADTO(guardado);
     }
 
     @Transactional
@@ -82,7 +96,6 @@ public class RolService {
         }
 
         rolRepository.delete(rol);
-
         auditoriaService.registrar(
             SecurityUtils.getCurrentUserId(),
             "ELIMINAR_ROL",
@@ -113,6 +126,10 @@ public class RolService {
             .distinct()
             .toList();
 
+        Map<Integer, ModuloPermisoDTO> permisosAntes = obtenerPermisos(rolId);
+        Map<Integer, String> nombresModulos = moduloRepository.findAll().stream()
+            .collect(Collectors.toMap(Modulo::getId, Modulo::getNombre, (left, right) -> left));
+
         List<Modulo> modulos = moduloIds.stream()
             .map(id -> moduloRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Módulo no encontrado con id: " + id)))
@@ -121,12 +138,18 @@ public class RolService {
         rol.setModulos(new LinkedHashSet<>(modulos));
         Rol rolGuardado = rolRepository.save(rol);
         rolRepository.flush();
+        limpiarPermisosNoIncluidos(rolId, moduloIds);
         guardarPermisos(rolId, permisos);
 
         auditoriaService.registrar(
             SecurityUtils.getCurrentUserId(),
             "ASIGNAR_MODULOS_ROL",
-            String.format("Se actualizaron los módulos y permisos del rol '%s'", rol.getNombre())
+            String.format(
+                "Se actualizaron módulos y permisos del rol '%s'. Antes: %s. Ahora: %s.",
+                rol.getNombre(),
+                resumirPermisos(permisosAntes, nombresModulos),
+                resumirPermisos(toPermissionMap(permisos), nombresModulos)
+            )
         );
 
         return mapearARolModulosDTO(rolGuardado);
@@ -153,7 +176,7 @@ public class RolService {
         auditoriaService.registrar(
             SecurityUtils.getCurrentUserId(),
             "AGREGAR_MODULO_ROL",
-            String.format("Se agregó el módulo '%s' al rol '%s'", modulo.getNombre(), rol.getNombre())
+            String.format("Se agregó el módulo '%s' al rol '%s' con todas las acciones", modulo.getNombre(), rol.getNombre())
         );
 
         return mapearARolModulosDTO(rolGuardado);
@@ -173,11 +196,12 @@ public class RolService {
         }
 
         Rol rolGuardado = rolRepository.save(rol);
+        eliminarPermisosModulo(rolId, moduloId);
 
         auditoriaService.registrar(
             SecurityUtils.getCurrentUserId(),
             "REMOVER_MODULO_ROL",
-            String.format("Se removió el módulo '%s' del rol '%s'", modulo.getNombre(), rol.getNombre())
+            String.format("Se removió el módulo '%s' y sus acciones del rol '%s'", modulo.getNombre(), rol.getNombre())
         );
 
         return mapearARolModulosDTO(rolGuardado);
@@ -202,10 +226,6 @@ public class RolService {
                 .map(modulo -> mapearModuloADTO(modulo, permisos.getOrDefault(modulo.getId(), permisoCompleto(modulo.getId()))))
                 .collect(Collectors.toList()))
             .build();
-    }
-
-    private ModuloDTO mapearModuloADTO(Modulo modulo) {
-        return mapearModuloADTO(modulo, permisoCompleto(modulo.getId()));
     }
 
     private ModuloDTO mapearModuloADTO(Modulo modulo, ModuloPermisoDTO permiso) {
@@ -269,7 +289,35 @@ public class RolService {
                 ));
             });
         } catch (BadSqlGrammarException ignored) {
-            // Compatibilidad con esquemas de prueba o instalaciones antes de ejecutar Flyway V3.
+            // Compatibilidad con esquemas de prueba o instalaciones antes de ejecutar Flyway V4.
+        }
+    }
+
+    private void limpiarPermisosNoIncluidos(Integer rolId, List<Integer> moduloIds) {
+        try {
+            if (moduloIds.isEmpty()) {
+                jdbcTemplate.update("delete from rol_modulo_acciones where rol_id = ?", rolId);
+                return;
+            }
+
+            String placeholders = moduloIds.stream().map(id -> "?").collect(Collectors.joining(","));
+            java.util.ArrayList<Object> params = new java.util.ArrayList<>();
+            params.add(rolId);
+            params.addAll(moduloIds);
+            jdbcTemplate.update(
+                "delete from rol_modulo_acciones where rol_id = ? and modulo_id not in (" + placeholders + ")",
+                params.toArray()
+            );
+        } catch (BadSqlGrammarException ignored) {
+            // Compatibilidad con esquemas de prueba o instalaciones antes de ejecutar Flyway V4.
+        }
+    }
+
+    private void eliminarPermisosModulo(Integer rolId, Integer moduloId) {
+        try {
+            jdbcTemplate.update("delete from rol_modulo_acciones where rol_id = ? and modulo_id = ?", rolId, moduloId);
+        } catch (BadSqlGrammarException ignored) {
+            // Compatibilidad con esquemas de prueba o instalaciones antes de ejecutar Flyway V4.
         }
     }
 
@@ -313,6 +361,26 @@ public class RolService {
             .puedeEliminar(true)
             .puedeExportar(true)
             .build();
+    }
+
+    private Map<Integer, ModuloPermisoDTO> toPermissionMap(List<ModuloPermisoDTO> permisos) {
+        return permisos.stream()
+            .collect(Collectors.toMap(ModuloPermisoDTO::getModuloId, Function.identity(), (left, right) -> right));
+    }
+
+    private String resumirPermisos(Map<Integer, ModuloPermisoDTO> permisos, Map<Integer, String> nombresModulos) {
+        if (permisos == null || permisos.isEmpty()) {
+            return "sin permisos";
+        }
+
+        return permisos.entrySet().stream()
+            .sorted(Map.Entry.comparingByKey())
+            .map(entry -> {
+                String modulo = nombresModulos.getOrDefault(entry.getKey(), "Módulo " + entry.getKey());
+                List<String> acciones = accionesDesdePermiso(entry.getValue());
+                return modulo + "=" + (acciones.isEmpty() ? "sin acciones" : String.join("/", acciones));
+            })
+            .collect(Collectors.joining("; "));
     }
 
     private boolean valor(Boolean value) {

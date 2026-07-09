@@ -43,6 +43,18 @@ export interface RolModulos {
   modulos: Modulo[];
 }
 
+export interface Accion {
+  id: number;
+  codigo: string;
+  nombre: string;
+  permisosAsignados: number;
+}
+
+export interface AccionRequest {
+  codigo: string;
+  nombre: string;
+}
+
 export interface DashboardMetric {
   title: string;
   value: string;

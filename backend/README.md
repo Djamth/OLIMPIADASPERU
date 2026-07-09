@@ -90,7 +90,7 @@ La semilla actual incluye:
 - 10 partidos.
 - 6 resultados.
 - 21 anotaciones individuales.
-- Usuarios, roles y módulos listos para probar permisos.
+- Usuarios, roles, módulos y acciones listos para probar permisos.
 
 Para conservar datos manuales:
 
@@ -145,10 +145,12 @@ rol_modulo_acciones
 
 - `roles` agrupa permisos por perfil.
 - `modulos` representa pantallas o áreas funcionales y soporta submódulos con `modulo_padre_id`.
-- `acciones` contiene permisos atómicos: `VER`, `CREAR`, `EDITAR`, `ELIMINAR`, `EXPORTAR`.
+- `acciones` contiene permisos atómicos: `VER`, `CREAR`, `EDITAR`, `ELIMINAR`, `EXPORTAR` y acciones personalizadas administrables.
 - `rol_modulo_acciones` indica qué acción puede ejecutar un rol sobre cada módulo.
 
 El endpoint de login devuelve los módulos autorizados y sus acciones. Para compatibilidad con el frontend, también expone banderas como `puedeVer`, `puedeCrear`, `puedeEditar`, `puedeEliminar` y `puedeExportar`.
+
+Los cambios de permisos por rol se registran en auditoría con detalle de estado anterior y nuevo. Esto permite sustentar quién modificó accesos, cuándo y sobre qué perfil.
 
 ## Credenciales Demo
 
@@ -230,6 +232,10 @@ Todos los endpoints usan el prefijo real `/olimpiadas`.
 - `GET /api/roles`
 - `PUT /api/roles/{id}/modulos`
 - `GET /api/modulos`
+- `GET /api/acciones`
+- `POST /api/acciones`
+- `PUT /api/acciones/{id}`
+- `DELETE /api/acciones/{id}`
 - `GET /api/auditoria`
 
 ### Institucional

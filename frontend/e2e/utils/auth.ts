@@ -23,17 +23,28 @@ export async function requireBackend(request: APIRequestContext) {
 }
 
 export async function loginAs(page: Page, credentials = adminUser) {
+  const apiBaseUrl = process.env.E2E_API_BASE_URL ?? "http://localhost:8080/olimpiadas";
   await page.context().clearCookies();
-  await page.goto("/login", { waitUntil: "domcontentloaded" });
-  await page.evaluate(() => localStorage.clear());
-  await page.locator('input[type="email"]').fill(credentials.email);
-  await page.locator('input[type="password"]').fill(credentials.password);
-  await page.getByRole("button", { name: /Iniciar/i }).click();
+  const response = await page.request.post(`${apiBaseUrl}/api/auth/login`, {
+    data: credentials,
+  });
+  expect(response.ok(), `Login E2E fallido para ${credentials.email}`).toBeTruthy();
+  const user = await response.json();
 
-  const confirmButton = page.locator(".swal2-confirm");
-  await expect(confirmButton).toBeVisible();
-  await confirmButton.click();
-  await page.waitForURL((url) => !url.pathname.includes("/login"));
+  await page.addInitScript((storedUser) => {
+    localStorage.clear();
+    localStorage.setItem("op_user", JSON.stringify(storedUser));
+  }, user);
+
+  await page.goto(getLandingPath(user), { waitUntil: "domcontentloaded" });
+  await expect(page).not.toHaveURL(/\/login$/);
+}
+
+function getLandingPath(user: { rolNombre?: string; modulos?: Array<{ ruta?: string }> }) {
+  if (user.rolNombre?.toLowerCase() === "administrador") {
+    return "/dashboard";
+  }
+  return user.modulos?.find((modulo) => modulo.ruta)?.ruta ?? "/dashboard";
 }
 
 export async function expectModulePage(page: Page, path: string, heading: RegExp) {
