@@ -1,4 +1,4 @@
-﻿.public-scroll-shell {
+.public-scroll-shell {
   height: 100vh;
   overflow-x: hidden;
   overflow-y: auto;
@@ -12,26 +12,23 @@
 }
 
 .public-section-inner {
-  will-change: opacity, transform, filter;
+  will-change: opacity, transform;
 }
 
 @keyframes public-section-reveal {
   0% {
     opacity: 0.18;
     transform: translateY(4.5rem) scale(0.94);
-    filter: blur(12px);
   }
 
   48% {
     opacity: 1;
     transform: translateY(0) scale(1);
-    filter: blur(0);
   }
 
   100% {
     opacity: 0.82;
     transform: translateY(-2.3rem) scale(0.985);
-    filter: blur(2px);
   }
 }
 
@@ -86,3 +83,4 @@
     transform: none !important;
   }
 }
+
