@@ -28,22 +28,70 @@ import type {
   PlantillaEquipoRequest,
 } from "@/types/catalogs";
 
+type ListCacheEntry<T> = {
+  data: T[];
+  expiresAt: number;
+};
+
+const LIST_CACHE_TTL_MS = 60_000;
+const listCache = new Map<string, ListCacheEntry<unknown>>();
+
+function getListCacheKey(path: string, params?: Record<string, string | number | undefined>) {
+  const cleanParams = Object.entries(params ?? {})
+    .filter(([, value]) => value !== undefined)
+    .sort(([left], [right]) => left.localeCompare(right));
+  if (cleanParams.length === 0) return path;
+  return `${path}?${JSON.stringify(cleanParams)}`;
+}
+
+function getCachedList<T>(key: string) {
+  const cached = listCache.get(key) as ListCacheEntry<T> | undefined;
+  if (!cached) return null;
+  if (cached.expiresAt < Date.now()) {
+    listCache.delete(key);
+    return null;
+  }
+  return cached.data;
+}
+
+function setCachedList<T>(key: string, data: T[]) {
+  listCache.set(key, {
+    data,
+    expiresAt: Date.now() + LIST_CACHE_TTL_MS,
+  });
+}
+
+function invalidatePathCache(path: string) {
+  Array.from(listCache.keys()).forEach((key) => {
+    if (key === path || key.startsWith(`${path}?`)) {
+      listCache.delete(key);
+    }
+  });
+}
+
 function crudService<T, R>(path: string) {
   return {
     async list(params?: Record<string, string | number | undefined>) {
+      const cacheKey = getListCacheKey(path, params);
+      const cached = getCachedList<T>(cacheKey);
+      if (cached) return cached;
       const { data } = await api.get<T[]>(path, { params });
+      setCachedList(cacheKey, data);
       return data;
     },
     async create(payload: R) {
       const { data } = await api.post<T>(path, payload);
+      invalidatePathCache(path);
       return data;
     },
     async update(id: number, payload: R) {
       const { data } = await api.put<T>(`${path}/${id}`, payload);
+      invalidatePathCache(path);
       return data;
     },
     async remove(id: number) {
       await api.delete(`${path}/${id}`);
+      invalidatePathCache(path);
     },
   };
 }
