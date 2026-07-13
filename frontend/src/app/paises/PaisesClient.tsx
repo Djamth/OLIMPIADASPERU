@@ -29,7 +29,10 @@ const emptyForm: PaisRequest = {
 
 export function PaisesClient() {
   const loader = useCallback(() => paisService.list(), []);
-  const { data, loading, reload } = useAsyncList<Pais>(loader);
+  const { data, loading, reload } = useAsyncList<Pais>(loader, {
+    cacheKey: "paises:list",
+    ttlMs: 5 * 60_000,
+  });
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Pais | null>(null);
   const [form, setForm] = useState<PaisRequest>(emptyForm);

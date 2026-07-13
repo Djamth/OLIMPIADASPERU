@@ -39,7 +39,10 @@ export function InscripcionesClient() {
     }),
     [deporteFiltroId, eventoFiltroId],
   );
-  const { data, loading, reload } = useAsyncList<Inscripcion>(loader);
+  const { data, loading, reload } = useAsyncList<Inscripcion>(loader, {
+    cacheKey: `inscripciones:list:${eventoFiltroId || "todos"}:${deporteFiltroId || "todos"}`,
+    ttlMs: 90_000,
+  });
   const [equipos, setEquipos] = useState<Equipo[]>([]);
   const [deportes, setDeportes] = useState<Deporte[]>([]);
   const [eventos, setEventos] = useState<Evento[]>([]);

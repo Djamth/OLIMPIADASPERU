@@ -35,7 +35,10 @@ export function ProgramacionClient() {
     () => programacionService.list(deporteFiltroId ? { deporteId: deporteFiltroId } : undefined),
     [deporteFiltroId],
   );
-  const { data, loading, reload } = useAsyncList<Partido>(loader);
+  const { data, loading, reload } = useAsyncList<Partido>(loader, {
+    cacheKey: `programacion:list:${deporteFiltroId || "todos"}`,
+    ttlMs: 90_000,
+  });
   const [deportes, setDeportes] = useState<Deporte[]>([]);
   const [equipos, setEquipos] = useState<Equipo[]>([]);
   const [grupos, setGrupos] = useState<Grupo[]>([]);

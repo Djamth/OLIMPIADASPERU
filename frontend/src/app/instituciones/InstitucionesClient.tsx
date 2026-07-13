@@ -33,7 +33,10 @@ const emptyForm: InstitucionRequest = {
 
 export function InstitucionesClient() {
   const loader = useCallback(() => institucionService.list(), []);
-  const { data, loading, reload } = useAsyncList<Institucion>(loader);
+  const { data, loading, reload } = useAsyncList<Institucion>(loader, {
+    cacheKey: "instituciones:list",
+    ttlMs: 2 * 60_000,
+  });
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Institucion | null>(null);
   const [form, setForm] = useState<InstitucionRequest>(emptyForm);

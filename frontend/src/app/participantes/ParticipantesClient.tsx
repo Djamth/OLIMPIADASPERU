@@ -35,7 +35,10 @@ const emptyForm: ParticipanteRequest = {
 
 export function ParticipantesClient() {
   const loader = useCallback(() => participanteService.list(), []);
-  const { data, loading, reload } = useAsyncList<Participante>(loader);
+  const { data, loading, reload } = useAsyncList<Participante>(loader, {
+    cacheKey: "participantes:list",
+    ttlMs: 2 * 60_000,
+  });
   const [equipos, setEquipos] = useState<Equipo[]>([]);
   const [equipoId, setEquipoId] = useState<number>(0);
   const [teamData, setTeamData] = useState<Participante[]>([]);

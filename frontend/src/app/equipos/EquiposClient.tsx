@@ -32,7 +32,10 @@ const emptyForm: EquipoRequest = {
 
 export function EquiposClient() {
   const loader = useCallback(() => equipoService.list(), []);
-  const { data, loading, reload } = useAsyncList<Equipo>(loader);
+  const { data, loading, reload } = useAsyncList<Equipo>(loader, {
+    cacheKey: "equipos:list",
+    ttlMs: 2 * 60_000,
+  });
   const [categorias, setCategorias] = useState<CategoriaEvento[]>([]);
   const [deportes, setDeportes] = useState<Deporte[]>([]);
   const [open, setOpen] = useState(false);

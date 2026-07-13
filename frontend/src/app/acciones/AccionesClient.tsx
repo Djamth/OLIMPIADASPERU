@@ -28,7 +28,10 @@ const baseActions = new Set(["VER", "CREAR", "EDITAR", "ELIMINAR", "EXPORTAR"]);
 
 export function AccionesClient() {
   const loader = useCallback(() => accionService.list(), []);
-  const { data, loading, reload } = useAsyncList<Accion>(loader);
+  const { data, loading, reload } = useAsyncList<Accion>(loader, {
+    cacheKey: "acciones:list",
+    ttlMs: 5 * 60_000,
+  });
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Accion | null>(null);
   const [form, setForm] = useState<AccionRequest>(emptyForm);

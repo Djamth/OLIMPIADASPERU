@@ -27,7 +27,10 @@ const emptyForm: DeporteRequest = {
 
 export function DeportesClient() {
   const loader = useCallback(() => deporteService.list(), []);
-  const { data, loading, reload } = useAsyncList<Deporte>(loader);
+  const { data, loading, reload } = useAsyncList<Deporte>(loader, {
+    cacheKey: "deportes:list",
+    ttlMs: 5 * 60_000,
+  });
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Deporte | null>(null);
   const [form, setForm] = useState<DeporteRequest>(emptyForm);
