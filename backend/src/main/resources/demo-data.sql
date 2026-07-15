@@ -1,6 +1,6 @@
--- Data demo reiniciable para desarrollo y exposiciones.
+-- Data demo r .
 -- IMPORTANTE: con DEMO_DATA_ENABLED=true este script limpia y vuelve a cargar la data cada vez que inicia el backend.
--- Para conservar registros creados manualmente, usar DEMO_DATA_ENABLED=false en el archivo .env.
+-- Para conservar registros creados manualmente, usar DEMO_DATA_ENABLED=false en el archivo .env
 
 TRUNCATE TABLE
     auditoria,
