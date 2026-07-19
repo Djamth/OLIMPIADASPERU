@@ -1,4 +1,5 @@
 import { CalendarDays, Search, Trophy } from "lucide-react";
+import { ButtonLogin } from "./ButtonLogin";
 
 export function PublicPortalNavbar() {
   return (
@@ -29,6 +30,7 @@ export function PublicPortalNavbar() {
         <a className="grid h-11 w-11 place-items-center rounded-full bg-white/10 text-white backdrop-blur-xl transition hover:bg-red-600" href="#encuentros" aria-label="Ver encuentros">
           <CalendarDays size={18} />
         </a>
+        <ButtonLogin />
       </div>
     </header>
   );

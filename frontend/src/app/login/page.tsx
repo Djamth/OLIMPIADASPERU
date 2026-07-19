@@ -31,8 +31,8 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(true);
   const [form, setForm] = useState({
-    email: "admin@olimpiadasperu.pe",
-    password: "Admin123*",
+    email: "",
+    password: "",
   });
   const [submitting, setSubmitting] = useState(false);
 
