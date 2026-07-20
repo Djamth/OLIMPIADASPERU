@@ -281,19 +281,9 @@ export function AppNavbar({ onOpenMobileMenu }: { onOpenMobileMenu: () => void }
                     <span>{user?.rolNombre || "Invitado"}</span>
                   </div>
                 </div>
-
-                <div className="op-profile-details">
-                  <span>Correo</span>
-                  <strong>{user?.email || "Sin correo"}</strong>
-                  <span>Institución</span>
-                  <strong>{user?.institucionNombre || "Sin institución asignada"}</strong>
-                  <span>Módulos activos</span>
-                  <strong>{user?.modulos?.length ?? 0}</strong>
-                </div>
-
                 <button className="op-profile-popover-item" type="button" onClick={() => { setProfileOpen(false); router.push("/perfil"); }}>
                   <UserRound size={17} />
-                  <span>Ver perfil completo</span>
+                  <span>Perfil</span>
                 </button>
 
                 <button className="op-profile-popover-item danger" type="button" onClick={handleLogout}>

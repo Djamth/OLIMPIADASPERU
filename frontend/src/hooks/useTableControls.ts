@@ -6,9 +6,13 @@ export function useTableControls<T>(
   data: T[],
   filter: (item: T, query: string) => boolean,
   initialPageSize = 10,
+  initialState?: {
+    query?: string;
+    page?: number;
+  },
 ) {
-  const [query, setQuery] = useState("");
-  const [page, setPage] = useState(1);
+  const [query, setQuery] = useState(initialState?.query ?? "");
+  const [page, setPage] = useState(initialState?.page ?? 1);
   const [pageSize, setPageSize] = useState(initialPageSize);
 
   const filtered = useMemo(() => {

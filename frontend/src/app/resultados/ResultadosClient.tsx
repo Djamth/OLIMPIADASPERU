@@ -1,22 +1,23 @@
 "use client";
 
 import { Badge } from "@/components/common/Badge";
-import { IconActionButton, PrimaryActionButton, RowActions } from "@/components/common/Buttons";
-import { DataTable, type DataTableColumn } from "@/components/common/DataTable";
+import { PrimaryActionButton } from "@/components/common/Buttons";
 import { EmptyState } from "@/components/common/EmptyState";
 import { FormModal } from "@/components/common/FormModal";
 import { fieldClass, labelClass, textareaClass } from "@/components/common/formStyles";
 import { LoadingState } from "@/components/common/LoadingState";
 import { PaginationControls } from "@/components/common/PaginationControls";
-import { PageHeader } from "@/components/common/PageHeader";
-import { TableToolbar } from "@/components/common/TableToolbar";
 import { useAsyncList } from "@/hooks/useAsyncList";
 import { useTableControls } from "@/hooks/useTableControls";
-import { deporteService, participanteService, programacionService, resultadoService } from "@/services/crudServices";
-import type { Deporte, Participante, Partido, Resultado, ResultadoAnotacionRequest, ResultadoRequest } from "@/types/catalogs";
+import { deporteService, equipoService, participanteService, programacionService, resultadoService } from "@/services/crudServices";
+import type { Deporte, Equipo, Participante, Partido, Resultado, ResultadoAnotacionRequest, ResultadoRequest } from "@/types/catalogs";
 import { alerts, getErrorMessage } from "@/utils/alerts";
-import { PlusCircle, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { getSportMeta, ScorePill, SportChip, TeamIdentity } from "@/components/sports/SportUi";
+import { BarChart3, LayoutGrid, PlusCircle, Search, Sparkles, Target, Trophy, Users } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { getResultWinnerLabel, normalizeText } from "./resultados-utils";
+import { PageHeader } from "@/components/common/PageHeader";
 
 const emptyForm: ResultadoRequest = {
   partidoId: 0,
@@ -29,22 +30,57 @@ const emptyForm: ResultadoRequest = {
 function getSportLabels(deporte?: string) {
   const normalized = (deporte ?? "").toUpperCase();
   if (normalized.includes("FUTBOL") || normalized.includes("FUTSAL")) {
-    return { plural: "goles", singular: "gol", title: "Goleadores", helper: "Registra quien marco y cuantos goles hizo." };
+    return { plural: "goles", singular: "gol", title: "Goleadores", helper: "Registra quién anotó y cuántos goles hizo." };
   }
   if (normalized.includes("BASQUET")) {
     return { plural: "puntos", singular: "punto", title: "Encestadores", helper: "Registra puntos individuales para obtener encestadores." };
   }
   if (normalized.includes("VOLEY")) {
-    return { plural: "sets", singular: "set", title: "Sets por participante", helper: "Registra participacion en sets ganados o puntos destacados." };
+    return { plural: "sets", singular: "set", title: "Sets por participante", helper: "Registra participación en sets ganados o puntos destacados." };
   }
   if (normalized.includes("PING")) {
     return { plural: "puntos/sets", singular: "punto/set", title: "Puntos/Sets individuales", helper: "Registra puntos o sets ganados por participante." };
   }
-  return { plural: "anotaciones", singular: "anotación", title: "Estadísticas individuales", helper: "Registra el aporte individual por participante." };
+  return { plural: "anotaciones", singular: "anotacion", title: "Estadisticas individuales", helper: "Registra el aporte individual por participante." };
 }
 
-export function ResultadosClient() {
-  const [deporteFiltroId, setDeporteFiltroId] = useState<number>(0);
+function parseNumberParam(value: string | string[] | undefined, fallback: number) {
+  const raw = Array.isArray(value) ? value[0] : value;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+}
+
+function parseStringParam(value: string | string[] | undefined) {
+  const raw = Array.isArray(value) ? value[0] : value;
+  return typeof raw === "string" ? raw : "";
+}
+
+function buildQueryString(deporteId: number, query: string, page: number) {
+  const params = new URLSearchParams();
+  if (deporteId) params.set("deporte", String(deporteId));
+  if (query.trim()) params.set("q", query.trim());
+  if (page > 1) params.set("page", String(page));
+  return params.toString();
+}
+
+export function ResultadosClient({
+  initialSearchParams,
+}: {
+  initialSearchParams?: Record<string, string | string[] | undefined>;
+}) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const hydratedRef = useRef(false);
+  const [deporteFiltroId, setDeporteFiltroId] = useState(() => parseNumberParam(initialSearchParams?.deporte, 0));
+  const [deportes, setDeportes] = useState<Deporte[]>([]);
+  const [partidos, setPartidos] = useState<Partido[]>([]);
+  const [participantes, setParticipantes] = useState<Participante[]>([]);
+  const [equipos, setEquipos] = useState<Equipo[]>([]);
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Resultado | null>(null);
+  const [form, setForm] = useState<ResultadoRequest>(emptyForm);
+  const [submitting, setSubmitting] = useState(false);
+
   const loader = useCallback(
     () => resultadoService.list(deporteFiltroId ? { deporteId: deporteFiltroId } : undefined),
     [deporteFiltroId],
@@ -53,38 +89,63 @@ export function ResultadosClient() {
     cacheKey: `resultados:list:${deporteFiltroId || "todos"}`,
     ttlMs: 90_000,
   });
-  const [deportes, setDeportes] = useState<Deporte[]>([]);
-  const [partidos, setPartidos] = useState<Partido[]>([]);
-  const [participantes, setParticipantes] = useState<Participante[]>([]);
-  const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState<Resultado | null>(null);
-  const [form, setForm] = useState<ResultadoRequest>(emptyForm);
-  const [submitting, setSubmitting] = useState(false);
+
+  const initialQuery = parseStringParam(initialSearchParams?.q);
+  const initialPage = parseNumberParam(initialSearchParams?.page, 1);
+  const table = useTableControls(
+    data,
+    (item, query) =>
+      [
+        item.equipoLocal,
+        item.equipoVisitante,
+        item.deporte,
+        item.observaciones ?? "",
+        String(item.puntajeLocal),
+        String(item.puntajeVisitante),
+        ...(item.anotaciones ?? []).map((anotacion) => anotacion.participanteNombreCompleto),
+      ].some((value) => value.toLowerCase().includes(query)),
+    8,
+    { query: initialQuery, page: initialPage },
+  );
+
+  const resultadoPartidoIds = useMemo(() => new Set(data.map((item) => item.partidoId)), [data]);
   const selectedDeporte = deportes.find((item) => item.id === deporteFiltroId);
   const selectedPartido = partidos.find((item) => item.id === form.partidoId);
   const selectedLabels = getSportLabels(selectedPartido?.deporteNombre ?? editing?.deporte);
-  const resultadoPartidoIds = useMemo(() => new Set(data.map((item) => item.partidoId)), [data]);
+  const teamLookup = useMemo(() => {
+    const map = new Map<string, Equipo>();
+    equipos.forEach((item) => map.set(normalizeText(item.nombre), item));
+    return map;
+  }, [equipos]);
+  const selectedTeam = (teamName: string) => teamLookup.get(normalizeText(teamName));
   const partidosDisponibles = useMemo(() => {
-    const partidosFiltrados = deporteFiltroId ? partidos.filter((item) => item.deporteId === deporteFiltroId) : partidos;
-    return partidosFiltrados.filter((item) => editing?.partidoId === item.id || !resultadoPartidoIds.has(item.id));
+    const filteredBySport = deporteFiltroId ? partidos.filter((item) => item.deporteId === deporteFiltroId) : partidos;
+    return filteredBySport.filter((item) => editing?.partidoId === item.id || !resultadoPartidoIds.has(item.id));
   }, [deporteFiltroId, editing?.partidoId, partidos, resultadoPartidoIds]);
   const participantesDelPartido = selectedPartido
     ? participantes.filter((item) => item.equipoId === selectedPartido.equipoLocalId || item.equipoId === selectedPartido.equipoVisitanteId)
     : participantes;
-  const table = useTableControls(data, (item, query) =>
-    [item.equipoLocal, item.equipoVisitante, item.deporte, item.observaciones ?? "", String(item.puntajeLocal), String(item.puntajeVisitante)]
-      .some((value) => value.toLowerCase().includes(query)),
-  );
 
   useEffect(() => {
-    Promise.all([deporteService.list(), programacionService.list(), participanteService.list()])
-      .then(([deportesData, partidosData, participantesData]) => {
+    Promise.all([deporteService.list(), programacionService.list(), participanteService.list(), equipoService.list()])
+      .then(([deportesData, partidosData, participantesData, equiposData]) => {
         setDeportes(deportesData);
         setPartidos(partidosData);
         setParticipantes(participantesData);
+        setEquipos(equiposData);
       })
       .catch((error) => alerts.error("Error al cargar datos", getErrorMessage(error)));
   }, []);
+
+  useEffect(() => {
+    if (!hydratedRef.current) {
+      hydratedRef.current = true;
+      return;
+    }
+
+    const query = buildQueryString(deporteFiltroId, table.query, table.page);
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [deporteFiltroId, pathname, router, table.page, table.query]);
 
   const setAnotacion = (index: number, patch: Partial<ResultadoAnotacionRequest>) => {
     const anotaciones = [...(form.anotaciones ?? [])];
@@ -113,22 +174,7 @@ export function ResultadosClient() {
     setOpen(true);
   };
 
-  const startEdit = (item: Resultado) => {
-    setEditing(item);
-    setForm({
-      partidoId: item.partidoId,
-      puntajeLocal: item.puntajeLocal,
-      puntajeVisitante: item.puntajeVisitante,
-      observaciones: item.observaciones ?? "",
-      anotaciones: item.anotaciones.map((anotacion) => ({
-        participanteId: anotacion.participanteId,
-        cantidad: anotacion.cantidad,
-      })),
-    });
-    setOpen(true);
-  };
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!editing && resultadoPartidoIds.has(form.partidoId)) {
       await alerts.warning("Resultado duplicado", "El partido seleccionado ya tiene un resultado registrado.");
@@ -140,18 +186,14 @@ export function ResultadosClient() {
     }
     setSubmitting(true);
     try {
-      let message = "Resultado registrado";
-      if (editing) {
-        await resultadoService.update(editing.id, form);
-        message = "Resultado actualizado";
-      } else {
-        await resultadoService.create(form);
-        const partido = partidos.find((item) => item.id === form.partidoId);
-        setDeporteFiltroId(partido?.deporteId ?? deporteFiltroId);
-      }
+      await resultadoService.create(form);
       setOpen(false);
+      const partido = partidos.find((item) => item.id === form.partidoId);
+      if (partido?.deporteId) {
+        setDeporteFiltroId(partido.deporteId);
+      }
       await reload();
-      await alerts.success(message);
+      await alerts.success("Resultado registrado");
     } catch (error) {
       await alerts.error("No se pudo guardar", getErrorMessage(error));
     } finally {
@@ -159,116 +201,132 @@ export function ResultadosClient() {
     }
   };
 
-  const remove = async (item: Resultado) => {
-    const result = await alerts.confirm("Eliminar resultado", `${item.equipoLocal} vs ${item.equipoVisitante}.`);
-    if (!result.isConfirmed) return;
-    try {
-      await resultadoService.remove(item.id);
-      await alerts.success("Resultado eliminado");
-      await reload();
-    } catch (error) {
-      await alerts.error("No se pudo eliminar", getErrorMessage(error));
-    }
-  };
+  const sportCards = useMemo(() => {
+    const resultsWithScore = data.filter((item) => item.puntajeLocal + item.puntajeVisitante > 0).length;
+    const totalAnotaciones = data.reduce((sum, item) => sum + (item.anotaciones?.length ?? 0), 0);
+    const averageScore = data.length === 0 ? 0 : Number((data.reduce((sum, item) => sum + item.puntajeLocal + item.puntajeVisitante, 0) / data.length).toFixed(1));
 
-  const columns: DataTableColumn<Resultado>[] = [
-    {
-      key: "partido",
-      header: "Partido",
-      render: (item) => (
-        <span className="font-bold text-slate-950">
-          {item.equipoLocal} vs {item.equipoVisitante}
-          <span className="block text-xs font-semibold text-slate-500">{item.observaciones || "Sin observaciones"}</span>
-        </span>
-      ),
-    },
-    { key: "deporte", header: "Deporte", render: (item) => item.deporte },
-    { key: "marcador", header: "Marcador", render: (item) => <Badge tone="slate">{item.puntajeLocal} - {item.puntajeVisitante}</Badge> },
-    {
-      key: "anotaciones",
-      header: "Estadísticas individuales",
-      render: (item) => {
-        const labels = getSportLabels(item.deporte);
-        if (!item.anotaciones?.length) {
-          return <span className="text-xs font-semibold text-slate-400">Sin detalle</span>;
-        }
-        return (
-          <div className="flex max-w-xs flex-wrap gap-1.5">
-            {item.anotaciones.slice(0, 3).map((anotacion) => (
-              <Badge tone="blue" key={`${item.id}-${anotacion.participanteId}`}>
-                {anotacion.participanteNombreCompleto}: {anotacion.cantidad} {labels.plural}
-              </Badge>
-            ))}
-            {item.anotaciones.length > 3 && <Badge tone="slate">+{item.anotaciones.length - 3}</Badge>}
-          </div>
-        );
-      },
-    },
-    { key: "acciones", header: "Acciones", align: "right", render: (item) => <RowActions onEdit={() => startEdit(item)} onDelete={() => remove(item)} /> },
-  ];
+    return [
+      { label: "Resultados", value: data.length, hint: "Partidos registrados", icon: BarChart3 },
+      { label: "Marcadores activos", value: resultsWithScore, hint: "Con goles o puntos", icon: Target },
+      { label: "Anotaciones", value: totalAnotaciones, hint: "Detalle individual cargado", icon: Users },
+      { label: "Promedio", value: averageScore, hint: "Marcador por encuentro", icon: Sparkles },
+    ];
+  }, [data]);
+
+  const queryString = buildQueryString(deporteFiltroId, table.query, table.page);
 
   return (
-    <>
-      <PageHeader
+    <div className="space-y-5">
+    <PageHeader
         title="Resultados"
         description="Carga marcadores y observaciones de cada partido."
         action={<PrimaryActionButton onClick={startCreate} disabled={partidosDisponibles.length === 0}>Registrar resultado</PrimaryActionButton>}
       />
+      
 
-      {loading ? <LoadingState /> : data.length === 0 ? (
-        <div className="grid gap-5">
-          <section className="module-panel">
-            <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-700">Filtro por deporte</p>
-                <h3 className="mt-1 text-xl font-black text-slate-950">{selectedDeporte?.nombre ?? "Todos los deportes"}</h3>
-                <p className="mt-1 text-sm font-semibold text-slate-500">Revisa marcadores y estadísticas individuales por disciplina.</p>
-              </div>
-              <div>
-                <label className={labelClass}>Deporte</label>
-                <select className={fieldClass} value={deporteFiltroId} onChange={(e) => setDeporteFiltroId(Number(e.target.value))}>
-                  <option value={0}>Todos los deportes</option>
-                  {deportes.map((item) => <option value={item.id} key={item.id}>{item.nombre}</option>)}
-                </select>
-              </div>
-            </div>
-          </section>
-          <EmptyState title="Sin resultados" description="Registra el marcador cuando finalice una contienda." />
+      <section className="rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm lg:p-4">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-700">Filtro rapido</p>
+            <h2 className="mt-1 text-2xl font-black tracking-tight text-slate-950">{selectedDeporte?.nombre ?? "Todos los deportes"}</h2>
+            <p className="mt-1 text-sm font-semibold text-slate-500">
+              {selectedDeporte ? `${table.filteredItems} resultados en ${selectedDeporte.nombre}.` : `${table.filteredItems} resultados en total.`}
+            </p>
+          </div>
+          <label className="flex h-12 w-full max-w-xl items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 shadow-sm xl:min-w-[360px]">
+            <Search className="text-slate-400" size={18} />
+            <input
+              className="w-full bg-transparent text-sm font-semibold text-slate-900 outline-none placeholder:text-slate-400"
+              placeholder="Buscar encuentro, anotador u observacion..."
+              value={table.query}
+              onChange={(event) => table.setQuery(event.target.value)}
+            />
+          </label>
+        </div>
+
+        <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+          <SportChip label="All Sports" icon={LayoutGrid} active={deporteFiltroId === 0} onClick={() => setDeporteFiltroId(0)} count={data.length} />
+          {deportes.map((item) => {
+            const meta = getSportMeta(item.nombre);
+            return (
+              <SportChip
+                key={item.id}
+                label={item.nombre}
+                icon={meta.icon}
+                active={deporteFiltroId === item.id}
+                onClick={() => setDeporteFiltroId(item.id)}
+                count={data.filter((resultado) => normalizeText(resultado.deporte) === normalizeText(item.nombre)).length}
+              />
+            );
+          })}
+        </div>
+      </section>
+
+      {loading ? (
+        <LoadingState />
+      ) : data.length === 0 ? (
+        <EmptyState title="Sin resultados" description="Registra el marcador cuando finalice una contienda." />
+      ) : table.pageItems.length === 0 ? (
+        <div className="rounded-[28px] border border-slate-200 bg-white p-10 text-center shadow-sm">
+          <h3 className="text-xl font-black text-slate-950">No encontramos coincidencias</h3>
+          <p className="mt-2 text-sm font-semibold text-slate-500">Ajusta el filtro o limpia la busqueda para ver otros encuentros.</p>
         </div>
       ) : (
-        <div className="grid gap-5">
-          <section className="module-panel">
-            <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-700">Filtro por deporte</p>
-                <h3 className="mt-1 text-xl font-black text-slate-950">{selectedDeporte?.nombre ?? "Todos los deportes"}</h3>
-                <p className="mt-1 text-sm font-semibold text-slate-500">
-                  {selectedDeporte ? `${data.length} resultados registrados en ${selectedDeporte.nombre}.` : `${data.length} resultados registrados.`}
-                </p>
-              </div>
-              <div>
-                <label className={labelClass}>Deporte</label>
-                <select className={fieldClass} value={deporteFiltroId} onChange={(e) => setDeporteFiltroId(Number(e.target.value))}>
-                  <option value={0}>Todos los deportes</option>
-                  {deportes.map((item) => <option value={item.id} key={item.id}>{item.nombre}</option>)}
-                </select>
-              </div>
-            </div>
-          </section>
+        <div className="space-y-2.5">
+          {table.pageItems.map((item) => {
+            const meta = getSportMeta(item.deporte);
+            const Icon = meta.icon;
+            const localTeam = selectedTeam(item.equipoLocal);
+            const visitorTeam = selectedTeam(item.equipoVisitante);
+            const winner = getResultWinnerLabel(item);
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => router.push(queryString ? `/resultados/${item.id}?${queryString}` : `/resultados/${item.id}`)}
+                className={`group flex w-full items-center gap-2.5 rounded-[18px] border ${meta.borderClass} bg-white px-3 py-2 text-left shadow-sm transition-all duration-300 ease-[cubic-bezier(.22,1,.36,1)] hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(15,23,42,0.08)]`}
+                aria-label={`Abrir detalle de ${item.equipoLocal} contra ${item.equipoVisitante}`}
+              >
+                <div className={`hidden h-8 w-8 shrink-0 items-center justify-center rounded-2xl ${meta.softClass} ring-1 ring-slate-100 md:flex`}>
+                  <Icon size={15} />
+                </div>
 
-          <div className="module-panel">
-            <TableToolbar
-              query={table.query}
-              onQueryChange={table.setQuery}
-              pageSize={table.pageSize}
-              onPageSizeChange={table.setPageSize}
-              totalItems={table.totalItems}
-              filteredItems={table.filteredItems}
-              placeholder="Buscar resultado, equipo o deporte..."
-            />
-            <DataTable columns={columns} items={table.pageItems} getRowKey={(item) => item.id} />
-            <PaginationControls page={table.page} totalPages={table.totalPages} onPageChange={table.setPage} />
-          </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">
+                    <Badge tone={meta.label === "Football" ? "blue" : meta.label === "Basketball" ? "green" : meta.label === "Volleyball" ? "amber" : "slate"}>{item.deporte}</Badge>
+                  </div>
+
+                  <div className="mt-1 grid min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-2.5">
+                    <div className="min-w-0 text-right sm:flex sm:items-center sm:justify-end sm:gap-2">
+                      <div className="min-w-0">
+                        <p className="truncate text-[13px] font-black text-slate-950 md:text-[14px]">{item.equipoLocal}</p>
+                      </div>
+                      <TeamIdentity name={item.equipoLocal} flag={localTeam?.bandera} countryName={localTeam?.paisNombre} size={16} className="hidden ring-2 ring-white sm:grid" />
+                    </div>
+
+                    <div className="flex items-center justify-center">
+                      <ScorePill home={item.puntajeLocal} away={item.puntajeVisitante} />
+                    </div>
+
+                    <div className="min-w-0 sm:flex sm:items-center sm:gap-3">
+                      <TeamIdentity name={item.equipoVisitante} flag={visitorTeam?.bandera} countryName={visitorTeam?.paisNombre} size={16} className="hidden ring-2 ring-white sm:grid" />
+                      <div className="min-w-0">
+                        <p className="truncate text-[13px] font-black text-slate-950 md:text-[14px]">{item.equipoVisitante}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex shrink-0 items-center gap-2 text-slate-400 transition group-hover:text-blue-700">
+                  <span className="hidden text-[10px] font-black uppercase tracking-[0.18em] sm:inline">Ver</span>
+                  <Trophy size={16} />
+                </div>
+              </button>
+            );
+          })}
+
+          <PaginationControls page={table.page} totalPages={table.totalPages} onPageChange={table.setPage} />
         </div>
       )}
 
@@ -352,9 +410,15 @@ export function ResultadosClient() {
                       />
                     </div>
                     <div className="flex justify-end md:col-span-1">
-                      <IconActionButton label="Quitar anotación" tone="danger" onClick={() => removeAnotacion(index)}>
-                        <X size={16} />
-                      </IconActionButton>
+                      <button
+                        type="button"
+                        className="inline-grid h-8 w-8 place-items-center rounded-lg border border-red-100 bg-white text-red-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-red-50 hover:text-red-700"
+                        onClick={() => removeAnotacion(index)}
+                        aria-label="Quitar anotacion"
+                        title="Quitar anotacion"
+                      >
+                        ×
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -363,6 +427,6 @@ export function ResultadosClient() {
           </div>
         </div>
       </FormModal>
-    </>
+    </div>
   );
 }
