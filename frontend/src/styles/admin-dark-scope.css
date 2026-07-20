@@ -1,5 +1,4 @@
-﻿/* Dark mode is intentionally scoped to the sidebar only. */
-html.op-dark body {
+﻿/*html.op-dark body {
   background: #f6f8fb;
   color: var(--op-text);
 }
@@ -7,7 +6,7 @@ html.op-dark body {
 html.op-dark .op-shell,
 html.op-dark .op-main {
   background: #f5f7fb;
-}
+}*/
 
 html.op-dark .op-navbar {
   background: rgba(255, 255, 255, 0.94);
@@ -29,17 +28,17 @@ html.op-dark .op-top-search span {
 }
 
 html.op-dark .op-action-divider {
-  background: #e5e7eb;
+  background: rgba(255, 255, 255, 0.1) !important;
 }
 
 html.op-dark .op-mobile-menu-button:hover,
 html.op-dark .op-icon-button:hover {
-  background: #eef2f7;
-  color: #0f172a;
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc !important;
 }
 
 html.op-dark .op-notification-dot {
-  border-color: #fff;
+  border-color: #0c111d !important;
 }
 
 html.op-dark .op-profile-popover {
@@ -95,4 +94,3 @@ html.op-dark .text-slate-600 {
 html.op-dark .text-slate-500 {
   color: #64748b !important;
 }
-

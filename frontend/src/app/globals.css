@@ -9,6 +9,6 @@
 @import "../styles/admin-sidebar-premium.css";
 @import "../styles/admin-content.css";
 @import "../styles/admin-navbar.css";
-@import "../styles/admin-dark-legacy.css";
-@import "../styles/admin-dark-scope.css";
 @import "../styles/admin-sidebar-theme.css";
+@import "../styles/admin-dark-scope.css";
+@import "../styles/admin-dark-legacy.css";
